@@ -1,0 +1,18 @@
+{
+  "done": true,
+  "migration": {
+    "name": "sql_57b2b67ca8d669",
+    "operations": [
+      {
+        "sql": {
+          "up": "CREATE TABLE classification_system (id varchar(50) PRIMARY KEY NOT NULL, name classification_system_enum NOT NULL, description text)"
+        }
+      }
+    ]
+  },
+  "migrationType": "inferred",
+  "name": "sql_57b2b67ca8d669",
+  "parent": "sql_07c4b574da806a",
+  "schema": "public",
+  "startedAt": "2025-04-13T15:04:09.051236Z"
+}

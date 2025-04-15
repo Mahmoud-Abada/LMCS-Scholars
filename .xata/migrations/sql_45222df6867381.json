@@ -1,0 +1,18 @@
+{
+  "done": true,
+  "migration": {
+    "name": "sql_45222df6867381",
+    "operations": [
+      {
+        "sql": {
+          "up": "CREATE TABLE venue (id varchar(50) PRIMARY KEY NOT NULL, name varchar(255) NOT NULL, type venue_type NOT NULL, theme varchar(100), scope varchar(100), location varchar(255), start_date date, end_date date, periodicity varchar(50))"
+        }
+      }
+    ]
+  },
+  "migrationType": "inferred",
+  "name": "sql_45222df6867381",
+  "parent": "sql_4484ae402b39f0",
+  "schema": "public",
+  "startedAt": "2025-04-13T15:04:14.551015Z"
+}

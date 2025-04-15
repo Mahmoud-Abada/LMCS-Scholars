@@ -1,0 +1,18 @@
+{
+  "done": true,
+  "migration": {
+    "name": "sql_dbf5499a5348e1",
+    "operations": [
+      {
+        "sql": {
+          "up": "CREATE TYPE bb_aqp3pm3rbh02r15m8fh3tjpppo_ub7vq9.classification_system_enum AS ENUM ('CORE', 'Scimago', 'DGRSDT', 'Qualis', 'other')"
+        }
+      }
+    ]
+  },
+  "migrationType": "inferred",
+  "name": "sql_dbf5499a5348e1",
+  "parent": "mig_cvtsv117hprt444eosu0",
+  "schema": "public",
+  "startedAt": "2025-04-13T15:04:06.370266Z"
+}

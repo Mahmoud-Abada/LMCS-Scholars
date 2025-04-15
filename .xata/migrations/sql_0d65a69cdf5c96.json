@@ -1,0 +1,18 @@
+{
+  "done": true,
+  "migration": {
+    "name": "sql_0d65a69cdf5c96",
+    "operations": [
+      {
+        "sql": {
+          "up": "ALTER TABLE publication_venue ADD CONSTRAINT publication_venue_venue_id_venue_id_fk FOREIGN KEY (venue_id) REFERENCES bb_aqp3pm3rbh02r15m8fh3tjpppo_ub7vq9.venue (id) ON DELETE CASCADE"
+        }
+      }
+    ]
+  },
+  "migrationType": "inferred",
+  "name": "sql_0d65a69cdf5c96",
+  "parent": "sql_e696cc795596f4",
+  "schema": "public",
+  "startedAt": "2025-04-13T15:04:15.884958Z"
+}

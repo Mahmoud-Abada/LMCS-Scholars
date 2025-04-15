@@ -1,0 +1,18 @@
+{
+  "done": true,
+  "migration": {
+    "name": "sql_37d157d1fa984e",
+    "operations": [
+      {
+        "sql": {
+          "up": "ALTER TABLE \"user\" ADD CONSTRAINT user_researcher_id_researcher_id_fk FOREIGN KEY (researcher_id) REFERENCES bb_aqp3pm3rbh02r15m8fh3tjpppo_ub7vq9.researcher (id) ON DELETE SET NULL"
+        }
+      }
+    ]
+  },
+  "migrationType": "inferred",
+  "name": "sql_37d157d1fa984e",
+  "parent": "sql_04e7761d2dd210",
+  "schema": "public",
+  "startedAt": "2025-04-13T15:04:16.501007Z"
+}

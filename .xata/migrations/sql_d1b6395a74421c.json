@@ -1,0 +1,18 @@
+{
+  "done": true,
+  "migration": {
+    "name": "sql_d1b6395a74421c",
+    "operations": [
+      {
+        "sql": {
+          "up": "CREATE TYPE bb_aqp3pm3rbh02r15m8fh3tjpppo_ub7vq9.research_grade AS ENUM ('research_assistant', 'research_associate', 'research_director', 'none')"
+        }
+      }
+    ]
+  },
+  "migrationType": "inferred",
+  "name": "sql_d1b6395a74421c",
+  "parent": "sql_bd1cb869fb1772",
+  "schema": "public",
+  "startedAt": "2025-04-13T15:04:06.920163Z"
+}

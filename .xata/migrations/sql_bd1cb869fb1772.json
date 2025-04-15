@@ -1,0 +1,18 @@
+{
+  "done": true,
+  "migration": {
+    "name": "sql_bd1cb869fb1772",
+    "operations": [
+      {
+        "sql": {
+          "up": "CREATE TYPE bb_aqp3pm3rbh02r15m8fh3tjpppo_ub7vq9.publication_type AS ENUM ('journal', 'conference', 'chapter', 'patent', 'other')"
+        }
+      }
+    ]
+  },
+  "migrationType": "inferred",
+  "name": "sql_bd1cb869fb1772",
+  "parent": "sql_dbf5499a5348e1",
+  "schema": "public",
+  "startedAt": "2025-04-13T15:04:06.590235Z"
+}

@@ -1,0 +1,6 @@
+{
+  "databaseURL": "https://Mahmoud-ABADA-s-workspace-ub7vq9.eu-central-1.xata.sh/db/lmcs-db",
+  "codegen": {
+    "output": "db/xata.ts"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "done": true,
+  "migration": {
+    "name": "sql_e94ce2abb7f989",
+    "operations": [
+      {
+        "sql": {
+          "up": "ALTER TABLE publication_classification ADD CONSTRAINT publication_classification_system_id_classification_system_id_f FOREIGN KEY (system_id) REFERENCES bb_aqp3pm3rbh02r15m8fh3tjpppo_ub7vq9.classification_system (id) ON DELETE CASCADE"
+        }
+      }
+    ]
+  },
+  "migrationType": "inferred",
+  "name": "sql_e94ce2abb7f989",
+  "parent": "sql_b0d61783cb39fd",
+  "schema": "public",
+  "startedAt": "2025-04-13T15:04:15.374895Z"
+}

@@ -1,0 +1,18 @@
+{
+  "done": true,
+  "migration": {
+    "name": "sql_04e7761d2dd210",
+    "operations": [
+      {
+        "sql": {
+          "up": "ALTER TABLE publication ADD CONSTRAINT publication_researcher_id_researcher_id_fk FOREIGN KEY (researcher_id) REFERENCES bb_aqp3pm3rbh02r15m8fh3tjpppo_ub7vq9.researcher (id) ON DELETE CASCADE"
+        }
+      }
+    ]
+  },
+  "migrationType": "inferred",
+  "name": "sql_04e7761d2dd210",
+  "parent": "sql_0d65a69cdf5c96",
+  "schema": "public",
+  "startedAt": "2025-04-13T15:04:16.189968Z"
+}
