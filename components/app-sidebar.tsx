@@ -33,7 +33,7 @@ const data = {
   teams: [
     {
       name: "LMCS Scholars",
-      logo: "https://res.cloudinary.com/dlzlfasou/image/upload/v1741345507/logo-01_kp2j8x.png",
+      logo: "/images/lmcs.jpg",
     },
   ],
   navMain: [
@@ -101,14 +101,25 @@ const data = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
-    <Sidebar {...props}>
-      <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
-        <hr className="border-t border-border mx-2 -mt-px" />
-        <SearchForm className="mt-3" />
+    <Sidebar {...props} className="bg-blue-600/90 ml-0"> {/* ← CHANGE THIS LINE */}
+
+      <SidebarHeader className="px-2 pt-2 pb-0">
+        {/* Custom logo implementation without container constraints */}
+        <div className="flex flex-col items-center">
+          <img 
+            src="/images/lmcs.jpg" 
+            alt="LMCS Laboratory" 
+            className="h-24 w-auto max-w-[180px] object-contain mb-3" 
+          />
+          <span className="text-lg font-semibold text-foreground">LMCS Scholars</span>
+        </div>
+        
+        <hr className="border-t border-border mx-2 -mt-px my-4" />
+        <SearchForm className="mt-0" />
       </SidebarHeader>
+      
+      {/* Rest of your sidebar content remains the same */}
       <SidebarContent>
-        {/* We create a SidebarGroup for each parent. */}
         {data.navMain.map((item) => (
           <SidebarGroup key={item.title}>
             <SidebarGroupLabel className="uppercase text-muted-foreground/60">
@@ -141,6 +152,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarGroup>
         ))}
       </SidebarContent>
+      
       <SidebarFooter>
         <hr className="border-t border-border mx-2 -mt-px" />
         <SidebarMenu>
@@ -156,6 +168,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
+      
       <SidebarRail />
     </Sidebar>
   );
