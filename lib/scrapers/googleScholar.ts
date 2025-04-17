@@ -27,7 +27,7 @@ export async function scrapeGoogleScholarPublications(chercheurName: string) {
   const searchUrl = `https://dblp.org/search/author?q=${cherName}`;
   const urlGoogleScholar = `https://scholar.google.com/scholar?q=${cherName}`;
 
-  const browser = await puppeteer.launch({ headless: 'new' });
+  const browser = await puppeteer.launch({ headless: true });
   const page = await browser.newPage();
   const allResults: { chercheur: string; publications: PublicationData[] }[] = [];
 
@@ -47,14 +47,28 @@ export async function scrapeGoogleScholarPublications(chercheurName: string) {
 
     while (true) {
       try {
+        // Scroll to bottom to ensure the button is visible
+        await page.evaluate(() => window.scrollBy(0, window.innerHeight));
+    
+        // Check if button exists and is enabled
         const loadMore = await page.$('#gsc_bpf_more');
         if (!loadMore) break;
+    
+        const isDisabled = await page.$eval('#gsc_bpf_more', el => el.hasAttribute('disabled'));
+        if (isDisabled) break;
+    
+        // Click and wait for more items to load
         await loadMore.click();
-        await page.waitForTimeout(1000);
-      } catch {
+        await new Promise(resolve => setTimeout(resolve, 2000));
+ // Longer wait to ensure items load
+      } catch (err) {
+        console.error('Error loading more results:', err);
         break;
       }
     }
+    
+    await page.screenshot({ path: 'scholar-full-page.png', fullPage: true });
+
 
     const htmlScholar = await page.content();
     const $$ = cheerio.load(htmlScholar);
@@ -70,7 +84,7 @@ export async function scrapeGoogleScholarPublications(chercheurName: string) {
       const pub = $$$(dblpPublishes[i]);
       const titleTag = pub.find('span.title');
       const title = titleTag.text().trim();
-      const year = pub.closest('li.year').text();
+      const volume_nom_a_tag = titleTag.next();
 
       const matchIndex = allGoogleScholarTitles.toArray().findIndex(el =>
         isSimilar($$(el).text(), title)
@@ -84,16 +98,32 @@ export async function scrapeGoogleScholarPublications(chercheurName: string) {
       if (pubUrl) await page.goto(pubUrl);
       const pubDetails = cheerio.load(await page.content());
       const fields = pubDetails('div.gsc_oci_field');
+      const jOrC = pub.prevAll('div.nr')?.text().trim().toLowerCase();
+      let lieu = '';
+
+      if (jOrC?.[1] === 'c') {
+        const confLink = volume_nom_a_tag.attr('href');
+        if (confLink) {
+          try {
+            const confPage = await axios.get(confLink);
+            const confSoup = cheerio.load(confPage.data);
+            lieu = confSoup('h1').text().split(':')[1]?.trim() || '';
+          } catch (error) {
+            console.warn(`Failed to fetch conference location from ${confLink}:`);
+          }
+        }
+      }
+
 
       const myData: PublicationData = {
         titre_publication: title,
         nombre_pages: pub.find('span[itemprop="pagination"]').text() || '',
-        volumes: pub.find('span[itemprop="volumeNumber"]').text() || '',
-        lien: pub.closest('nav.publ').find('a').attr('href') || '',
-        annee: year,
-        nom: pub.find('span[itemprop="isPartOf"] span[itemprop="name"]').text() || '',
+        volumes: volume_nom_a_tag.find('span[itemprop="isPartOf"] span[itemprop="volumeNumber"]').text() || '',
+        lien: pub.prevAll('nav.publ').find('a').attr('href') || '',
+        annee: pub.find('span[itemprop="datePublished"]').text() || '',
+        nom: volume_nom_a_tag.find('span[itemprop="isPartOf"] span[itemprop="name"]').text() || '',
         type: fields.eq(2).text() || '',
-        lieu: '',
+        lieu: lieu || '',
       };
 
       publications.push(myData);
