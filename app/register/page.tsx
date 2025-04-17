@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { SubmitButton } from "@/components/submit-button";
+import Image from "next/image";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -39,54 +40,82 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-800 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-[#d2e8ff] px-4 py-8 overflow-y-auto">
       <form
-        className="space-y-6 w-full max-w-md p-8 bg-black shadow rounded-xl border"
+        className="space-y-4 w-full max-w-md p-6 bg-white shadow-lg rounded-xl border border-gray-200"
         action={handleRegister}
       >
-        <h1 className="text-2xl font-bold text-center text-gray-800">
-          Create Account
-        </h1>
-
-        {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-
-        <div>
-          <label className="block mb-1 font-medium">Name</label>
-          <input
-            name="name"
-            type="text"
-            required
-            className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        <div className="flex flex-col items-center">
+          <Image
+            src="/images/lmcs.jpg"
+            alt="LMCS Logo"
+            width={100}
+            height={100}
+            className="mb-3 rounded-lg"
           />
+          <h1 className="text-xl font-bold text-center text-gray-800">
+            Create Account
+          </h1>
+          <p className="text-gray-600 text-sm mt-1">Join the LMCS Research Portal</p>
         </div>
 
-        <div>
-          <label className="block mb-1 font-medium">Email</label>
-          <input
-            name="email"
-            type="email"
-            required
-            className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+        {error && (
+          <div className="bg-red-50 p-2 rounded-md">
+            <p className="text-red-600 text-xs text-center">{error}</p>
+          </div>
+        )}
+
+        <div className="space-y-3">
+          <div>
+            <label className="block mb-1 text-sm font-medium text-gray-700">
+              Full Name
+            </label>
+            <input
+              name="name"
+              type="text"
+              required
+              className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Enter your full name"
+            />
+          </div>
+
+          <div>
+            <label className="block mb-1 text-sm font-medium text-gray-700">
+              Email
+            </label>
+            <input
+              name="email"
+              type="email"
+              required
+              className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Enter your email"
+            />
+          </div>
+
+          <div>
+            <label className="block mb-1 text-sm font-medium text-gray-700">
+              Password
+            </label>
+            <input
+              name="password"
+              type="password"
+              required
+              className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Create a password"
+            />
+          </div>
         </div>
 
-        <div>
-          <label className="block mb-1 font-medium">Password</label>
-          <input
-            name="password"
-            type="password"
-            required
-            className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-
-        <SubmitButton className="w-full bg-green-600 text-white p-2 rounded-md hover:bg-green-700">
+        <SubmitButton className="w-full bg-blue-600 text-white p-2 text-sm rounded-lg hover:bg-blue-700 transition-colors font-medium">
           Register
         </SubmitButton>
 
-        <p className="text-sm text-center text-gray-600">
+        <p className="text-xs text-center text-gray-600">
           Already have an account?{" "}
-          <a href="/login" className="text-blue-600 hover:underline">
+          <a 
+            href="/login" 
+            className="text-blue-600 hover:underline font-medium"
+          >
             Sign in
           </a>
         </p>
