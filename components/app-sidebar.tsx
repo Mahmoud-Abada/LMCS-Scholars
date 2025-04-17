@@ -47,7 +47,6 @@ const data = {
           icon: RiUserFollowLine,
           isActive: true,
         },
-        
         {
           title: "Publications",
           url: "#",
@@ -101,28 +100,25 @@ const data = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
-    <Sidebar {...props} className="bg-blue-600/90 ml-0"> {/* ← CHANGE THIS LINE */}
-
-      <SidebarHeader className="px-2 pt-2 pb-0">
-        {/* Custom logo implementation without container constraints */}
+    <Sidebar {...props} className="!bg-[#d2e8ff] text-gray-800 !fixed h-screen overflow-y-hidden">
+      <SidebarHeader className="px-2 pt-2 pb-0 !bg-[#d2e8ff]">
         <div className="flex flex-col items-center">
           <img 
             src="/images/lmcs.jpg" 
             alt="LMCS Laboratory" 
-            className="h-24 w-auto max-w-[180px] object-contain mb-3" 
+            className="h-24 w-auto max-w-[180px] object-contain mb-3 rounded-lg" 
           />
-          <span className="text-lg font-semibold text-foreground">LMCS Scholars</span>
+          <span className="text-lg font-semibold text-gray-800">LMCS Scholars</span>
         </div>
         
-        <hr className="border-t border-border mx-2 -mt-px my-4" />
+        <hr className="border-t border-blue-500 mx-2 -mt-px my-4" />
         <SearchForm className="mt-0" />
       </SidebarHeader>
       
-      {/* Rest of your sidebar content remains the same */}
-      <SidebarContent>
+      <SidebarContent className="!bg-[#d2e8ff] overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
         {data.navMain.map((item) => (
           <SidebarGroup key={item.title}>
-            <SidebarGroupLabel className="uppercase text-muted-foreground/60">
+            <SidebarGroupLabel className="uppercase text-gray-600">
               {item.title}
             </SidebarGroupLabel>
             <SidebarGroupContent className="px-2">
@@ -131,18 +127,20 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
                       asChild
-                      className="group/menu-button font-medium gap-3 h-9 rounded-md bg-gradient-to-r hover:bg-transparent hover:from-sidebar-accent hover:to-sidebar-accent/40 data-[active=true]:from-primary/20 data-[active=true]:to-primary/5 [&>svg]:size-auto"
+                      className="group/menu-button font-medium gap-3 h-9 rounded-md hover:bg-blue-500/30 data-[active=true]:bg-blue-600 [&>svg]:size-auto"
                       isActive={item.isActive}
                     >
                       <a href={item.url}>
                         {item.icon && (
                           <item.icon
-                            className="text-muted-foreground/60 group-data-[active=true]/menu-button:text-primary"
+                            className="text-gray-700 group-data-[active=true]/menu-button:text-white"
                             size={22}
                             aria-hidden="true"
                           />
                         )}
-                        <span>{item.title}</span>
+                        <span className="text-gray-800 group-data-[active=true]/menu-button:text-white">
+                          {item.title}
+                        </span>
                       </a>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -153,17 +151,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         ))}
       </SidebarContent>
       
-      <SidebarFooter>
-        <hr className="border-t border-border mx-2 -mt-px" />
+      <SidebarFooter className="!bg-[#d2e8ff]">
+        <hr className="border-t border-blue-500 mx-2 -mt-px" />
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton className="font-medium gap-3 h-9 rounded-md bg-gradient-to-r hover:bg-transparent hover:from-sidebar-accent hover:to-sidebar-accent/40 data-[active=true]:from-primary/20 data-[active=true]:to-primary/5 [&>svg]:size-auto">
+            <SidebarMenuButton className="font-medium gap-3 h-9 rounded-md hover:bg-blue-500/30 [&>svg]:size-auto">
               <RiLogoutBoxLine
-                className="text-muted-foreground/60 group-data-[active=true]/menu-button:text-primary"
+                className="text-gray-700"
                 size={22}
                 aria-hidden="true"
               />
-              <span>Sign Out</span>
+              <span className="text-gray-800">Sign Out</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
