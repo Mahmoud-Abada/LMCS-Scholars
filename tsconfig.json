@@ -28,4 +28,5 @@
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "app/researcher/[id]/page.jsx"],
   "exclude": ["node_modules"]
+
 }
