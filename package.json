@@ -6,7 +6,8 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "seed:researchers": "tsx src/scripts/seed-researchers.ts"
   },
   "dependencies": {
     "@radix-ui/react-alert-dialog": "^1.1.7",
@@ -83,5 +84,6 @@
     "ts-node": "^10.9.2",
     "tsx": "^4.19.3",
     "typescript": "^5.8.3"
-  }
+  },
+  "type": "module"
 }

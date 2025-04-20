@@ -73,7 +73,7 @@ export async function scrapeGoogleScholarPublications(chercheurName: string) {
     const htmlScholar = await page.content();
     const $$ = cheerio.load(htmlScholar);
     const allGoogleScholarTitles = $$('.gsc_a_at');
-    const allGoogleScholarRows = $$('.gsc_a_t');
+    //const allGoogleScholarRows = $$('.gsc_a_t');
 
     const dblpHtml = (await axios.get(searchUrl)).data;
     const $$$ = cheerio.load(dblpHtml);
@@ -109,7 +109,7 @@ export async function scrapeGoogleScholarPublications(chercheurName: string) {
             const confSoup = cheerio.load(confPage.data);
             lieu = confSoup('h1').text().split(':')[1]?.trim() || '';
           } catch (error) {
-            console.warn(`Failed to fetch conference location from ${confLink}:`);
+            console.warn(`Failed to fetch conference location from ${confLink}:`, error);
           }
         }
       }
@@ -137,3 +137,9 @@ export async function scrapeGoogleScholarPublications(chercheurName: string) {
   await browser.close();
   return allResults;
 }
+
+//test 
+(async () => {
+  const result = await scrapeGoogleScholarPublications('MOULOUD KOUDIL');
+  console.log(result);
+})();

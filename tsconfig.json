@@ -26,7 +26,7 @@
       "@/lib/auth": ["./src/lib/auth.ts"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "app/researcher/[id]/page.jsx"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "app/researcher/[id]/page.jsx", "scripts/reset-db.js"],
   "exclude": ["node_modules"]
 
 }

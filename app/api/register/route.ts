@@ -1,5 +1,5 @@
-// src/app/api/register/route.ts
-import { hashPassword } from "@/lib/utils/auth";
+
+import bcrypt from 'bcryptjs';
 import { db } from "@/db/client";
 import { users } from "@/db/schema";
 import { NextResponse } from "next/server";
@@ -52,4 +52,18 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
+}
+
+
+
+export async function hashPassword(password: string): Promise<string> {
+  const salt = await bcrypt.genSalt(10);
+  return await bcrypt.hash(password, salt);
+}
+
+export async function verifyPassword(
+  password: string,
+  hashedPassword: string
+): Promise<boolean> {
+  return await bcrypt.compare(password, hashedPassword);
 }
