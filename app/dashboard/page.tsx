@@ -21,46 +21,18 @@ import { StatsGrid } from "@/components/stats-grid";
 import ResearchersTable from "@/components/researchers-table";
 
 export const metadata: Metadata = {
-  title: "Experiment 01 - Crafted.is",
+  title: "LMCS-Dashboard",
 };
 
 export default function Page() {
   return (
-    <div className="flex min-h-screen bg-background overflow-hidden">
+    <div className="flex min-h-screen bg-background w-200">
       <SidebarProvider>
-        <div className="flex-1 w-full overflow-x-hidden">
-          <SidebarInset className="overflow-hidden px-4 md:px-6 lg:px-8 max-w-screen-2xl mx-auto">
-            <header className="flex h-16 shrink-0 items-center gap-2 border-b">
-              <div className="flex flex-1 items-center gap-2 px-3">
-                <SidebarTrigger className="-ms-4" />
-                <Separator
-                  orientation="vertical"
-                  className="mr-2 data-[orientation=vertical]:h-4"
-                />
-                <Breadcrumb>
-                  <BreadcrumbList>
-                    <BreadcrumbItem className="hidden md:block">
-                      <BreadcrumbLink href="#">
-                        <RiScanLine size={22} aria-hidden="true" />
-                        <span className="sr-only">Dashboard</span>
-                      </BreadcrumbLink>
-                    </BreadcrumbItem>
-                    <BreadcrumbSeparator className="hidden md:block" />
-                    <BreadcrumbItem>
-                      <BreadcrumbPage>Researchers</BreadcrumbPage>
-                    </BreadcrumbItem>
-                  </BreadcrumbList>
-                </Breadcrumb>
-              </div>
-              <div className="flex gap-3 ml-auto">
-                <FeedbackDialog />
-                <UserDropdown />
-              </div>
-            </header>
-
-            <div className="flex flex-1 flex-col gap-4 lg:gap-6 py-4 lg:py-6 w-full">
+        <div className="flex-1 w-200">
+          <SidebarInset className="px-4 md:px-6 lg:px-8 mx-auto">
+            <div className="flex flex-1 flex-col gap-4 lg:gap-6 py-4 lg:py-6">
               {/* Page intro */}
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 w-full">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="space-y-1">
                   <h1 className="text-2xl font-semibold">Welcome, Admin!</h1>
                   <p className="text-sm text-muted-foreground">
@@ -74,7 +46,7 @@ export default function Page() {
               </div>
 
               {/* Numbers */}
-              <div className="w-full overflow-x-auto">
+              <div className="w-full">
                 <StatsGrid
                   stats={[
                     {
@@ -153,9 +125,13 @@ export default function Page() {
                 />
               </div>
 
-              {/* Table */}
-              <div className="flex-1 w-full overflow-x-auto">
-                <ResearchersTable />
+              {/* Table - Only allow horizontal scroll for the table itself */}
+              <div className="flex-1">
+                <div className="overflow-x-auto">
+                  <div className="min-w-[1024px] lg:min-w-0">
+                    <ResearchersTable />
+                  </div>
+                </div>
               </div>
             </div>
           </SidebarInset>

@@ -33,7 +33,6 @@ import {
   RiArrowDownLine,
 } from "@remixicon/react";
 
-// ... (keep your existing data constant)
 const data = {
   teams: [
     {
@@ -59,7 +58,7 @@ const data = {
         },
         {
           title: "Stats",
-          url: "#",
+          url: "/statistics",
           icon: RiScanLine,
         },
         {
@@ -145,15 +144,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar 
       {...props} 
-      className="!bg-[#d2e8ff] text-gray-800 !fixed h-screen overflow-y-hidden transition-all duration-300"
+      className="!bg-[#d2e8ff] text-gray-800 !fixed h-screen overflow-x-hidden transition-all duration-300"
     >
       {/* Toggle button */}
-      <button 
+      {/* <button 
         onClick={() => setIsCollapsed(true)}
-        className="absolute -right-4 top-4 z-50 p-1 bg-[#d2e8ff] text-gray-800 rounded-full shadow-lg hover:bg-blue-500/30 transition-all duration-300 border-2 border-gray-300 hover:scale-110"
+        className="absolute -right-1 top-4 z-50 p-1 bg-[#d2e8ff] text-gray-800 rounded-full shadow-lg hover:bg-blue-500/30 transition-all duration-300 border-2 border-gray-300 hover:scale-110"
       >
         <RiArrowLeftLine size={20} />
-      </button>
+      </button> */}
 
       <SidebarHeader className="px-2 pt-2 pb-0 !bg-[#d2e8ff]">
         <div className="flex flex-col items-center transition-all duration-300">
@@ -172,7 +171,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       {showScrollUp && (
         <button 
           onClick={scrollUp}
-          className="absolute right-4 top-40 z-10 p-2 bg-blue-500/50 text-gray-800 rounded-full w-8 h-8 flex items-center justify-center hover:bg-blue-500/70 transition-all duration-200 shadow-md hover:shadow-lg"
+          className="absolute right-0 top-55 z-10 p-2  text-gray-800  w-8 h-8 flex items-center justify-center  transition-all duration-200  hover:shadow-lg"
         >
           <RiArrowUpLine size={16} />
         </button>
@@ -221,7 +220,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       {showScrollDown && (
         <button 
           onClick={scrollDown}
-          className="absolute right-4 bottom-24 z-10 p-2 bg-blue-500/50 text-gray-800 rounded-full w-8 h-8 flex items-center justify-center hover:bg-blue-500/70 transition-all duration-200 shadow-md hover:shadow-lg"
+          className="absolute right-0 bottom-14 z-10 p-2  text-gray-800  w-8 h-8 flex items-center justify-center  transition-all duration-200  hover:shadow-lg"
         >
           <RiArrowDownLine size={16} />
         </button>
