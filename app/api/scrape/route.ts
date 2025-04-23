@@ -1,16 +1,13 @@
-import { scrapeGoogleScholarPublications } from "@/scripts/pubs";
-import { NextResponse } from "next/server";
-import 
+import { scrapeGoogleScholarPublications } from '@/scripts/pubs';
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET() {
+
+export async function GET(req: NextRequest) {
   try {
-    const data = await scrapeGoogleScholarPublications("MOULOUD KOUDIL");
-    return NextResponse.json({ message: "Publications fetched", data });
+    const data = await scrapeGoogleScholarPublications('ZEGOUR DJAMEL EDDINE');
+    return NextResponse.json({ message: 'Publications fetched', data });
   } catch (error) {
-    console.error("Scraping error:", error);
-    return NextResponse.json(
-      { message: "Scraping failed", error },
-      { status: 500 }
-    );
+    console.error('Scraping error:', error);
+    return NextResponse.json({ message: 'Scraping failed', error }, { status: 500 });
   }
 }
