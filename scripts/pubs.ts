@@ -27,106 +27,112 @@ export async function scrapeGoogleScholarPublications(chercheurName: string) {
   const searchUrl = `https://dblp.org/search/author?q=${cherName}`;
   const urlGoogleScholar = `https://scholar.google.com/scholar?q=${cherName}`;
 
-  const browser = await puppeteer.launch({ headless: true });
+  const browser = await puppeteer.launch({ headless: false });
   const page = await browser.newPage();
   const allResults: { chercheur: string; publications: PublicationData[] }[] = [];
+  const publications: PublicationData[] = [];
+
+  let hasGoogleScholar = false;
+  let hasDBLP = false;
 
   try {
+    // ---------- GOOGLE SCHOLAR ----------
     await page.goto(urlGoogleScholar, { waitUntil: 'networkidle2' });
     const htmlContent = await page.content();
     const $ = cheerio.load(htmlContent);
-
     const accLink = $('h4.gs_rt2 a').attr('href');
-    if (!accLink) {
-      await browser.close();
-      return [];
-    }
-    const profileUrl = `https://scholar.google.com/${accLink}`;
 
-    await page.goto(profileUrl);
+    if (accLink) {
+      hasGoogleScholar = true;
+      const profileUrl = `https://scholar.google.com/${accLink}`;
+      await page.goto(profileUrl);
 
-    while (true) {
-      try {
-        // Scroll to bottom to ensure the button is visible
-        await page.evaluate(() => window.scrollBy(0, window.innerHeight));
-    
-        // Check if button exists and is enabled
-        const loadMore = await page.$('#gsc_bpf_more');
-        if (!loadMore) break;
-    
-        const isDisabled = await page.$eval('#gsc_bpf_more', el => el.hasAttribute('disabled'));
-        if (isDisabled) break;
-    
-        // Click and wait for more items to load
-        await loadMore.click();
-        await new Promise(resolve => setTimeout(resolve, 2000));
- // Longer wait to ensure items load
-      } catch (err) {
-        console.error('Error loading more results:', err);
-        break;
-      }
-    }
-    
-    await page.screenshot({ path: 'scholar-full-page.png', fullPage: true });
-
-
-    const htmlScholar = await page.content();
-    const $$ = cheerio.load(htmlScholar);
-    const allGoogleScholarTitles = $$('.gsc_a_at');
-    //const allGoogleScholarRows = $$('.gsc_a_t');
-
-    const dblpHtml = (await axios.get(searchUrl)).data;
-    const $$$ = cheerio.load(dblpHtml);
-    const dblpPublishes = $$$('div.hideable cite.data');
-    const publications: PublicationData[] = [];
-
-    for (let i = 0; i < dblpPublishes.length; i++) {
-      const pub = $$$(dblpPublishes[i]);
-      const titleTag = pub.find('span.title');
-      const title = titleTag.text().trim();
-      const volume_nom_a_tag = titleTag.next();
-
-      const matchIndex = allGoogleScholarTitles.toArray().findIndex(el =>
-        isSimilar($$(el).text(), title)
-      );
-
-      if (matchIndex === -1) continue;
-
-      const scholarLink = $$(allGoogleScholarTitles[matchIndex]).attr('href');
-      const pubUrl = scholarLink ? `https://scholar.google.com${scholarLink}` : '';
-
-      if (pubUrl) await page.goto(pubUrl);
-      const pubDetails = cheerio.load(await page.content());
-      const fields = pubDetails('div.gsc_oci_field');
-      const jOrC = pub.prevAll('div.nr')?.text().trim().toLowerCase();
-      let lieu = '';
-
-      if (jOrC?.[1] === 'c') {
-        const confLink = volume_nom_a_tag.attr('href');
-        if (confLink) {
-          try {
-            const confPage = await axios.get(confLink);
-            const confSoup = cheerio.load(confPage.data);
-            lieu = confSoup('h1').text().split(':')[1]?.trim() || '';
-          } catch (error) {
-            console.warn(`Failed to fetch conference location from ${confLink}:`, error);
-          }
+      // Load all results
+      while (true) {
+        try {
+          await page.evaluate(() => window.scrollBy(0, window.innerHeight));
+          const loadMore = await page.$('#gsc_bpf_more');
+          if (!loadMore) break;
+          const isDisabled = await page.$eval('#gsc_bpf_more', el => el.hasAttribute('disabled'));
+          if (isDisabled) break;
+          await loadMore.click();
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        } catch (err) {
+          break;
         }
       }
 
+      const htmlScholar = await page.content();
+      const $$ = cheerio.load(htmlScholar);
+      var allGoogleScholarTitles = $$('.gsc_a_at');
+    }
 
-      const myData: PublicationData = {
-        titre_publication: title,
-        nombre_pages: pub.find('span[itemprop="pagination"]').text() || '',
-        volumes: volume_nom_a_tag.find('span[itemprop="isPartOf"] span[itemprop="volumeNumber"]').text() || '',
-        lien: pub.prevAll('nav.publ').find('a').attr('href') || '',
-        annee: pub.find('span[itemprop="datePublished"]').text() || '',
-        nom: volume_nom_a_tag.find('span[itemprop="isPartOf"] span[itemprop="name"]').text() || '',
-        type: fields.eq(2).text() || '',
-        lieu: lieu || '',
-      };
+    // ---------- DBLP ----------
+    const dblpHtml = (await axios.get(searchUrl)).data;
+    const $$$ = cheerio.load(dblpHtml);
+    const dblpPublishes = $$$('div.hideable cite.data');
 
-      publications.push(myData);
+    if (dblpPublishes.length > 0) {
+      hasDBLP = true;
+
+      for (let i = 0; i < dblpPublishes.length; i++) {
+        const pub = $$$.load(dblpPublishes[i]);
+        const titleTag = pub('span.title');
+        const title = titleTag.text().trim();
+        const volume_nom_a_tag = titleTag.next();
+
+        let matchIndex = -1;
+        let pubUrl = '';
+
+        if (hasGoogleScholar) {
+          matchIndex = allGoogleScholarTitles.toArray().findIndex(el =>
+            isSimilar($$(el).text(), title)
+          );
+          if (matchIndex !== -1) {
+            const scholarLink = $$(allGoogleScholarTitles[matchIndex]).attr('href');
+            pubUrl = scholarLink ? `https://scholar.google.com${scholarLink}` : '';
+            if (pubUrl) await page.goto(pubUrl);
+          }
+        }
+
+        const pubDetails = pubUrl ? cheerio.load(await page.content()) : null;
+        const fields = pubDetails ? pubDetails('div.gsc_oci_field') : null;
+
+        const jOrC = pub.root().prevAll('div.nr')?.text().trim().toLowerCase();
+        let lieu = '';
+
+        if (jOrC?.[1] === 'c') {
+          const confLink = volume_nom_a_tag.attr('href');
+          if (confLink) {
+            try {
+              const confPage = await axios.get(confLink);
+              const confSoup = cheerio.load(confPage.data);
+              lieu = confSoup('h1').text().split(':')[1]?.trim() || '';
+            } catch (error) {
+              console.warn(`Failed to fetch conference location from ${confLink}:`);
+            }
+          }
+        }
+
+        const myData: PublicationData = {
+          titre_publication: title,
+          nombre_pages: pub('span[itemprop="pagination"]').text() || '',
+          volumes: volume_nom_a_tag.find('span[itemprop="isPartOf"] span[itemprop="volumeNumber"]').text() || '',
+          lien: pub.root().prevAll('nav.publ').find('a').attr('href') || '',
+          annee: pub('span[itemprop="datePublished"]').text() || '',
+          nom: volume_nom_a_tag.find('span[itemprop="isPartOf"] span[itemprop="name"]').text() || '',
+          type: fields?.eq(2).text() || '',
+          lieu: lieu || '',
+        };
+
+        publications.push(myData);
+      }
+    }
+
+    if (!hasGoogleScholar && !hasDBLP) {
+      console.warn(`❌ No Google Scholar or DBLP profile found for "${chercheurName}"`);
+      await browser.close();
+      return [];
     }
 
     allResults.push({ chercheur: chercheurName, publications });
@@ -138,8 +144,3 @@ export async function scrapeGoogleScholarPublications(chercheurName: string) {
   return allResults;
 }
 
-//test 
-(async () => {
-  const result = await scrapeGoogleScholarPublications('MOULOUD KOUDIL');
-  console.log(result);
-})();
