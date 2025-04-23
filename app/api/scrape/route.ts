@@ -1,10 +1,9 @@
-import { scrapeGoogleScholarPublications } from "@/scripts/pubs";
 import { NextResponse } from "next/server";
-import 
+import { scrapePublications } from "../../../scripts/scraper";
 
-export async function GET() {
+export  async function GET() {
   try {
-    const data = await scrapeGoogleScholarPublications("MOULOUD KOUDIL");
+    const data = await scrapePublications("MOULOUD KOUDIL");
     return NextResponse.json({ message: "Publications fetched", data });
   } catch (error) {
     console.error("Scraping error:", error);

@@ -1,11 +1,11 @@
 // src/scripts/seed-researchers.ts
-import { db } from "../db/client";
 import { researchers, researchTeams, users } from "@/db/schema";
 import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
+import { db } from "../db/client";
 
-const LMCS_RESEARCHERS = [
-  { lastName: "ABDELMEZIEM", firstName: "" },
+export const LMCS_RESEARCHERS = [
+  /* { lastName: "ABDELMEZIEM", firstName: "" },
   { lastName: "ABDELAOUI", firstName: "Sabrina" },
   { lastName: "AMROUCHE", firstName: "Hakim" },
   { lastName: "ARTABAZ", firstName: "Saliha" },
@@ -33,7 +33,7 @@ const LMCS_RESEARCHERS = [
   { lastName: "KERMI", firstName: "Adel" },
   { lastName: "KOUDIL", firstName: "Mouloud" },
   { lastName: "MAHIOU", firstName: "Ramdane" },
-  { lastName: "NADER", firstName: "Fahima" },
+  { lastName: "NADER", firstName: "Fahima" },*/
   { lastName: "SI TAYEB", firstName: "Fatima" },
 ];
 
@@ -109,7 +109,7 @@ export default async function seedResearchers() {
           personalWebsite: `https://www.esi.dz/~${researcher.lastName.toLowerCase()}`,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
-        } )
+        })
         .returning({ id: researchers.id });
 
       if (!dbResearcher) {
