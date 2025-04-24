@@ -3,6 +3,8 @@ import axios from "axios";
 import * as cheerio from "cheerio";
 import Fuse from "fuse.js";
 import puppeteer from "puppeteer";
+import { db } from "@/db/client";
+import { publications as publicationsTable } from "@/db/schema"; 
 
 type PublicationData = {
   titre_publication: string;
@@ -151,6 +153,11 @@ export async function scrapeGoogleScholarPublications(chercheurName: string) {
       );
       await browser.close();
       return [];
+    }
+
+    if (publications.length > 0) {
+      await db.insert(publicationsTable).values(publications);
+      console.log(`✅ Inserted ${publications.length} publications for ${chercheurName}`);
     }
 
     allResults.push({ chercheur: chercheurName, publications });

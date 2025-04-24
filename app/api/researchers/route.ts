@@ -11,7 +11,8 @@ import { NextResponse } from "next/server";
 import { queryParamsSchema, researcherSchema } from "../../../types/schemas";
 import { auth } from "../../../auth";
 import { UserRole } from "../../../types/auth";
-
+import { scrapeGoogleScholarPublications } from "@/scripts/pubs";
+import { publications as publicationsTable } from "@/db/schema";
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -19,14 +20,14 @@ export async function GET(request: Request) {
     const queryParams = queryParamsSchema.parse({
       page: Number(searchParams.get("page")) || 1,
       pageSize: Number(searchParams.get("pageSize")) || DEFAULT_PAGE_SIZE,
-      search: searchParams.get("search"),
-      status: searchParams.get("status") as
+      search: searchParams.get("search") || undefined, // Convert null to undefined
+      status: (searchParams.get("status") as
         | "active"
         | "on_leave"
         | "inactive"
         | "retired"
-        | undefined,
-      teamId: searchParams.get("teamId"),
+        | undefined) || undefined, // Convert null to undefined
+      teamId: searchParams.get("teamId") || undefined, // Convert null to undefined
       sortBy: searchParams.get("sortBy") || "name",
       order: searchParams.get("order") || "asc",
     });
@@ -141,6 +142,19 @@ export async function POST(request: Request) {
       })
       .returning();
 
+    // 👉 Trigger publication scraping
+    const fullName = `${newResearcher.firstName} ${newResearcher.lastName}`;
+    const results = await scrapeGoogleScholarPublications(fullName);
+
+    // 👉 Insert scraped publications with researcherId
+    if (results.length > 0 && results[0].publications.length > 0) {
+      await db.insert(publicationsTable).values(
+        results[0].publications.map((pub) => ({
+          ...pub,
+          researcherId: newResearcher.id, // Assuming your publications table has a FK column `researcherId`
+        }))
+      );
+    }
     return NextResponse.json(newResearcher, { status: 201 });
   } catch (error) {
     return handleApiError(error);
