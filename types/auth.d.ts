@@ -1,5 +1,5 @@
 // src/types/auth.d.ts
-export type UserRole = "admin" | "director" | "researcher" | "assistant";
+export type UserRole = "admin" | "director" | "researcher" | "assistant" | "guest";
 
 declare module "next-auth" {
   interface User {
@@ -21,3 +21,4 @@ declare module "@auth/core/jwt" {
     researcherId?: string | null;
   }
 }
+

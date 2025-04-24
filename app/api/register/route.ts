@@ -29,7 +29,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const hashedPassword = await hashPassword(data.password);
+    const hashedPassword = await bcrypt.hash(data.password, 10);
     await db.insert(users).values({
       id: crypto.randomUUID(),
       email: data.email,
@@ -56,14 +56,4 @@ export async function POST(request: Request) {
 
 
 
-export async function hashPassword(password: string): Promise<string> {
-  const salt = await bcrypt.genSalt(10);
-  return await bcrypt.hash(password, salt);
-}
 
-export async function verifyPassword(
-  password: string,
-  hashedPassword: string
-): Promise<boolean> {
-  return await bcrypt.compare(password, hashedPassword);
-}

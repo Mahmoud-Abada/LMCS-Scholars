@@ -39,14 +39,15 @@ export async function POST(req: Request) {
     // Create researcher first if ID provided
     let researcherId = data.researcherId;
     if (!researcherId) {
+      const [firstName, lastName] = data.name.split(' ');
       const [newResearcher] = await db
         .insert(researchers)
         .values({
-          fullName: data.name,
+          firstName,
+          lastName,
           email: data.email,
-          qualification: "researcher",
-          id: crypto.randomUUID(),
-          team: "default",
+          qualification: "research_scientist",
+          id: crypto.randomUUID()
         })
         .returning({ id: researchers.id });
       researcherId = newResearcher.id;
