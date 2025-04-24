@@ -3,7 +3,7 @@ import axios from 'axios';
 import * as cheerio from 'cheerio';
 import Fuse from 'fuse.js';
 import { publicationTypeEnum, venueTypeEnum } from '@/db/schema';
-
+import {db} from '@/db/client';
 type ScrapedPublication = {
   citationGraphData: { year: string; count: number; }[];
   referenceCount: number;
@@ -48,6 +48,7 @@ type ScrapedPublication = {
   }[];
 };
 
+
 export class ResearchDataScraper {
   private browser: Browser | null = null;
   private page: Page | null = null;
@@ -83,6 +84,37 @@ export class ResearchDataScraper {
           'Or install chromium manually: sudo apt-get install chromium'
         );
       }
+    }
+  }
+
+  private async savePublicationToDB(pub: ScrapedPublication): Promise<void> {
+    try {
+        // Use Drizzle's "upsert" equivalent for saving data
+        const existingPublication = await db.publication.findFirst({
+            where: {
+                OR: [
+                    { doi: pub.doi },
+                    { title: pub.title }
+                ]
+            }
+        });
+
+        if (existingPublication) {
+            // Update the existing publication
+            await db.publication.update({
+                where: { id: existingPublication.id }, // Assuming publications have a unique id
+                data: pub
+            });
+            console.log(`Updated publication: ${pub.title}`);
+        } else {
+            // Create a new publication
+            await db.publication.create({
+                data: pub
+            });
+            console.log(`Saved new publication: ${pub.title}`);
+        }
+    } catch (err) {
+        console.error(`Failed to save publication to DB: ${pub.title}`, err);
     }
   }
 
@@ -426,6 +458,8 @@ private async processPublicationDetails(pub: ScrapedPublication): Promise<void> 
         if (citationYears.length > 0) {
             pub.citationGraphData = citationYears;
         }
+        await this.savePublicationToDB(pub);
+
 
         // Extract any missing author scholar IDs
         $$$('.gs_scl:contains("Auteurs") .gsc_oci_value a').each((i, el) => {
@@ -436,6 +470,7 @@ private async processPublicationDetails(pub: ScrapedPublication): Promise<void> 
                 }
             }
         });
+
     } catch (error) {
         console.error(`Error processing details for ${pub.title}:`, error);
         throw error;
@@ -511,6 +546,7 @@ private async processPublicationDetails(pub: ScrapedPublication): Promise<void> 
         publication.venue.sjrIndicator = (await this.getJournalSJR(publication.venue.name)) ?? undefined;
         publication.venue.impactFactor = await this.getJournalImpactFactor(publication.venue.name);
       }
+      await this.savePublicationToDB(publication);
 
       publications.push(publication);
     }

@@ -13,7 +13,6 @@ import {
   uniqueIndex,
   uuid,
   varchar,
-  serial,
 } from "drizzle-orm/pg-core";
 
 // ======================
@@ -149,20 +148,36 @@ export const researchers = pgTable(
 );
 
 // ---- Publications ----
-// db/schema.ts
-
-export const publications = pgTable("publications", {
-  id: serial("id").primaryKey(),
-  titre_publication: text("titre_publication"),
-  nombre_pages: text("nombre_pages"),
-  volumes: text("volumes"),
-  lien: text("lien"),
-  annee: text("annee"),
-  nom: text("nom"),
-  type: text("type"),
-  lieu: text("lieu"),
-});
-
+export const publications = pgTable(
+  "publication",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    title: text("title").notNull(),
+    abstract: text("abstract"),
+    publicationType: publicationTypeEnum("publication_type").notNull(),
+    status: publicationStatusEnum("status").default("published"),
+    publicationDate: date("publication_date"),
+    doi: varchar("doi", { length: 100 }).unique(),
+    arxivId: varchar("arxiv_id", { length: 50 }),
+    isbn: varchar("isbn", { length: 20 }),
+    issn: varchar("issn", { length: 20 }),
+    url: varchar("url", { length: 512 }),
+    pdfUrl: varchar("pdf_url", { length: 512 }),
+    citationCount: integer("citation_count").default(0),
+    pageCount: integer("page_count"),
+    volume: varchar("volume", { length: 50 }),
+    issue: varchar("issue", { length: 50 }),
+    publisher: varchar("publisher", { length: 255 }),
+    keywords: text("keywords").array(),
+    language: varchar("language", { length: 50 }).default("English"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => ({
+    doiIdx: uniqueIndex("publication_doi_idx").on(table.doi),
+    arxivIdx: uniqueIndex("publication_arxiv_idx").on(table.arxivId),
+  })
+);
 
 // ---- Publication Authors ----
 export const publicationAuthors = pgTable(
