@@ -26,3 +26,27 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Failed to scrape publications' }, { status: 500 });
   }
 }
+
+export async function GET(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+
+    // Extract query parameters
+    const researcherName = searchParams.get("researcherName");
+
+    if (!researcherName) {
+      return NextResponse.json({ error: "Researcher name is required" }, { status: 400 });
+    }
+
+    // Query the database for publications by researcher name
+    const publicationsData = await db
+      .select()
+      .from(publications)
+      .where(like(publications.researcherName, `%${researcherName}%`));
+
+    return NextResponse.json({ data: publicationsData }, { status: 200 });
+  } catch (error) {
+    console.error("Error fetching publications:", error);
+    return NextResponse.json({ error: "Failed to fetch publications" }, { status: 500 });
+  }
+}
