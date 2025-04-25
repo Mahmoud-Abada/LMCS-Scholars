@@ -1,4 +1,5 @@
 // app/layout.tsx
+// import { LazyMotion, domAnimation } from "framer-motion";
 import { SessionProvider } from "next-auth/react"
 import { Inter } from "next/font/google"
 import { Toaster } from "@/components/ui/toaster"
@@ -27,10 +28,12 @@ export default function RootLayout({
             <div className="flex min-h-screen">
               <LayoutWrapper>
                 {/* <Header />  Added Header component here */}
-                {children}
+                 
+                    {children}
+                         
               </LayoutWrapper>
             </div>
-            {/* <Footer /> */}
+           
             <Toaster />
           </SessionProvider>
         </LanguageProvider>

@@ -229,16 +229,33 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarFooter className="!bg-[#d2e8ff] transition-all duration-300">
         <hr className="border-t border-blue-500 mx-2 -mt-px" />
         <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton className="font-medium gap-3 h-9 rounded-md hover:bg-blue-500/30 [&>svg]:size-auto transition-all duration-200">
-              <RiLogoutBoxLine
-                className="text-gray-700 transition-all duration-200"
-                size={22}
-                aria-hidden="true"
-              />
-              <span className="text-gray-800 transition-all duration-200">Sign Out</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
+        <SidebarMenuItem>
+  <SidebarMenuButton
+    className="font-medium gap-3 h-9 rounded-md hover:bg-blue-500/30 [&>svg]:size-auto transition-all duration-200"
+    onClick={async () => {
+      try {
+        const res = await fetch('/api/auth/logout', { method: 'POST' });
+        const result = await res.json();
+
+        if (result.success) {
+          window.location.href = '/login'; // Or your actual login path
+        } else {
+          console.error(result.error);
+        }
+      } catch (err) {
+        console.error("Logout failed", err);
+      }
+    }}
+  >
+    <RiLogoutBoxLine
+      className="text-gray-700 transition-all duration-200"
+      size={22}
+      aria-hidden="true"
+    />
+    <span className="text-gray-800 transition-all duration-200">Sign Out</span>
+  </SidebarMenuButton>
+</SidebarMenuItem>
+
         </SidebarMenu>
       </SidebarFooter>
       

@@ -1,7 +1,7 @@
 // src/app/api/admin/researchers/route.ts
 import { db } from "@/db/client";
 import { researchers, users } from "@/db/schema";
-import { hashPassword } from "@/lib/utils/auth";
+import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -39,14 +39,15 @@ export async function POST(req: Request) {
     // Create researcher first if ID provided
     let researcherId = data.researcherId;
     if (!researcherId) {
+      const [firstName, lastName] = data.name.split(' ');
       const [newResearcher] = await db
         .insert(researchers)
         .values({
-          fullName: data.name,
+          firstName,
+          lastName,
           email: data.email,
-          qualification: "researcher",
-          id: crypto.randomUUID(),
-          team: "default",
+          qualification: "research_scientist",
+          id: crypto.randomUUID()
         })
         .returning({ id: researchers.id });
       researcherId = newResearcher.id;
@@ -72,4 +73,17 @@ export async function POST(req: Request) {
       { status: 500 }
     );
   }
+}
+
+
+export async function hashPassword(password: string): Promise<string> {
+  const salt = await bcrypt.genSalt(10);
+  return await bcrypt.hash(password, salt);
+}
+
+export async function verifyPassword(
+  password: string,
+  hashedPassword: string
+): Promise<boolean> {
+  return await bcrypt.compare(password, hashedPassword);
 }

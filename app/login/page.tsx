@@ -1,6 +1,5 @@
 "use client";
 
-import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { SubmitButton } from "@/components/submit-button";
@@ -14,16 +13,25 @@ export default function LoginPage() {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
 
-    const res = await signIn("credentials", {
-      redirect: false,
-      email,
-      password,
-    });
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-    if (res?.error) {
-      setError("Invalid email or password.");
-    } else {
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Login failed');
+      }
+
+      // On successful login, redirect to dashboard
       router.push("/dashboard");
+      router.refresh(); // Refresh to update auth state
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Login failed");
     }
   }
 

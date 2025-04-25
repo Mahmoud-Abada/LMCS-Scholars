@@ -1,5 +1,5 @@
-// src/app/api/register/route.ts
-import { hashPassword } from "@/lib/utils/auth";
+
+import bcrypt from 'bcryptjs';
 import { db } from "@/db/client";
 import { users } from "@/db/schema";
 import { NextResponse } from "next/server";
@@ -29,7 +29,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const hashedPassword = await hashPassword(data.password);
+    const hashedPassword = await bcrypt.hash(data.password, 10);
     await db.insert(users).values({
       id: crypto.randomUUID(),
       email: data.email,
@@ -53,3 +53,7 @@ export async function POST(request: Request) {
     );
   }
 }
+
+
+
+
