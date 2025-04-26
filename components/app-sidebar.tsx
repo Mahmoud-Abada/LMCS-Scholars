@@ -47,13 +47,13 @@ const data = {
       items: [
         {
           title: "Researchers",
-          url: "#",
+          url: "/dashboard",
           icon: RiUserFollowLine,
           isActive: true,
         },
         {
           title: "Publications",
-          url: "#",
+          url: "/publications",
           icon: RiArticleLine,
         },
         {
@@ -142,17 +142,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   }
 
   return (
+   
     <Sidebar 
       {...props} 
       className="!bg-[#d2e8ff] text-gray-800 !fixed h-screen overflow-x-hidden transition-all duration-300"
     >
-      {/* Toggle button */}
-      {/* <button 
-        onClick={() => setIsCollapsed(true)}
-        className="absolute -right-1 top-4 z-50 p-1 bg-[#d2e8ff] text-gray-800 rounded-full shadow-lg hover:bg-blue-500/30 transition-all duration-300 border-2 border-gray-300 hover:scale-110"
-      >
-        <RiArrowLeftLine size={20} />
-      </button> */}
+     
 
       <SidebarHeader className="px-2 pt-2 pb-0 !bg-[#d2e8ff]">
         <div className="flex flex-col items-center transition-all duration-300">
@@ -261,5 +256,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       
       <SidebarRail />
     </Sidebar>
+   
+    
   );
 }

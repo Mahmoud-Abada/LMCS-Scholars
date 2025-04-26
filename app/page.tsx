@@ -2,9 +2,27 @@
 
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { BookOpenText, Users, LineChart, LibraryBig, GraduationCap, ShieldCheck, Mail, Phone, MapPin } from "lucide-react"
+import { BookOpenText, Users, LineChart, Mail, Phone, MapPin } from "lucide-react"
+import { useSession } from "next-auth/react"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export default function HomePage() {
+  const { data: session, status } = useSession()
+
+  if (status === "loading") {
+    return (
+      <div className="flex-1 p-6 bg-[#f9fbfd]">
+        <Skeleton className="h-96 w-full mb-8" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <Skeleton className="h-40 w-full" />
+          <Skeleton className="h-40 w-full" />
+          <Skeleton className="h-40 w-full" />
+        </div>
+        <Skeleton className="h-40 w-full mb-8" />
+      </div>
+    )
+  }
+
   return (
     <div className="flex-1 p-6 bg-[#f9fbfd]">
       {/* Hero Section */}
@@ -14,18 +32,27 @@ export default function HomePage() {
           <p className="text-xl md:text-2xl mb-8 max-w-2xl">
             Advancing scientific knowledge through cutting-edge research in computer science
           </p>
-          <div className="flex gap-4">
-            <Button asChild className="px-6 py-3 text-lg bg-white text-[#1a365d] hover:bg-[#ebf3ff] border border-[#b3d1ff]">
-              <Link href="/login">Login</Link>
-            </Button>
-            <Button asChild className="px-6 py-3 text-lg bg-[#1a365d] text-white hover:bg-[#2c4d8a]">
-              <Link href="/register">Register</Link>
-            </Button>
-          </div>
+          
+          {!session ? (
+            <div className="flex gap-4">
+              <Button asChild className="px-6 py-3 text-lg bg-white text-[#1a365d] hover:bg-[#ebf3ff] border border-[#b3d1ff]">
+                <Link href="/login">Login</Link>
+              </Button>
+              <Button asChild className="px-6 py-3 text-lg bg-[#1a365d] text-white hover:bg-[#2c4d8a]">
+                <Link href="/register">Register</Link>
+              </Button>
+            </div>
+          ) : (
+            <div className="flex gap-4">
+              <Button asChild className="px-6 py-3 text-lg bg-[#1a365d] text-white hover:bg-[#2c4d8a]">
+                <Link href="/dashboard">Go to Dashboard</Link>
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Quick Links - Simplified Design */}
+      {/* Quick Links */}
       <div className="mb-8">
         <h2 className="text-2xl font-bold mb-6 text-[#2d3748]">Explore Our Laboratory</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -67,7 +94,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Stats Section - Light Design */}
+      {/* Stats Section */}
       <div className="bg-white rounded-xl p-6 mb-8 border border-[#e2e8f0] shadow-sm">
         <h2 className="text-2xl font-bold mb-6 text-[#2d3748]">Laboratory at a Glance</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -90,7 +117,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Recent News - Clean Layout */}
+      {/* Recent News */}
       <div className="mb-8">
         <h2 className="text-2xl font-bold mb-6 text-[#2d3748]">Recent News</h2>
         <div className="space-y-4">
@@ -115,7 +142,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Simple Footer */}
+      {/* Footer */}
       <div className="bg-[#d2e8ff] rounded-xl p-6 mt-8">
         <h3 className="text-lg font-semibold mb-4 text-[#1a365d]">Contact Us</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

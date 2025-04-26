@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex w-4xl bg-gray-50">
       <SidebarProvider>
         {/* Main content area with proper spacing */}
         <div className="flex-1 w-full min-w-0"> {/* Crucial: min-w-0 prevents overflow */}
