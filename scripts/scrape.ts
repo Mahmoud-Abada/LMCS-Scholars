@@ -2,7 +2,7 @@ import { Browser, chromium, type Page } from 'playwright';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import Fuse from 'fuse.js';
-import { publicationTypeEnum, venueTypeEnum } from '@/db/schema';
+import { publicationTypeEnum, venueTypeEnum } from '../db/schema';
 
 type ScrapedPublication = {
   citationGraphData: { year: string; count: number; }[];
@@ -23,7 +23,7 @@ type ScrapedPublication = {
   volume?: string;
   issue?: string;
   publisher?: string;
-  keywords?: string[];
+  keywords: string[];
   language: string;
   relatedArticlesLink?: string;
   allVersionsLink?: string;
@@ -68,6 +68,7 @@ export class ResearchDataScraper {
       this.isInitialized = true;
     } catch (error) {
       console.warn('Standard browser launch failed, trying with alternate options...');
+      console.error('Error launching browser:', error); 
       try {
         this.browser = await chromium.launch({ 
           headless: true,
@@ -150,10 +151,24 @@ export class ResearchDataScraper {
 
         // Navigate to search page with retry mechanism
         const searchUrl = `https://scholar.google.com/scholar?q=${encodeURIComponent(researcherName)}`;
-        await this.retryNavigation(searchUrl, { waitUntil: "domcontentloaded", timeout: 30000 });
+        
+        // Retry navigation logic
+        for (let i = 0; i < 3; i++) {
+            try {
+                await this.page.goto(searchUrl, { waitUntil: "domcontentloaded", timeout: 30000 });
+                break;
+            } catch (err) {
+                if (i === 2) throw err;
+                await this.page.waitForTimeout(5000);
+            }
+        }
 
         // Check if we got blocked
-        if (await this.isBlocked()) {
+        const isBlocked = await this.page.evaluate(() => {
+            return document.body.innerText.includes("Sorry, we can't verify that you're not a robot") || 
+                   document.body.innerText.includes("Our systems have detected unusual traffic");
+        });
+        if (isBlocked) {
             throw new Error("Google Scholar has blocked the scraper");
         }
 
@@ -163,12 +178,50 @@ export class ResearchDataScraper {
 
         if (profileLink) {
             const profileUrl = `https://scholar.google.com/${profileLink}`;
-            await this.retryNavigation(profileUrl, { waitUntil: "domcontentloaded", timeout: 30000 });
+            
+            // Retry navigation to profile
+            for (let i = 0; i < 3; i++) {
+                try {
+                    await this.page.goto(profileUrl, { waitUntil: "domcontentloaded", timeout: 30000 });
+                    break;
+                } catch (err) {
+                    if (i === 2) throw err;
+                    await this.page.waitForTimeout(5000);
+                }
+            }
 
-            // Load all publications with improved reliability
-            await this.loadAllPublications();
+            // Load all publications
+            let attempts = 0;
+            const maxAttempts = 5;
+            const maxScrolls = 50;
+            
+            for (let scrolls = 0; scrolls < maxScrolls; scrolls++) {
+                try {
+                    await this.page.evaluate(() => window.scrollBy(0, window.innerHeight));
+                    const loadMore = await this.page.$("#gsc_bpf_more");
+                    
+                    if (!loadMore) break;
+                    
+                    const isDisabled = await this.page.$eval("#gsc_bpf_more", (el) => 
+                        el.hasAttribute("disabled")
+                    );
+                    
+                    if (isDisabled) break;
+                    
+                    await loadMore.click();
+                    await this.page.waitForResponse(response => 
+                        response.url().includes('citations') && response.status() === 200
+                    );
+                    attempts = 0;
+                } catch (err) {
+                    attempts++;
+                    console.error(`Attempt ${attempts} failed to load more results:`, err);
+                    if (attempts >= maxAttempts) break;
+                    await this.page.waitForTimeout(5000);
+                }
+            }
 
-            // Process publications in batches to avoid memory issues
+            // Process publications in batches
             const batchSize = 10;
             const htmlScholar = await this.page.content();
             const $$ = cheerio.load(htmlScholar);
@@ -178,7 +231,56 @@ export class ResearchDataScraper {
                 const batch = publicationElements.slice(i, i + batchSize);
                 for (const element of batch) {
                     try {
-                        const publication = await this.extractPublicationData($$, element);
+                        // Extract publication data
+                        const titleElement = $$(element).find(".gsc_a_at");
+                        const title = titleElement.text().trim();
+                        const authors = $$(element).find(".gs_gray").first().text().trim();
+                        const venue = $$(element).find(".gs_gray").last().text().trim();
+                        const citedByText = $$(element).find(".gsc_a_c a").text().trim();
+                        const citedBy = citedByText ? parseInt(citedByText) || 0 : 0;
+                        const yearText = $$(element).find(".gsc_a_y").text().trim();
+                        const year = yearText ? parseInt(yearText) || 0 : 0;
+                        const relativeLink = titleElement.attr("href");
+                        const link = relativeLink ? `https://scholar.google.com${relativeLink}` : undefined;
+                        const pdfLink = $$(element).find(".gsc_a_ac a").attr("href");
+                        
+                        // Extract DOI if available
+                        let doi = '';
+                        const doiMatch = venue.match(/DOI:\s*([^\s]+)/i);
+                        if (doiMatch) doi = doiMatch[1];
+
+                        // Extract author information
+                        const authorsWithIds = authors.split(',').map((name, index) => ({
+                            name: name.trim(),
+                            scholarId: null,
+                            position: index + 1
+                        }));
+
+                        const publication: ScrapedPublication = {
+                          title,
+                          abstract: '',
+                          publicationType: this.determinePublicationType(title, venue),
+                          publicationDate: year ? new Date(year, 0, 1) : undefined,
+                          doi: doi || undefined,
+                          url: link,
+                          pdfUrl: pdfLink || undefined,
+                          citationCount: citedBy,
+                          pageCount: undefined,
+                          volume: undefined,
+                          publisher: venue.split(',')[1]?.trim() || undefined,
+                          keywords: [],
+                          language: 'English',
+                          venue: {
+                            name: venue.split(',')[0]?.trim() || 'Unknown',
+                            type: this.determineVenueType(venue),
+                            isOpenAccess: venue.toLowerCase().includes('open access')
+                          },
+                          authors: authorsWithIds,
+                          referenceCount: 0,
+                          citationGraphData: [],
+                          citationGraphUrl: ''
+                        };
+
                         publications.push(publication);
                     } catch (err) {
                         console.error(`Error processing publication at index ${i}:`, err);
@@ -186,30 +288,89 @@ export class ResearchDataScraper {
                 }
             }
             
-            // Process detailed information with rate limiting
-           /* for (let i = 0; i < publications.length; i++) {
-                const pub = publications[i];
-                if (pub.url) {
-                    try {
-                        await this.processPublicationDetails(pub);
-                        // Random delay between requests (2-5 seconds)
-                        await this.page.waitForTimeout(2000 + Math.random() * 3000);
-                    } catch (error) {
-                        console.error(`Error processing details for ${pub.title}:`, error);
+            // Process detailed information for first publication
+            for (const pub of publications) {
+              if (pub.url) {
+                try {
+                    // Retry navigation to publication page
+                    for (let i = 0; i < 3; i++) {
+                        try {
+                            await this.page.goto(pub.url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+                            break;
+                        } catch (err) {
+                            if (i === 2) throw err;
+                            await this.page.waitForTimeout(5000);
+                        }
                     }
-                }
-            }*/
-                const pub = publications[0];
-                if (pub.url) {
-                    try {
-                        await this.processPublicationDetails(pub);
-                        // Random delay between requests (2-5 seconds)
-                        await this.page.waitForTimeout(2000 + Math.random() * 3000);
-                    } catch (error) {
-                        console.error(`Error processing details for ${pub.title}:`, error);
+                    
+                    // Check if we got blocked
+                    const isBlocked = await this.page.evaluate(() => {
+                        return document.body.innerText.includes("Sorry, we can't verify that you're not a robot") || 
+                               document.body.innerText.includes("Our systems have detected unusual traffic");
+                    });
+                    if (isBlocked) {
+                        throw new Error("Google Scholar has blocked the scraper");
                     }
+
+                    const detailHtml = await this.page.content();
+                    const $$$ = cheerio.load(detailHtml);
+
+                    // Extract abstract with multiple fallbacks
+                    pub.abstract = $$$('.gsh_csp').text().trim() 
+                        || $$$('.gs_rs').text().trim() 
+                        || $$$('.gsh_small .gsh_csp').text().trim() 
+                        || pub.abstract;
+
+                    // Extract keywords from multiple possible locations
+                    const keywordsText = $$$('.gs_rs').text().trim() 
+                        || $$$('.gsh_kw').text().trim();
+                    
+                    if (keywordsText && pub.keywords.length === 0) {
+                        pub.keywords = keywordsText.split(/[,;]/).map(k => k.trim()).filter(k => k);
+                    }
+
+                    // Extract all metadata fields
+                    const metadata: Record<string, string> = {};
+                    $$$('.gs_scl').each((i, el) => {
+                        const field = $$$(el).find('.gsc_oci_field').text().trim().toLowerCase();
+                        const value = $$$(el).find('.gsc_oci_value').text().trim();
+                        if (field && value) {
+                            metadata[field] = value;
+                        }
+                    });
+
+                    // Update publication with metadata
+                    if (metadata.publisher && !pub.publisher) pub.publisher = metadata.publisher;
+                    if (metadata['published in'] && !pub.venue.name) pub.venue.name = metadata['published in'];
+                    if (metadata.volume) pub.volume = metadata.volume;
+                    if (metadata.pages && !pub.pageCount) pub.pageCount = this.parsePageCount(metadata.pages);
+                    if (metadata['total citations']) {
+                        pub.citationCount = parseInt(metadata['total citations'].replace(/,/g, '')) || pub.citationCount;
+                    }
+
+                    // Extract PDF link if available
+                    const detailPdfLink = $$$('a[href*="pdf"]').attr('href');
+                    if (detailPdfLink && !pub.pdfUrl) {
+                        pub.pdfUrl = detailPdfLink;
+                    }
+
+                    // Extract references count if available
+                    const referencesText = $$$('a:contains("References")').text();
+                    if (referencesText) {
+                        const refMatch = referencesText.match(/(\d+)\s*References/);
+                        if (refMatch) {
+                            pub.referenceCount = parseInt(refMatch[1]);
+                        }
+                    }
+
+                    await this.page.waitForTimeout(2000 + Math.random() * 3000);
+                } catch (error) {
+                    console.error(`Error processing details for ${pub.title}:`, error);
                 }
-                console.log("Processed publication details:", pub);
+            }
+            console.log("Processed publication details:", pub);
+            }
+           
         }
     } catch (error) {
         console.error("Error in scrapeGoogleScholar:", error);
@@ -220,226 +381,6 @@ export class ResearchDataScraper {
     }
 
     return publications;
-}
-
-// Helper methods:
-
-private async retryNavigation(url: string, options: any, retries = 3): Promise<void> {
-    for (let i = 0; i < retries; i++) {
-        try {
-            await this.page.goto(url, options);
-            return;
-        } catch (err) {
-            if (i === retries - 1) throw err;
-            await this.page.waitForTimeout(5000);
-        }
-    }
-}
-
-private async isBlocked(): Promise<boolean> {
-    return await this.page.evaluate(() => {
-        return document.body.innerText.includes("Sorry, we can't verify that you're not a robot") || 
-               document.body.innerText.includes("Our systems have detected unusual traffic");
-    });
-}
-
-private async loadAllPublications(): Promise<void> {
-    let attempts = 0;
-    const maxAttempts = 5;
-    const maxScrolls = 50; // Safety limit
-    
-    for (let scrolls = 0; scrolls < maxScrolls; scrolls++) {
-        try {
-            await this.page.evaluate(() => window.scrollBy(0, window.innerHeight));
-            const loadMore = await this.page.$("#gsc_bpf_more");
-            
-            if (!loadMore) break;
-            
-            const isDisabled = await this.page.$eval("#gsc_bpf_more", (el) => 
-                el.hasAttribute("disabled")
-            );
-            
-            if (isDisabled) break;
-            
-            await loadMore.click();
-            await this.page.waitForResponse(response => 
-                response.url().includes('citations') && response.status() === 200
-            );
-            attempts = 0; // Reset attempts on success
-        } catch (err) {
-            attempts++;
-            console.error(`Attempt ${attempts} failed to load more results:`, err);
-            if (attempts >= maxAttempts) break;
-            await this.page.waitForTimeout(5000);
-        }
-    }
-}
-
-private extractPublicationData($$: cheerio.Root, element: cheerio.Element): ScrapedPublication {
-    const titleElement = $$(element).find(".gsc_a_at");
-    const title = titleElement.text().trim();
-    const authors = $$(element).find(".gs_gray").first().text().trim();
-    const venue = $$(element).find(".gs_gray").last().text().trim();
-    const citedByText = $$(element).find(".gsc_a_c a").text().trim();
-    const citedBy = citedByText ? parseInt(citedByText) || 0 : 0;
-    const yearText = $$(element).find(".gsc_a_y").text().trim();
-    const year = yearText ? parseInt(yearText) || 0 : 0;
-    const relativeLink = titleElement.attr("href");
-    const link = relativeLink ? `https://scholar.google.com${relativeLink}` : undefined;
-    const pdfLink = $$(element).find(".gsc_a_ac a").attr("href");
-    
-    // Extract DOI if available
-    let doi = '';
-    const doiMatch = venue.match(/DOI:\s*([^\s]+)/i);
-    if (doiMatch) doi = doiMatch[1];
-
-    // Extract author scholar IDs
-    const authorsWithIds = authors.split(',').map((name, i) => {
-        const scholarLink = $$(element).find(".gs_gray a").eq(i).attr("href");
-        const scholarId = scholarLink?.split('user=')[1]?.split('&')[0];
-        return {
-            name: name.trim(),
-            position: i + 1,
-            isCorresponding: i === 0,
-            scholarId: scholarId || undefined
-        };
-    });
-
-    // Extract citation cluster ID
-    const clusterId = $$(element).find(".gsc_a_c a").attr("data-cid");
-
-    return {
-        title,
-        abstract: '', // Will be populated from detailed page
-        publicationType: this.determinePublicationType(title, venue),
-        publicationDate: year ? new Date(year, 0, 1) : undefined,
-        doi: doi || undefined,
-        url: link,
-        pdfUrl: pdfLink || undefined,
-        citationCount: citedBy,
-        pageCount: undefined,
-        volume: undefined,
-        issue: undefined,
-        publisher: venue.split(',')[1]?.trim() || undefined,
-        keywords: [],
-        language: 'English',
-        venue: {
-            name: venue.split(',')[0]?.trim() || 'Unknown',
-            type: this.determineVenueType(venue),
-            issn: undefined,
-            eissn: undefined,
-            website: undefined,
-            impactFactor: undefined,
-            sjrIndicator: undefined,
-            isOpenAccess: venue.toLowerCase().includes('open access')
-        },
-        authors: authorsWithIds,
-        relatedArticlesLink: link ? `https://scholar.google.com/scholar?q=related:${titleElement.attr("id")}:scholar.google.com/` : undefined,
-        allVersionsLink: clusterId ? `https://scholar.google.com/scholar?cluster=${clusterId}` : undefined,
-        referenceCount: 0,
-        citationGraphUrl: '',
-        citationGraphData: []
-    };
-}
-
-private async processPublicationDetails(pub: ScrapedPublication): Promise<void> {
-    if (!pub.url || !this.page) return;
-
-    try {
-        await this.retryNavigation(pub.url, { waitUntil: 'domcontentloaded', timeout: 30000 });
-        
-        // Check if we got blocked
-        if (await this.isBlocked()) {
-            throw new Error("Google Scholar has blocked the scraper");
-        }
-
-        const detailHtml = await this.page.content();
-        const $$$ = cheerio.load(detailHtml);
-
-        // Extract abstract with multiple fallbacks
-        pub.abstract = $$$('.gsh_csp').text().trim() 
-            || $$$('.gs_rs').text().trim() 
-            || $$$('.gsh_small .gsh_csp').text().trim() 
-            || pub.abstract; // Keep existing if no new one found
-
-        // Extract keywords from multiple possible locations
-        const keywordsText = $$$('.gs_rs').text().trim() 
-            || $$$('.gsh_kw').text().trim();
-        
-        if (keywordsText && pub.keywords.length === 0) {
-            pub.keywords = keywordsText.split(/[,;]/).map(k => k.trim()).filter(k => k);
-        }
-
-        // Extract all metadata fields
-        const metadata: Record<string, string> = {};
-        $$$('.gs_scl').each((i, el) => {
-            const field = $$$(el).find('.gsc_oci_field').text().trim().toLowerCase();
-            const value = $$$(el).find('.gsc_oci_value').text().trim();
-            if (field && value) {
-                metadata[field] = value;
-            }
-        });
-
-        // Update publication with metadata
-        if (metadata.publisher && !pub.publisher) pub.publisher = metadata.publisher;
-        if (metadata['published in'] && !pub.venue.name) pub.venue.name = metadata['published in'];
-        if (metadata.issn) pub.venue.issn = metadata.issn;
-        if (metadata['e-issn']) pub.venue.eissn = metadata['e-issn'];
-        if (metadata.website) pub.venue.website = metadata.website;
-        if (metadata.volume) pub.volume = metadata.volume;
-        if (metadata.issue) pub.issue = metadata.issue;
-        if (metadata.pages && !pub.pageCount) pub.pageCount = this.parsePageCount(metadata.pages);
-        if (metadata['total citations']) {
-            pub.citationCount = parseInt(metadata['total citations'].replace(/,/g, '')) || pub.citationCount;
-        }
-
-        // Extract PDF link if available
-        const detailPdfLink = $$$('a[href*="pdf"]').attr('href');
-        if (detailPdfLink && !pub.pdfUrl) {
-            pub.pdfUrl = detailPdfLink;
-        }
-
-        // Extract references count if available
-        const referencesText = $$$('a:contains("References")').text();
-        if (referencesText) {
-            const refMatch = referencesText.match(/(\d+)\s*References/);
-            if (refMatch) {
-                pub.referenceCount = parseInt(refMatch[1]);
-            }
-        }
-
-        // Extract citation graph data if available
-        const citationGraph = $$$('img[src*="citations?view"]').attr('src');
-        if (citationGraph) {
-            pub.citationGraphUrl = `https://scholar.google.com${citationGraph}`;
-        }
-
-        // Extract yearly citation data
-        const citationYears: {year: string; count: number}[] = [];
-        $$$('.gsc_oci_g_a').each((i, el) => {
-            const year = $$$(el).find('.gsc_oci_g_t').text().trim();
-            const count = parseInt($$$(el).find('.gsc_oci_g_al').text().trim()) || 0;
-            if (year && !isNaN(count)) {
-                citationYears.push({year, count});
-            }
-        });
-        if (citationYears.length > 0) {
-            pub.citationGraphData = citationYears;
-        }
-
-        // Extract any missing author scholar IDs
-        $$$('.gs_scl:contains("Auteurs") .gsc_oci_value a').each((i, el) => {
-            if (i < pub.authors.length) {
-                const scholarId = $$$(el).attr('href')?.split('user=')[1]?.split('&')[0];
-                if (scholarId && !pub.authors[i].scholarId) {
-                    pub.authors[i].scholarId = scholarId;
-                }
-            }
-        });
-    } catch (error) {
-        console.error(`Error processing details for ${pub.title}:`, error);
-        throw error;
-    }
 }
 
   private async scrapeDBLP(researcherName: string): Promise<ScrapedPublication[]> {
@@ -474,36 +415,39 @@ private async processPublicationDetails(pub: ScrapedPublication): Promise<void> 
       }
 
       const publication: ScrapedPublication = {
-          title: title,
-          publicationType: jOrC[1] === "c" ? 'conference_paper' : 'journal_article',
-          //status: 'published',
-          pageCount: this.parsePageCount(pub.find('span[itemprop="pagination"]').text()),
-          volume: venueInfoTag.find('span[itemprop="isPartOf"] span[itemprop="volumeNumber"]').text() || undefined,
-          issue: venueInfoTag.find('span[itemprop="issueNumber"]').text() || undefined,
-          url: pub.prevAll("nav.publ").find("a").attr("href") || undefined,
-          doi: pub.find('span[itemprop="sameAs"]').text().trim() || undefined,
-          publicationDate: pub.find('span[itemprop="datePublished"]').text() ?
-              new Date(parseInt(pub.find('span[itemprop="datePublished"]').text()), 0, 1) : undefined,
-          publisher: venueInfoTag.find('span[itemprop="publisher"]').text().trim() || undefined,
-          language: 'English',
-          venue: {
-              name: venueInfoTag.find('span[itemprop="isPartOf"] span[itemprop="name"]').text() || 'Unknown',
-              type: jOrC[1] === "c" ? 'conference' : 'journal',
-              issn: this.extractISSN(venueInfoTag.text()),
-              eissn: this.extractISSN(venueInfoTag.text()),
-              website: venueInfoTag.find('a[itemprop="url"]').attr('href') || undefined,
-              location: location,
-              isOpenAccess: pub.find('img[alt="Open Access"]').length > 0
-          },
-          authors: venueInfoTag.prevAll('span[itemprop="author"]').map((i, el) => ({
-              name: $(el).text().trim(),
-              position: i + 1,
-              isCorresponding: i === 0,
-              affiliationDuringWork: $(el).attr('title') || undefined
-          })).get(),
-          referenceCount: 0,
-          citationCount: parseInt(pub.find('span[itemprop="citationCount"]').text().trim() || "0"),
-          citationGraphUrl: ''
+        title: title,
+        publicationType: jOrC[1] === "c" ? 'conference_paper' : 'journal_article',
+        //status: 'published',
+        pageCount: this.parsePageCount(pub.find('span[itemprop="pagination"]').text()),
+        volume: venueInfoTag.find('span[itemprop="isPartOf"] span[itemprop="volumeNumber"]').text() || undefined,
+        issue: venueInfoTag.find('span[itemprop="issueNumber"]').text() || undefined,
+        url: pub.prevAll("nav.publ").find("a").attr("href") || undefined,
+        doi: pub.find('span[itemprop="sameAs"]').text().trim() || undefined,
+        publicationDate: pub.find('span[itemprop="datePublished"]').text() ?
+          new Date(parseInt(pub.find('span[itemprop="datePublished"]').text()), 0, 1) : undefined,
+        publisher: venueInfoTag.find('span[itemprop="publisher"]').text().trim() || undefined,
+        language: 'English',
+        venue: {
+          name: venueInfoTag.find('span[itemprop="isPartOf"] span[itemprop="name"]').text() || 'Unknown',
+          type: jOrC[1] === "c" ? 'conference' : 'journal',
+          issn: this.extractISSN(venueInfoTag.text()),
+          eissn: this.extractISSN(venueInfoTag.text()),
+          website: venueInfoTag.find('a[itemprop="url"]').attr('href') || undefined,
+          location: location,
+          isOpenAccess: pub.find('img[alt="Open Access"]').length > 0
+        },
+        authors: venueInfoTag.prevAll('span[itemprop="author"]').map((i, el) => ({
+          scholarId: null,
+          name: $(el).text().trim(),
+          position: i + 1,
+          isCorresponding: i === 0,
+          affiliationDuringWork: $(el).attr('title') || undefined
+        })).get(),
+        referenceCount: 0,
+        citationCount: parseInt(pub.find('span[itemprop="citationCount"]').text().trim() || "0"),
+        citationGraphUrl: '',
+        citationGraphData: [],
+        keywords: []
       };
 
       // Get Scimago metrics if journal

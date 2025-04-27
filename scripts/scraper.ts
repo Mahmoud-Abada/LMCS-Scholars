@@ -2,7 +2,8 @@ import { Browser, chromium, type Page } from 'playwright';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import Fuse from 'fuse.js';
-import { publicationTypeEnum, venueTypeEnum } from '@/db/schema';
+import { publicationTypeEnum, venueTypeEnum } from '../db/schema';
+
 
 type ScrapedPublication = {
   title: string;
@@ -62,6 +63,7 @@ export class ResearchDataScraper {
       this.isInitialized = true;
     } catch (error) {
       console.warn('Standard browser launch failed, trying with alternate options...');
+      console.error('Error launching browser:', error);
       try {
         this.browser = await chromium.launch({ 
           headless: true,
@@ -107,13 +109,13 @@ export class ResearchDataScraper {
       this.page = await this.browser.newPage();
       const results: ScrapedPublication[] = [];
 
-      // Try Google Scholar first (original logic)
-      const googleScholarResults = await this.scrapeGoogleScholarOriginal(researcherName);
+      // Try Google Scholar first 
+      const googleScholarResults = await this.scrapeGoogleScholar(researcherName);
       results.push(...googleScholarResults);
 
-      // Fallback to DBLP if needed (original logic)
+      // Fallback to DBLP if needed 
       if (results.length < 5) {
-        const dblpResults = await this.scrapeDBLPOriginal(researcherName);
+        const dblpResults = await this.scrapeDBLP(researcherName);
         results.push(...dblpResults.filter(pub => 
           !results.some(existing => this.isSimilar(existing.title, pub.title))
         ));
@@ -125,7 +127,7 @@ export class ResearchDataScraper {
     }
   }
 
-  private async scrapeGoogleScholarOriginal(researcherName: string): Promise<ScrapedPublication[]> {
+  private async scrapeGoogleScholar(researcherName: string): Promise<ScrapedPublication[]> {
     const publications: ScrapedPublication[] = [];
     if (!this.page) return publications;
 
@@ -140,7 +142,7 @@ export class ResearchDataScraper {
       const profileUrl = `https://scholar.google.com/${profileLink}`;
       await this.page.goto(profileUrl);
 
-      // Original "Show more" click logic
+      //  "Show more" click
       while (true) {
         try {
           await this.page.evaluate(() => window.scrollBy(0, window.innerHeight));
@@ -162,7 +164,7 @@ export class ResearchDataScraper {
       const $$ = cheerio.load(htmlScholar);
       allGoogleScholarTitles = $$(".gsc_a_at");
 
-      // Process publications (original logic)
+      // Process publications
       allGoogleScholarTitles.each((index, element) => {
         const title = $$(element).text().trim();
         const authors = $$(element).closest('tr').find('.gs_gray').first().text().trim();
@@ -197,7 +199,7 @@ export class ResearchDataScraper {
     return publications;
   }
 
-  private async scrapeDBLPOriginal(researcherName: string): Promise<ScrapedPublication[]> {
+  private async scrapeDBLP(researcherName: string): Promise<ScrapedPublication[]> {
     const publications: ScrapedPublication[] = [];
     if (!this.page) return publications;
 
@@ -255,14 +257,14 @@ export class ResearchDataScraper {
     return publications;
   }
 
-  // Original similarity check
+  //  similarity check
   private isSimilar(a: string, b: string, threshold = 0.85): boolean {
     const fuse = new Fuse([b], { includeScore: true, threshold: 1, keys: [] });
     const result = fuse.search(a);
     return result.length > 0 && (result[0].score ?? 1) <= 1 - threshold;
   }
 
-  // Original journal SJR lookup
+  //  journal SJR lookup
   private async getJournalSJR(journalName: string): Promise<number | null> {
     if (!this.page) return null;
 
@@ -288,7 +290,7 @@ export class ResearchDataScraper {
     }
   }
 
-  // Helper methods from original
+  // Helper methods from 
   private determinePublicationType(title: string, venue: string): typeof publicationTypeEnum.enumValues[number] {
     const lowerVenue = venue.toLowerCase();
     if (lowerVenue.includes('conf') || lowerVenue.includes('symposium') || lowerVenue.includes('workshop')) {

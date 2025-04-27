@@ -146,6 +146,49 @@ export const researchers = pgTable(
     orcidIdx: uniqueIndex("researcher_orcid_idx").on(table.orcidId),
   })
 );
+type ScrapedPublication = {
+  citationGraphData: { year: string; count: number; }[];
+  referenceCount: number;
+    citationGraphUrl: string;
+  //title: string;
+  //abstract?: string;
+  //publicationType: typeof publicationTypeEnum.enumValues[number];
+  //publicationDate?: Date;
+  //doi?: string;
+  //arxivId?: string;
+  //isbn?: string;
+  //issn?: string;
+  //url?: string;
+  //pdfUrl?: string;
+  //citationCount?: number;
+  //pageCount?: number;
+  //volume?: string;
+  //issue?: string;
+  //publisher?: string;
+  //keywords?: string[];
+  //language: string;
+  relatedArticlesLink?: string;
+  allVersionsLink?: string;
+  venue: {
+    name: string;
+    type: typeof venueTypeEnum.enumValues[number];
+    publisher?: string;
+    issn?: string;
+    eissn?: string;
+    website?: string;
+    impactFactor?: number;
+    sjrIndicator?: number;
+    isOpenAccess?: boolean;
+    location?: string;
+  };
+  authors: {
+    scholarId: any;
+    name: string;
+    isCorresponding?: boolean;
+    position: number;
+    affiliationDuringWork?: string;
+  }[];
+};
 
 // ---- Publications ----
 export const publications = pgTable(

@@ -11,6 +11,7 @@ import { NextResponse } from "next/server";
 import { queryParamsSchema, researcherSchema } from "../../../types/schemas";
 import { auth } from "../../../auth";
 import { UserRole } from "../../../types/auth";
+import { ResearchDataScraper } from '@/scripts/scrape';
 
 export async function GET(request: Request) {
   try {
@@ -105,7 +106,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Replace role check with:
     if (!authorizeRequest(session.user.role as UserRole, "admin")) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
@@ -113,7 +113,6 @@ export async function POST(request: Request) {
     const body = await request.json();
     const validatedData = researcherSchema.parse(body);
 
-    // Check if email already exists
     const existingResearcher = await db
       .select()
       .from(researchers)
@@ -127,7 +126,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // Create new researcher
     const [newResearcher] = await db
       .insert(researchers)
       .values({
@@ -141,8 +139,21 @@ export async function POST(request: Request) {
       })
       .returning();
 
+    // Automatically scrape publications for the new researcher
+    const scraper = new ResearchDataScraper();
+    scraper.scrapeResearcherPublications(validatedData.firstName + ' ' + validatedData.lastName)
+      .then(async (scrapedPublications) => {
+        for (const publication of scrapedPublications) {
+          await db.insert(publication).values(publication);
+        }
+      })
+      .catch((error) => {
+        console.error('Error scraping publications for new researcher:', error);
+      });
+
     return NextResponse.json(newResearcher, { status: 201 });
   } catch (error) {
     return handleApiError(error);
   }
 }
+
