@@ -33,7 +33,6 @@ import {
   RiArrowDownLine,
 } from "@remixicon/react";
 
-// ... (keep your existing data constant)
 const data = {
   teams: [
     {
@@ -48,18 +47,18 @@ const data = {
       items: [
         {
           title: "Researchers",
-          url: "#",
+          url: "/dashboard",
           icon: RiUserFollowLine,
           isActive: true,
         },
         {
           title: "Publications",
-          url: "#",
+          url: "/publications",
           icon: RiArticleLine,
         },
         {
           title: "Stats",
-          url: "#",
+          url: "/statistics",
           icon: RiScanLine,
         },
         {
@@ -143,17 +142,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   }
 
   return (
+   
     <Sidebar 
       {...props} 
-      className="!bg-[#d2e8ff] text-gray-800 !fixed h-screen overflow-y-hidden transition-all duration-300"
+      className="!bg-[#d2e8ff] text-gray-800 !fixed h-screen overflow-x-hidden transition-all duration-300"
     >
-      {/* Toggle button */}
-      <button 
-        onClick={() => setIsCollapsed(true)}
-        className="absolute -right-4 top-4 z-50 p-1 bg-[#d2e8ff] text-gray-800 rounded-full shadow-lg hover:bg-blue-500/30 transition-all duration-300 border-2 border-gray-300 hover:scale-110"
-      >
-        <RiArrowLeftLine size={20} />
-      </button>
+     
 
       <SidebarHeader className="px-2 pt-2 pb-0 !bg-[#d2e8ff]">
         <div className="flex flex-col items-center transition-all duration-300">
@@ -172,7 +166,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       {showScrollUp && (
         <button 
           onClick={scrollUp}
-          className="absolute right-4 top-40 z-10 p-2 bg-blue-500/50 text-gray-800 rounded-full w-8 h-8 flex items-center justify-center hover:bg-blue-500/70 transition-all duration-200 shadow-md hover:shadow-lg"
+          className="absolute right-0 top-55 z-10 p-2  text-gray-800  w-8 h-8 flex items-center justify-center  transition-all duration-200  hover:shadow-lg"
         >
           <RiArrowUpLine size={16} />
         </button>
@@ -221,7 +215,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       {showScrollDown && (
         <button 
           onClick={scrollDown}
-          className="absolute right-4 bottom-24 z-10 p-2 bg-blue-500/50 text-gray-800 rounded-full w-8 h-8 flex items-center justify-center hover:bg-blue-500/70 transition-all duration-200 shadow-md hover:shadow-lg"
+          className="absolute right-0 bottom-14 z-10 p-2  text-gray-800  w-8 h-8 flex items-center justify-center  transition-all duration-200  hover:shadow-lg"
         >
           <RiArrowDownLine size={16} />
         </button>
@@ -230,20 +224,39 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarFooter className="!bg-[#d2e8ff] transition-all duration-300">
         <hr className="border-t border-blue-500 mx-2 -mt-px" />
         <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton className="font-medium gap-3 h-9 rounded-md hover:bg-blue-500/30 [&>svg]:size-auto transition-all duration-200">
-              <RiLogoutBoxLine
-                className="text-gray-700 transition-all duration-200"
-                size={22}
-                aria-hidden="true"
-              />
-              <span className="text-gray-800 transition-all duration-200">Sign Out</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
+        <SidebarMenuItem>
+  <SidebarMenuButton
+    className="font-medium gap-3 h-9 rounded-md hover:bg-blue-500/30 [&>svg]:size-auto transition-all duration-200"
+    onClick={async () => {
+      try {
+        const res = await fetch('/api/auth/logout', { method: 'POST' });
+        const result = await res.json();
+
+        if (result.success) {
+          window.location.href = '/login'; // Or your actual login path
+        } else {
+          console.error(result.error);
+        }
+      } catch (err) {
+        console.error("Logout failed", err);
+      }
+    }}
+  >
+    <RiLogoutBoxLine
+      className="text-gray-700 transition-all duration-200"
+      size={22}
+      aria-hidden="true"
+    />
+    <span className="text-gray-800 transition-all duration-200">Sign Out</span>
+  </SidebarMenuButton>
+</SidebarMenuItem>
+
         </SidebarMenu>
       </SidebarFooter>
       
       <SidebarRail />
     </Sidebar>
+   
+    
   );
 }
