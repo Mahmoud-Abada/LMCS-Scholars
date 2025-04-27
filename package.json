@@ -45,7 +45,7 @@
     "lucide-react": "^0.488.0",
     "next": "15.3.0",
     "next-auth": "^5.0.0-beta.25",
-    "playwright": "^1.51.1",
+    "playwright": "^1.52.0",
     "postgres": "^3.4.5",
     "puppeteer": "^24.6.1",
     "react": "^19.0.0",
