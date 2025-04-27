@@ -144,7 +144,7 @@ export async function POST(request: Request) {
     scraper.scrapeResearcherPublications(validatedData.firstName + ' ' + validatedData.lastName)
       .then(async (scrapedPublications) => {
         for (const publication of scrapedPublications) {
-          await db.insert(publications).values(publication);
+          await db.insert(publication).values(publication);
         }
       })
       .catch((error) => {
@@ -156,3 +156,4 @@ export async function POST(request: Request) {
     return handleApiError(error);
   }
 }
+
