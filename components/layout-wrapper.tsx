@@ -7,7 +7,7 @@ import { Header } from "./header";
 
 export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const hideSidebar = ["/login", "/register"].includes(pathname);
+  const hideSidebar = ["/login", "/register","/forgot-password"].includes(pathname);
 
   return (
     <SidebarProvider>

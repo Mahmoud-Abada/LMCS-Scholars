@@ -4,46 +4,56 @@ import {
   SidebarProvider,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { StatsGrid } from "@/components/stats-grid";
-import ResearchersTable from "@/components/researchers-table";
+import {ResearchersTable} from "@/components/researchers--table";
 import Link from "next/link";
+import { db } from "@/db/client";
+import { users } from "@/db/schema";
+import { eq } from "drizzle-orm";
+import { AddResearcherDialog } from "@/components/AddResearcherDialog";
+import { auth } from "@/auth";
 
 export const metadata: Metadata = {
   title: "LMCS Dashboard",
 };
 
-export default function Page() {
+export default async function Page() {
+  const session = await auth();
+  const user = session?.user;
+
+  const researchers = await db.query.users.findMany({
+    where: eq(users.role, "researcher"),
+    columns: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      researcherId: true,
+      createdAt: true,   
+    },
+  });
+
+  const showAddResearcher = user && ["admin", "assistant", "director"].includes(user.role);
+
   return (
     <div className="flex w-4xl bg-gray-50">
       <SidebarProvider>
-        {/* Main content area with proper spacing */}
-        <div className="flex-1 w-full min-w-0"> {/* Crucial: min-w-0 prevents overflow */}
-          <SidebarInset className="px-4 md:px-6 lg:px-8 mx-auto w-full max-w-screen-2xl"> {/* Wider max-width */}
+        <div className="flex-1 w-full min-w-0">
+          <SidebarInset className="px-4 md:px-6 lg:px-8 mx-auto w-full max-w-screen-2xl">
             <div className="flex flex-col gap-6 py-6">
-              {/* Page Header - unchanged but properly spaced */}
+              {/* Page Header - Updated with user's name */}
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-200">
                 <div className="space-y-1">
-                  <h1 className="text-2xl font-bold text-gray-800">Welcome, Admin!</h1>
+                  <h1 className="text-2xl font-bold text-gray-800">
+                    Welcome, {user?.name || 'Admin'}!
+                  </h1>
                   <p className="text-sm text-gray-500">
                     Here's an overview of your Lab. Manage publications and researchers with ease!
                   </p>
                 </div>
-                <div className="flex items-center gap-3 w-full sm:w-auto">
-                  <Button 
-                    variant="outline" 
-                    className="px-4 w-full sm:w-auto border-blue-200 bg-white hover:bg-blue-50 text-blue-600"
-                  >
-                    Add Publication
-                  </Button>
-                  <Link href="/addResearcher" passHref>
-                    <Button className="px-4 w-full sm:w-auto bg-blue-600 hover:bg-blue-700">
-                      Add Researcher
-                    </Button>
-                  </Link>
-                </div>
+                {/* Removed the buttons from here */}
               </div>
 
-              {/* Stats Section - Fixed spacing and layout */}
+              {/* Stats Section - unchanged */}
               <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
   <h2 className="text-lg font-semibold text-gray-800 mb-4">Research Performance</h2>
   
@@ -114,15 +124,19 @@ export default function Page() {
   </div>
 </div>
 
-              {/* Researchers Table - Fixed scrolling */}
+              {/* Researchers Table */}
               <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
                 <div className="mb-4">
                   <h2 className="text-lg font-semibold text-gray-800">Researchers</h2>
                   <p className="text-sm text-gray-500">Manage your laboratory researchers</p>
                 </div>
                 <div className="overflow-x-auto">
-                  <div className="min-w-[800px]"> {/* Reduced from 1024px */}
-                    <ResearchersTable />
+                  <div className="min-w-[800px]">
+                    <div className="flex justify-between items-center">
+                      <h1 className="text-2xl font-bold">Researchers Management</h1>
+                      {showAddResearcher && <AddResearcherDialog />}
+                    </div>
+                    <ResearchersTable researchers={researchers} />
                   </div>
                 </div>
               </div>

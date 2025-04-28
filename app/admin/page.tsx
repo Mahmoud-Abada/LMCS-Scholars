@@ -1,5 +1,5 @@
 // src/app/admin/researchers/page.tsx
-import { AddResearcherDialog } from "@/components/add-researcher-dialog";
+import { AddResearcherDialog } from "@/components/AddResearcherDialog";
 import { ResearchersTable } from "@/components/researchers--table";
 //import { requireAdmin } from '@/lib/auth';
 import { db } from "@/db/client";
@@ -10,15 +10,15 @@ export default async function ResearchersPage() {
   //await requireAdmin();
 
   const researchers = await db.query.users.findMany({
-    where: eq(users.role, "researcher"),
-    columns: {
-      id: true,
-      name: true,
-      email: true,
-      role: true,
-      researcherId: true,
-      createdAt: true,
-    },
+    where: eq(users.role, "researcher")
+    // columns: {
+    //   id: true,
+    //   name: true,
+    //   email: true,
+    //   role: true,
+    //   researcherId: true,
+    //   createdAt: true,
+    // },
   });
 
   return (

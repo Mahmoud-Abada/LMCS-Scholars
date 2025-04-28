@@ -67,8 +67,8 @@ const data = {
           icon: RiBardLine,
         },
         {
-          title: "Reports",
-          url: "#",
+          title: "Dashboard",
+          url: "/dashboard",
           icon: RiBarChartHorizontalFill,
         },
         {

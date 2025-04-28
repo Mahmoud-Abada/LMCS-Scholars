@@ -29,6 +29,7 @@ export function ResearchersTable({ researchers }: { researchers: Researcher[] })
           <TableHead>Role</TableHead>
           <TableHead>Researcher ID</TableHead>
           <TableHead>Created At</TableHead>
+          {/* <TableHead>is active</TableHead> */}
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -41,6 +42,7 @@ export function ResearchersTable({ researchers }: { researchers: Researcher[] })
             <TableCell>
               {new Date(researcher.createdAt).toLocaleDateString()}
             </TableCell>
+           
           </TableRow>
         ))}
       </TableBody>
