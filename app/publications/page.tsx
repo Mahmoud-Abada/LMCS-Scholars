@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -10,6 +10,7 @@ import { Search, FileText, BookOpen, Calendar, Filter, BarChart2 } from "lucide-
 import Link from "next/link"
 import { Bar } from "react-chartjs-2"
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js'
+import { set } from "zod"
 
 // Register ChartJS components
 ChartJS.register(
@@ -82,6 +83,9 @@ export default function PublicationsPage() {
   const [typeFilter, setTypeFilter] = useState("all");
   const [rankingFilter, setRankingFilter] = useState("all");
   const [themeFilter, setThemeFilter] = useState("all");
+  const [searcherName, setSearcherName] = useState("");
+  const [publications, setPublications] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   // Get unique years, themes for filters
   const years = Array.from(new Set(mockPublications.map(pub => pub.year))).sort((a, b) => b - a);
@@ -150,6 +154,23 @@ export default function PublicationsPage() {
     },
   };
 
+  const getSeacherPublications = async () => {
+    try{
+        const res = await fetch(`/api/publications?researcherName=${searcherName}`)
+        const data = await res.json()
+        setPublications(data.data)
+        alert("Publications fetched successfully")
+        
+    }
+    catch(err){
+        console.error("Error fetching publications:", err)
+    }
+    finally{
+      setLoading(false)
+    }
+    
+  }
+
   return (
     <div className="flex-1 p-6">
       <div className="mb-6">
@@ -169,6 +190,17 @@ export default function PublicationsPage() {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
+          <br />
+          <div className="flex items-center gap-2 mt-4 w-full">
+            <Input
+            placeholder="Enter searcher name"
+            className="pl-8"
+            value={searcherName}
+            onChange={(e) => setSearcherName(e.target.value)}
+            />
+            <Button onClick={getSeacherPublications}>Get Searcher Publications</Button>
+          </div>
+          
         </div>
         <Select value={yearFilter} onValueChange={setYearFilter}>
           <SelectTrigger>
@@ -326,6 +358,25 @@ export default function PublicationsPage() {
           </div>
         )}
       </div>
+      <div>
+        {loading ? (
+          <p className="font-bold text-blue-400">Loading publications...</p>
+        ) : (
+          publications ?(
+            publications.map(pub => (
+              <p>{pub.title}</p>
+            ))
+          ) : (
+            <p className="font-bold text-red-400">No publications found for the given searcher name.</p>
+          )
+        )
+          
+         
+          
+        }
+      </div>
+      
+      {/* Publications List - Now placed before the chart */}
 
       {/* Publications Chart - Now placed after publications list */}
       <div className="bg-white p-4 rounded-lg shadow border border-gray-200">
