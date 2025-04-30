@@ -1,371 +1,191 @@
-// src/scripts/seed-database.ts
-import { db } from "../db/client";
-import { 
-  publications, 
-  publicationAuthors, 
-  venues, 
-  publicationVenues, 
-  classificationSystems, 
-  publicationClassifications,
-  researchProjects,
-  projectParticipants,
-  projectPublications,
-  researchers
+// src/scripts/seed-publications.ts
+import { db } from "@/db/client";
+import {
+  externalAuthors,
+  publicationAuthors,
+  publicationExternalAuthors,
+  publications,
+  publicationVenues,
+  researchers,
+  venues,
 } from "@/db/schema";
+import { eq } from "drizzle-orm";
+import { ScrapedPublication } from "./scraper";
 
-import { scrapePublications } from "./scraper";
-import { faker } from '@faker-js/faker';
+export async function seedPublications(
+  scrapedPubs: ScrapedPublication[],
+  researcherId: string,
+  signal?: AbortSignal
+) {
+  if (signal?.aborted) throw new Error("Seeding aborted");
 
-// Helper functions for generating random data
-export  function getRandomPublicationType() {
-  const types = [
-    'journal_article', 
-    'conference_paper', 
-    'book_chapter', 
-    'thesis', 
-    'technical_report'
-  ] as const;
-  return faker.helpers.arrayElement(types);
-}
+  const results = {
+    publications: 0,
+    venues: 0,
+    internalAuthors: 0,
+    externalAuthors: 0,
+    skippedPublications: 0,
+    failedPublications: 0,
+  };
 
-export  function getRandomVenueType() {
-  const types = [
-    'journal', 
-    'conference', 
-    'workshop', 
-    'book', 
-    'preprint_server'
-  ] as const;
-  return faker.helpers.arrayElement(types);
-}
+  for (const pub of scrapedPubs) {
+    try {
+      await db.transaction(async (tx) => {
+        try {
+          // 1. Handle Venue
+          let venueId: string | undefined;
+          if (pub.venue?.name) {
+            const [venue] = await tx
+              .insert(venues)
+              .values({
+                name: pub.venue.name,
+                type: pub.venue.type || "journal",
+                publisher: pub.venue.publisher || pub.publisher || null,
+                issn: pub.venue.issn || null,
+                sjrIndicator: pub.venue.sjrIndicator || null,
+                eissn: pub.venue.eissn || null,
+                isOpenAccess: false, // Default, can be updated later
+              })
+              .onConflictDoNothing()
+              .returning({ id: venues.id });
 
-export  function getRandomClassificationSystem() {
-  const systems = [
-    "CORE",
-    "Scimago",
-    "DGRSDT",
-    "Qualis",
-    "JCR",
-    "SJR",
-  ] as const;
-  return faker.helpers.arrayElement(systems);
-}
+            if (!venue) {
+              const existingVenue = await tx.query.venues.findFirst({
+                where: eq(venues.name, pub.venue.name),
+              });
+              venueId = existingVenue?.id;
+            } else {
+              venueId = venue.id;
+              results.venues++;
+            }
+          }
 
-export  function getRandomCategory() {
-  const categories = ['Q1', 'Q2', 'Q3', 'Q4', 'A*', 'A', 'B', 'C'];
-  return faker.helpers.arrayElement(categories);
-}
+          // 2. Create Publication
+          const [publication] = await tx
+            .insert(publications)
+            .values({
+              title: pub.title,
+              abstract: pub.abstract || null,
+              authors: pub.authors || [], // Store raw author names as array
+              publicationType: pub.publicationType || "journal_article",
+              publicationDate: pub.publicationDate
+                ? new Date(pub.publicationDate).toISOString()
+                : null,
+              doi: pub.doi || null,
+              url: pub.url || null,
+              pdfUrl: pub.pdfUrl || null,
+              scholarLink: pub.scholarLink || null,
+              dblpLink: pub.dblpLink || null,
+              citationCount: pub.citationCount || 0,
+              pages: pub.pages || null,
+              volume: pub.volume || null,
+              issue: pub.issue || null,
+              publisher: pub.publisher || null,
+              journal: pub.venue?.name || null, // Store venue name directly
+              language: pub.language || "English",
+              citationGraph: pub.citationGraph || null,
+              googleScholarArticles: pub.googleScholarArticles || null,
+            })
+            .returning({ id: publications.id });
 
-export  function getRandomProjectStatus() {
-  const statuses = ['active', 'completed', 'pending', 'cancelled'];
-  return faker.helpers.arrayElement(statuses);
-}
+          results.publications++;
 
-export  function getRandomRole() {
-  const roles = [
-    'Principal Investigator',
-    'Co-Investigator',
-    'Researcher',
-    'PhD Student',
-    'Postdoc',
-    'Technical Staff'
-  ];
-  return faker.helpers.arrayElement(roles);
-}
+          // 3. Link Publication to Venue if venue exists
+          if (venueId) {
+            await tx
+              .insert(publicationVenues)
+              .values({
+                publicationId: publication.id,
+                venueId,
+                pages: pub.pages || null,
+                volume: pub.volume || null,
+                issue: pub.issue || null,
+                eventDate: pub.publicationDate
+                  ? new Date(pub.publicationDate).toISOString()
+                  : null,
+              })
+              .onConflictDoNothing();
+          }
 
-export  function generateAbstract() {
-  return faker.lorem.paragraphs(3);
-}
+          // 4. Process Authors
+          if (pub.authors?.length) {
+            for (let i = 0; i < pub.authors.length; i++) {
+              const authorName = pub.authors[i];
 
-export  function generateKeywords() {
-  const keywords = [
-    'machine learning',
-    'artificial intelligence',
-    'data mining',
-    'computer vision',
-    'natural language processing',
-    'software engineering',
-    'cybersecurity',
-    'distributed systems',
-    'cloud computing',
-    'big data'
-  ];
-  return faker.helpers.arrayElements(keywords, { min: 3, max: 8 });
-}
+              // Check if the author is internal or external
+              const isInternalResearcher = await tx.query.researchers.findFirst(
+                {
+                  where: eq(researchers.id, researcherId),
+                }
+              );
 
-export  function generateDOI(title: string) {
-  const cleanTitle = title.toLowerCase().replace(/[^a-z0-9]/g, '');
-  return `10.1000/${cleanTitle.substring(0, 10)}-${faker.string.alphanumeric(6)}`;
-}
+              const isInternalAuthor = Boolean(
+                isInternalResearcher?.firstName &&
+                  authorName.includes(isInternalResearcher.firstName) &&
+                  isInternalResearcher?.lastName &&
+                  authorName.includes(isInternalResearcher.lastName)
+              );
+              if (isInternalAuthor) {
+                await tx
+                  .insert(publicationAuthors)
+                  .values({
+                    publicationId: publication.id,
+                    researcherId,
+                    affiliationDuringWork: "ESI, Algiers",
+                  })
+                  .onConflictDoNothing();
+                results.internalAuthors++;
+              } else {
+                // Handle external authors
+                let externalAuthorId: string;
 
-async function seedClassificationSystems() {
-  console.log("Seeding classification systems...");
-  
-  const systems = [
-    { name: 'Scimago', description: 'SCImago Journal Rank', website: 'https://www.scimagojr.com' },
-    { name: 'JCR', description: 'Journal Citation Reports', website: 'https://jcr.clarivate.com' },
-    { name: 'CORE', description: 'CORE Conference Ranking', website: 'https://www.core.edu.au' },
-  ];
+                // Try to find existing external author
+                const existingAuthor = await tx.query.externalAuthors.findFirst(
+                  {
+                    where: eq(externalAuthors.fullName, authorName),
+                  }
+                );
 
-  for (const system of systems) {
-    await db.insert(classificationSystems).values({
-      ...system,
-      currentYear: new Date().getFullYear(),
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }).onConflictDoNothing();
-  }
-}
+                if (existingAuthor) {
+                  externalAuthorId = existingAuthor.id;
+                } else {
+                  // Create new external author
+                  const [newAuthor] = await tx
+                    .insert(externalAuthors)
+                    .values({
+                      fullName: authorName,
+                      affiliation: null, // Can be enhanced if affiliation data exists
+                    })
+                    .returning({ id: externalAuthors.id });
+                  externalAuthorId = newAuthor.id;
+                  results.externalAuthors++;
+                }
 
-async export  function seedResearchProjects() {
-  console.log("Seeding research projects...");
-  
-  const projects = [];
-  for (let i = 0; i < 10; i++) {
-    projects.push({
-      title: `Project ${faker.lorem.words(3)}`,
-      description: faker.lorem.paragraphs(2),
-      startDate: faker.date.past({ years: 3 }),
-      endDate: faker.date.future({ years: 2 }),
-      fundingAmount: faker.number.float({ min: 50000, max: 500000, precision: 0.01 }),
-      fundingAgency: faker.helpers.arrayElement([
-        'National Science Foundation',
-        'European Research Council',
-        'Ministry of Higher Education',
-        'Industry Partnership'
-      ]),
-      grantNumber: `GRANT-${faker.string.alphanumeric(8)}`,
-      status: getRandomProjectStatus(),
-      website: faker.internet.url(),
-      createdAt: new Date(),
-      updatedAt: new Date()
-    });
-  }
-
-  for (const project of projects) {
-    await db.insert(researchProjects).values(project);
-  }
-}
-
-async export  function seedProjectParticipants() {
-  console.log("Seeding project participants...");
-  
-  const allProjects = await db.query.researchProjects.findMany();
-  const allResearchers = await db.query.researchers.findMany();
-
-  for (const project of allProjects) {
-    // Each project has 3-8 participants
-    const numParticipants = faker.number.int({ min: 3, max: 8 });
-    const selectedResearchers = faker.helpers.arrayElements(allResearchers, numParticipants);
-    
-    for (let i = 0; i < selectedResearchers.length; i++) {
-      const researcher = selectedResearchers[i];
-      await db.insert(projectParticipants).values({
-        projectId: project.id,
-        researcherId: researcher.id,
-        role: getRandomRole(),
-        isPrincipalInvestigator: i === 0, // First researcher is PI
-        startDate: project.startDate,
-        endDate: project.endDate,
-        createdAt: new Date()
-      }).onConflictDoNothing();
-    }
-  }
-}
-
-async export  function seedVenues() {
-  console.log("Seeding venues...");
-  
-  const venuesData = [
-    { name: 'Journal of Machine Learning Research', type: 'journal', issn: '1532-4435' },
-    { name: 'IEEE Transactions on Pattern Analysis and Machine Intelligence', type: 'journal', issn: '0162-8828' },
-    { name: 'Neural Information Processing Systems', type: 'conference', issn: '1049-5258' },
-    { name: 'International Conference on Machine Learning', type: 'conference' },
-    { name: 'ACM Transactions on Database Systems', type: 'journal', issn: '0362-5915' },
-    { name: 'IEEE Symposium on Security and Privacy', type: 'conference' },
-    { name: 'Nature Machine Intelligence', type: 'journal', issn: '2522-5839' },
-    { name: 'European Conference on Computer Vision', type: 'conference' },
-    { name: 'Journal of Artificial Intelligence Research', type: 'journal', issn: '1076-9757' },
-    { name: 'International Conference on Learning Representations', type: 'conference' }
-  ];
-
-  for (const venue of venuesData) {
-    await db.insert(venues).values({
-      ...venue,
-      shortName: venue.name.split(' ').map(w => w[0]).join(''),
-      publisher: faker.helpers.arrayElement(['IEEE', 'ACM', 'Springer', 'Elsevier', 'PLOS']),
-      eissn: faker.string.numeric({ length: 8 }),
-      website: faker.internet.url(),
-      impactFactor: faker.number.float({ min: 1, max: 20, precision: 0.1 }),
-      sjrIndicator: faker.number.float({ min: 0.5, max: 10, precision: 0.01 }),
-      isOpenAccess: faker.datatype.boolean(),
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }).onConflictDoNothing();
-  }
-}
-
-async export  function seedPublicationsAndAuthors() {
-  console.log("Seeding publications and authors...");
-  
-  const allResearchers = await db.query.researchers.findMany();
-  const allVenues = await db.query.venues.findMany();
-
-  for (const researcher of allResearchers) {
-    const fullName = `${researcher.firstName} ${researcher.lastName}`.trim();
-    console.log(`Processing publications for ${fullName}`);
-    
-    // Scrape publications for this researcher
-    const scrapedData = await scrapePublications(fullName);
-    
-    if (!scrapedData || scrapedData.length === 0) {
-      console.log(`No publications found for ${fullName}`);
-      continue;
-    }
-
-    const researcherPublications = scrapedData[0].publications;
-    
-    for (const pub of researcherPublications) {
-      try {
-        // Insert publication
-        const [dbPublication] = await db.insert(publications).values({
-          title: pub.titre_publication,
-          abstract: generateAbstract(),
-          publicationType: getRandomPublicationType(),
-          status: 'published',
-          publicationDate: pub.annee ? new Date(parseInt(pub.annee), 6, 1) : faker.date.past({ years: 5 }),
-          doi: generateDOI(pub.titre_publication),
-          arxivId: `arXiv:${faker.string.numeric({ length: 4 })}.${faker.string.numeric({ length: 5 })}`,
-          isbn: pub.type.includes('book') ? faker.commerce.isbn() : null,
-          issn: faker.string.numeric({ length: 8 }),
-          url: pub.lien || faker.internet.url(),
-          pdfUrl: faker.datatype.boolean() ? faker.internet.url() : null,
-          citationCount: faker.number.int({ min: 0, max: 500 }),
-          pageCount: pub.nombre_pages ? parseInt(pub.nombre_pages.split('-')[1]) || null : null,
-          volume: pub.volumes || null,
-          issue: faker.number.int({ min: 1, max: 12 }).toString(),
-          publisher: faker.helpers.arrayElement(['IEEE', 'ACM', 'Springer', 'Elsevier', 'PLOS']),
-          keywords: generateKeywords(),
-          language: faker.helpers.arrayElement(['English', 'French', 'German', 'Spanish']),
-          createdAt: new Date(),
-          updatedAt: new Date()
-        }).returning({ id: publications.id });
-
-        // Add author relationship
-        await db.insert(publicationAuthors).values({
-          publicationId: dbPublication.id,
-          researcherId: researcher.id,
-          authorPosition: 1, // Assume first author for now
-          isCorrespondingAuthor: faker.datatype.boolean(),
-          affiliationDuringWork: 'ESI, Algiers',
-          createdAt: new Date()
-        });
-
-        // Add some co-authors (2-5 random researchers)
-        const coAuthors = faker.helpers.arrayElements(
-          allResearchers.filter(r => r.id !== researcher.id),
-          faker.number.int({ min: 1, max: 4 })
-        );
-        
-        for (let i = 0; i < coAuthors.length; i++) {
-          await db.insert(publicationAuthors).values({
-            publicationId: dbPublication.id,
-            researcherId: coAuthors[i].id,
-            authorPosition: i + 2,
-            isCorrespondingAuthor: false,
-            affiliationDuringWork: faker.helpers.arrayElement([
-              'ESI, Algiers',
-              'USTHB, Algiers',
-              'University of Science and Technology',
-              'National Research Center'
-            ]),
-            createdAt: new Date()
-          });
+                // Link external author to publication
+                await tx
+                  .insert(publicationExternalAuthors)
+                  .values({
+                    publicationId: publication.id,
+                    authorId: externalAuthorId,
+                  })
+                  .onConflictDoNothing();
+              }
+            }
+          }
+        } catch (txError) {
+          console.error(`Transaction failed for "${pub.title}":`, txError);
+          results.failedPublications++;
+          throw txError;
         }
-
-        // Link to a random venue
-        if (allVenues.length > 0) {
-          const venue = faker.helpers.arrayElement(allVenues);
-          await db.insert(publicationVenues).values({
-            publicationId: dbPublication.id,
-            venueId: venue.id,
-            pages: pub.nombre_pages || null,
-            volume: pub.volumes || null,
-            issue: faker.number.int({ min: 1, max: 12 }).toString(),
-            articleNumber: faker.string.numeric({ length: 6 }),
-            location: pub.lieu || faker.location.city(),
-            eventDate: pub.annee ? new Date(parseInt(pub.annee), 6, 1) : null,
-            createdAt: new Date()
-          });
-        }
-
-        // Add classification data (1-3 random systems)
-        const allSystems = await db.query.classificationSystems.findMany();
-        const selectedSystems = faker.helpers.arrayElements(allSystems, faker.number.int({ min: 1, max: 3 }));
-        
-        for (const system of selectedSystems) {
-          await db.insert(publicationClassifications).values({
-            publicationId: dbPublication.id,
-            systemId: system.id,
-            category: getRandomCategory(),
-            year: pub.annee ? parseInt(pub.annee) : faker.number.int({ min: 2018, max: 2023 }),
-            evidenceUrl: faker.internet.url(),
-            createdAt: new Date()
-          });
-        }
-
-      } catch (error) {
-        console.error(`Error inserting publication for ${fullName}:`, error);
-      }
+      });
+    } catch (finalError) {
+      console.error(
+        `Failed to process publication "${pub.title}":`,
+        finalError
+      );
+      results.skippedPublications++;
     }
   }
+
+  return results;
 }
-
-async export  function seedProjectPublications() {
-  console.log("Linking publications to projects...");
-  
-  const allProjects = await db.query.researchProjects.findMany();
-  const allPublications = await db.query.publications.findMany();
-
-  for (const project of allProjects) {
-    // Each project has 3-10 publications
-    const projectPubs = faker.helpers.arrayElements(
-      allPublications,
-      faker.number.int({ min: 3, max: 10 })
-    );
-    
-    for (const pub of projectPubs) {
-      await db.insert(projectPublications).values({
-        projectId: project.id,
-        publicationId: pub.id,
-        acknowledgement: faker.datatype.boolean() ? 
-          `This work was supported by project ${project.title}` : null,
-        createdAt: new Date()
-      }).onConflictDoNothing();
-    }
-  }
-}
-
-export default async function seedDatabase() {
-  console.log("Starting database seeding...");
-  
-  try {
-    // Seed in proper order to maintain foreign key constraints
-    await seedClassificationSystems();
-    await seedVenues();
-    await seedResearchProjects();
-    await seedPublicationsAndAuthors();
-    await seedProjectParticipants();
-    await seedProjectPublications();
-    
-    console.log("✅ Database seeding completed successfully!");
-  } catch (error) {
-    console.error("❌ Error seeding database:", error);
-    process.exit(1);
-  } finally {
-    process.exit(0);
-  }
-}
-
-// Uncomment to run directly
-// seedDatabase();

@@ -62,13 +62,6 @@ export const venueTypeEnum = pgEnum("venue_type", [
   "book",
 ]);
 
-export const publicationStatusEnum = pgEnum("publication_status", [
-  "published",
-  "accepted",
-  "submitted",
-  "in_preparation",
-  "under_review",
-]);
 
 export const classificationSystemEnum = pgEnum("classification_system_type", [
   "CORE",
@@ -81,7 +74,6 @@ export const classificationSystemEnum = pgEnum("classification_system_type", [
 ]);
 
 export const userRoleEnum = pgEnum("user_role", [
-  "super_admin",
   "admin",
   "director",
   "researcher",
@@ -146,79 +138,65 @@ export const researchers = pgTable(
     orcidIdx: uniqueIndex("researcher_orcid_idx").on(table.orcidId),
   })
 );
-type ScrapedPublication = {
-  citationGraphData: { year: string; count: number; }[];
-  referenceCount: number;
-    citationGraphUrl: string;
-  //title: string;
-  //abstract?: string;
-  //publicationType: typeof publicationTypeEnum.enumValues[number];
-  //publicationDate?: Date;
-  //doi?: string;
-  //arxivId?: string;
-  //isbn?: string;
-  //issn?: string;
-  //url?: string;
-  //pdfUrl?: string;
-  //citationCount?: number;
-  //pageCount?: number;
-  //volume?: string;
-  //issue?: string;
-  //publisher?: string;
-  //keywords?: string[];
-  //language: string;
-  relatedArticlesLink?: string;
-  allVersionsLink?: string;
-  venue: {
-    name: string;
-    type: typeof venueTypeEnum.enumValues[number];
-    publisher?: string;
-    issn?: string;
-    eissn?: string;
-    website?: string;
-    impactFactor?: number;
-    sjrIndicator?: number;
-    isOpenAccess?: boolean;
-    location?: string;
-  };
-  authors: {
-    scholarId: any;
-    name: string;
-    isCorresponding?: boolean;
-    position: number;
-    affiliationDuringWork?: string;
-  }[];
-};
 
 // ---- Publications ----
+
 export const publications = pgTable(
   "publication",
   {
     id: uuid("id").primaryKey().defaultRandom(),
     title: text("title").notNull(),
     abstract: text("abstract"),
-    publicationType: publicationTypeEnum("publication_type").notNull(),
-    status: publicationStatusEnum("status").default("published"),
+    authors: text("authors").array(), // Added for raw author names
+    publicationType: publicationTypeEnum("publication_type"),
     publicationDate: date("publication_date"),
-    doi: varchar("doi", { length: 100 }).unique(),
-    arxivId: varchar("arxiv_id", { length: 50 }),
-    isbn: varchar("isbn", { length: 20 }),
-    issn: varchar("issn", { length: 20 }),
+    doi: varchar("doi", { length: 250 }),
     url: varchar("url", { length: 512 }),
     pdfUrl: varchar("pdf_url", { length: 512 }),
+    scholarLink: varchar("scholar_link", { length: 512 }),
+    dblpLink: varchar("dblp_link", { length: 512 }),
     citationCount: integer("citation_count").default(0),
-    pageCount: integer("page_count"),
+    pages: varchar("pages", { length: 50 }),
     volume: varchar("volume", { length: 50 }),
     issue: varchar("issue", { length: 50 }),
-    publisher: varchar("publisher", { length: 255 }),
-    keywords: text("keywords").array(),
+    publisher: varchar("publisher", { length: 500 }),
+    journal: varchar("journal", { length: 255 }), // Added
     language: varchar("language", { length: 50 }).default("English"),
+    citationGraph: jsonb("citation_graph"),
+    googleScholarArticles: jsonb("google_scholar_articles"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
   (table) => ({
-    doiIdx: uniqueIndex("publication_doi_idx").on(table.doi),
-    arxivIdx: uniqueIndex("publication_arxiv_idx").on(table.arxivId),
+    scholarLinkIdx: uniqueIndex("publication_scholar_link_idx").on(table.scholarLink),
+  })
+);
+
+export const externalAuthors = pgTable("external_author", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  fullName: text("full_name").notNull(),
+  affiliation: text("affiliation"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const publicationExternalAuthors = pgTable(
+  "publication_external_author",
+  {
+    publicationId: uuid("publication_id")
+      .notNull()
+      .references(() => publications.id, { onDelete: "cascade" }),
+    authorId: uuid("author_id")
+      .notNull()
+      .references(() => externalAuthors.id, { onDelete: "cascade" }),
+
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.publicationId, table.authorId] }),
+    positionIdx: uniqueIndex("ext_author_position_idx").on(
+      table.publicationId,
+    ),
   })
 );
 
@@ -232,16 +210,13 @@ export const publicationAuthors = pgTable(
     researcherId: uuid("researcher_id")
       .notNull()
       .references(() => researchers.id, { onDelete: "cascade" }),
-    authorPosition: integer("author_position").notNull(),
-    isCorrespondingAuthor: boolean("is_corresponding_author").default(false),
     affiliationDuringWork: text("affiliation_during_work"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (table) => ({
     pk: primaryKey({ columns: [table.publicationId, table.researcherId] }),
     pubAuthorIdx: uniqueIndex("pub_author_idx").on(
-      table.publicationId,
-      table.authorPosition
+      table.publicationId
     ),
   })
 );
@@ -252,13 +227,10 @@ export const venues = pgTable(
   {
     id: uuid("id").primaryKey().defaultRandom(),
     name: varchar("name", { length: 255 }).notNull(),
-    shortName: varchar("short_name", { length: 100 }),
     type: venueTypeEnum("type").notNull(),
     publisher: varchar("publisher", { length: 255 }),
     issn: varchar("issn", { length: 20 }),
     eissn: varchar("eissn", { length: 20 }),
-    website: varchar("website", { length: 512 }),
-    impactFactor: numeric("impact_factor", { precision: 5, scale: 3 }),
     sjrIndicator: numeric("sjr_indicator", { precision: 6, scale: 3 }),
     isOpenAccess: boolean("is_open_access").default(false),
     createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -282,8 +254,6 @@ export const publicationVenues = pgTable(
     pages: varchar("pages", { length: 50 }),
     volume: varchar("volume", { length: 50 }),
     issue: varchar("issue", { length: 50 }),
-    articleNumber: varchar("article_number", { length: 50 }),
-    location: varchar("location", { length: 255 }),
     eventDate: date("event_date"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },

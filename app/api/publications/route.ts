@@ -1,31 +1,68 @@
+import { ResearchDataScraper } from "@/scripts/scraper";
+import { seedPublications } from "@/scripts/seed-publications";
+import { eq } from "drizzle-orm";
+import { NextResponse } from "next/server";
+import { db } from "../../../db/client";
+import { researchers } from "../../../db/schema";
 
-import { db } from '@/db/client';
-import { publications } from '@/db/schema';
-import { NextResponse } from 'next/server';
-import { ResearchDataScraper } from '../../../scripts/scraper';
+export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { researcherName } = body;
-
-    if (!researcherName) {
-      return NextResponse.json({ error: 'Researcher name is required' }, { status: 400 });
+    const { researcherId } = await request.json();
+    if (!researcherId) {
+      return NextResponse.json(
+        { error: "Researcher ID is required" },
+        { status: 400 }
+      );
     }
-    
 
+    // Get researcher info
+    const researcher = await db.query.researchers.findFirst({
+      where: eq(researchers.id, researcherId),
+      columns: {
+        id: true,
+        firstName: true,
+        lastName: true,
+      },
+    });
+
+    if (!researcher) {
+      return NextResponse.json(
+        { error: "Researcher not found" },
+        { status: 404 }
+      );
+    }
+
+    // Scrape publications
     const scraper = new ResearchDataScraper();
-    const scrapedPublications = await scraper.scrapeResearcherPublications(researcherName);
+    const fullName = `${researcher.firstName} ${researcher.lastName}`;
+    const abortController = new AbortController();
+    const scrapedData = await scraper.scrapeResearcherPublications(fullName, abortController.signal);
 
-
-    // Insert scraped publications into the database
-    for (const publication of scrapedPublications) {
-      await db.insert(publications).values(publication);
+    if (!scrapedData?.length) {
+      return NextResponse.json(
+        { message: "No publications found for this researcher" },
+        { status: 404 }
+      );
     }
 
-    return NextResponse.json({ message: 'Publications added successfully', pubs: scrapedPublications }, { status: 201 });
+    // Seed publications
+    const results = await seedPublications(scrapedData, researcher.id);
+
+    return NextResponse.json({
+      success: true,
+      researcher: fullName,
+      ...results,
+    });
   } catch (error) {
-    console.error('Error in scraping publications:', error);
-    return NextResponse.json({ error: 'Failed to scrape publications' }, { status: 500 });
+    console.error("Publication seeding failed:", error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 }
+    );
   }
 }
