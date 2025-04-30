@@ -102,7 +102,7 @@ export default function PublicationDetails() {
   </Head>
 
   {/* Remove ml-* class completely and add pl-[sidebar-width] */}
-  <div className="min-h-screen bg-gray-50 pl-16"> {/* Assuming sidebar is 64px wide */}
+  <div className="min-h-screen  pl-16"> {/* Assuming sidebar is 64px wide */}
     <div className="p-4 max-w-7xl mx-auto">
       {/* Header with back button - now flush with sidebar */}
       <div className="flex items-center mb-4">
