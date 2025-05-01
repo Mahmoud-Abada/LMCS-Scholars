@@ -7,16 +7,16 @@ CREATE TYPE "public"."user_role" AS ENUM('admin', 'director', 'researcher', 'ass
 CREATE TYPE "public"."venue_type" AS ENUM('journal', 'conference', 'workshop', 'symposium', 'book');--> statement-breakpoint
 CREATE TABLE "account" (
 	"user_id" uuid NOT NULL,
-	"type" varchar(255) NOT NULL,
-	"provider" varchar(255) NOT NULL,
-	"provider_account_id" varchar(255) NOT NULL,
+	"type" varchar(512) NOT NULL,
+	"provider" varchar(512) NOT NULL,
+	"provider_account_id" varchar(512) NOT NULL,
 	"refresh_token" text,
 	"access_token" text,
 	"expires_at" integer,
-	"token_type" varchar(255),
-	"scope" varchar(255),
+	"token_type" varchar(512),
+	"scope" varchar(512),
 	"id_token" text,
-	"session_state" varchar(255),
+	"session_state" varchar(512),
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
 	CONSTRAINT "account_provider_provider_account_id_pk" PRIMARY KEY("provider","provider_account_id")
@@ -53,30 +53,11 @@ CREATE TABLE "external_author" (
 );
 --> statement-breakpoint
 CREATE TABLE "password_reset_token" (
-	"identifier" varchar(255) NOT NULL,
-	"token" varchar(255) NOT NULL,
+	"identifier" varchar(512) NOT NULL,
+	"token" varchar(512) NOT NULL,
 	"expires" timestamp NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	CONSTRAINT "password_reset_token_identifier_token_pk" PRIMARY KEY("identifier","token")
-);
---> statement-breakpoint
-CREATE TABLE "project_participant" (
-	"project_id" uuid NOT NULL,
-	"researcher_id" uuid NOT NULL,
-	"role" varchar(100) NOT NULL,
-	"is_principal_investigator" boolean DEFAULT false,
-	"start_date" date,
-	"end_date" date,
-	"created_at" timestamp DEFAULT now() NOT NULL,
-	CONSTRAINT "project_participant_project_id_researcher_id_pk" PRIMARY KEY("project_id","researcher_id")
-);
---> statement-breakpoint
-CREATE TABLE "project_publication" (
-	"project_id" uuid NOT NULL,
-	"publication_id" uuid NOT NULL,
-	"acknowledgement" text,
-	"created_at" timestamp DEFAULT now() NOT NULL,
-	CONSTRAINT "project_publication_project_id_publication_id_pk" PRIMARY KEY("project_id","publication_id")
 );
 --> statement-breakpoint
 CREATE TABLE "publication_author" (
@@ -131,26 +112,11 @@ CREATE TABLE "publication" (
 	"pages" varchar(50),
 	"volume" varchar(50),
 	"issue" varchar(50),
-	"publisher" varchar(500),
-	"journal" varchar(255),
+	"publisher" varchar(512),
+	"journal" varchar(512),
 	"language" varchar(50) DEFAULT 'English',
 	"citation_graph" jsonb,
 	"google_scholar_articles" jsonb,
-	"created_at" timestamp DEFAULT now() NOT NULL,
-	"updated_at" timestamp DEFAULT now() NOT NULL
-);
---> statement-breakpoint
-CREATE TABLE "research_project" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"title" varchar(255) NOT NULL,
-	"description" text,
-	"start_date" date NOT NULL,
-	"end_date" date,
-	"funding_amount" numeric(12, 2),
-	"funding_agency" varchar(255),
-	"grant_number" varchar(100),
-	"status" varchar(50) DEFAULT 'active',
-	"website" varchar(512),
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );
@@ -170,7 +136,7 @@ CREATE TABLE "researcher" (
 	"orcid_id" varchar(19),
 	"first_name" varchar(100) NOT NULL,
 	"last_name" varchar(100) NOT NULL,
-	"email" varchar(255) NOT NULL,
+	"email" varchar(512) NOT NULL,
 	"phone" varchar(20),
 	"status" "researcher_status" DEFAULT 'active',
 	"qualification" "qualification",
@@ -196,7 +162,7 @@ CREATE TABLE "researcher" (
 --> statement-breakpoint
 CREATE TABLE "session" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"session_token" varchar(255) NOT NULL,
+	"session_token" varchar(512) NOT NULL,
 	"user_id" uuid NOT NULL,
 	"expires" timestamp NOT NULL,
 	"ip_address" varchar(45),
@@ -207,11 +173,11 @@ CREATE TABLE "session" (
 --> statement-breakpoint
 CREATE TABLE "user" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"name" varchar(255),
-	"email" varchar(255) NOT NULL,
+	"name" varchar(512),
+	"email" varchar(512) NOT NULL,
 	"email_verified" timestamp,
-	"image" varchar(255),
-	"password" varchar(255),
+	"image" varchar(512),
+	"password" varchar(512),
 	"role" "user_role" DEFAULT 'researcher' NOT NULL,
 	"researcher_id" uuid,
 	"last_login" timestamp,
@@ -223,9 +189,9 @@ CREATE TABLE "user" (
 --> statement-breakpoint
 CREATE TABLE "venue" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"name" varchar(255) NOT NULL,
+	"name" varchar(512) NOT NULL,
 	"type" "venue_type" NOT NULL,
-	"publisher" varchar(255),
+	"publisher" varchar(512),
 	"issn" varchar(20),
 	"eissn" varchar(20),
 	"sjr_indicator" numeric(6, 3),
@@ -235,8 +201,8 @@ CREATE TABLE "venue" (
 );
 --> statement-breakpoint
 CREATE TABLE "verification_token" (
-	"identifier" varchar(255) NOT NULL,
-	"token" varchar(255) NOT NULL,
+	"identifier" varchar(512) NOT NULL,
+	"token" varchar(512) NOT NULL,
 	"expires" timestamp NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	CONSTRAINT "verification_token_identifier_token_pk" PRIMARY KEY("identifier","token")
@@ -244,10 +210,6 @@ CREATE TABLE "verification_token" (
 --> statement-breakpoint
 ALTER TABLE "account" ADD CONSTRAINT "account_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "audit_log" ADD CONSTRAINT "audit_log_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "project_participant" ADD CONSTRAINT "project_participant_project_id_research_project_id_fk" FOREIGN KEY ("project_id") REFERENCES "public"."research_project"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "project_participant" ADD CONSTRAINT "project_participant_researcher_id_researcher_id_fk" FOREIGN KEY ("researcher_id") REFERENCES "public"."researcher"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "project_publication" ADD CONSTRAINT "project_publication_project_id_research_project_id_fk" FOREIGN KEY ("project_id") REFERENCES "public"."research_project"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "project_publication" ADD CONSTRAINT "project_publication_publication_id_publication_id_fk" FOREIGN KEY ("publication_id") REFERENCES "public"."publication"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "publication_author" ADD CONSTRAINT "publication_author_publication_id_publication_id_fk" FOREIGN KEY ("publication_id") REFERENCES "public"."publication"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "publication_author" ADD CONSTRAINT "publication_author_researcher_id_researcher_id_fk" FOREIGN KEY ("researcher_id") REFERENCES "public"."researcher"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "publication_classification" ADD CONSTRAINT "publication_classification_publication_id_publication_id_fk" FOREIGN KEY ("publication_id") REFERENCES "public"."publication"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint

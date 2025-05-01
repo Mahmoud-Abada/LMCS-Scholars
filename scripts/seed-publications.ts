@@ -121,9 +121,9 @@ export async function seedPublications(
 
               const isInternalAuthor = Boolean(
                 isInternalResearcher?.firstName &&
-                  authorName.includes(isInternalResearcher.firstName) &&
+                  String(authorName).includes(isInternalResearcher.firstName) &&
                   isInternalResearcher?.lastName &&
-                  authorName.includes(isInternalResearcher.lastName)
+                  String(authorName).includes(isInternalResearcher.lastName)
               );
               if (isInternalAuthor) {
                 await tx
