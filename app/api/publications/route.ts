@@ -1,6 +1,4 @@
-
-import { publications } from '@/db/schema';
-import { NextResponse } from 'next/server';
+// src/app/api/publications/route.ts
 import { db } from "@/db/client";
 import {
   classificationSystems,
@@ -24,9 +22,14 @@ import { seedPublications } from "../../../scripts/seed-publications";
 export const dynamic = "force-dynamic";
 // Input validation schemas
 const queryParamsSchema = z.object({
-  page: z.number().min(1).default(1),
-  pageSize: z.number().min(1).max(100).default(DEFAULT_PAGE_SIZE),
-  search: z.string().optional(),
+  page: z.coerce.number().min(1).default(1).catch(1),
+  pageSize: z.coerce
+    .number()
+    .min(1)
+    .max(100)
+    .default(DEFAULT_PAGE_SIZE)
+    .catch(DEFAULT_PAGE_SIZE),
+  search: z.string().optional().catch(undefined),
   publicationType: z
     .enum([
       "journal_article",
@@ -37,20 +40,31 @@ const queryParamsSchema = z.object({
       "thesis",
       "preprint",
     ])
-    .optional(),
-  yearFrom: z.number().min(1900).max(new Date().getFullYear()).optional(),
-  yearTo: z.number().min(1900).max(new Date().getFullYear()).optional(),
-  venueId: z.string().uuid().optional(),
-  researcherId: z.string().uuid().optional(),
-  teamId: z.string().uuid().optional(),
-  classificationId: z.string().uuid().optional(),
-  minCitations: z.number().min(0).optional(),
+    .optional()
+    .catch(undefined),
+  yearFrom: z.coerce
+    .number()
+    .min(1900)
+    .max(new Date().getFullYear())
+    .optional()
+    .catch(undefined),
+  yearTo: z.coerce
+    .number()
+    .min(1900)
+    .max(new Date().getFullYear())
+    .optional()
+    .catch(undefined),
+  venueId: z.string().uuid().optional().catch(undefined),
+  researcherId: z.string().uuid().optional().catch(undefined),
+  teamId: z.string().uuid().optional().catch(undefined),
+  classificationId: z.string().uuid().optional().catch(undefined),
+  minCitations: z.coerce.number().min(0).optional().catch(undefined),
   sortBy: z
     .enum(["title", "citation_count", "publication_date", "created_at"])
-    .default("publication_date"),
-  order: z.enum(["asc", "desc"]).default("desc"),
+    .default("publication_date")
+    .catch("publication_date"),
+  order: z.enum(["asc", "desc"]).default("desc").catch("desc"),
 });
-
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -166,11 +180,9 @@ export async function GET(request: Request) {
       created_at: publications.createdAt,
     }[queryParams.sortBy];
 
-    // Main query with all related data
-    // Main query with all related data
     const publicationsData = await db
       .select({
-        id: publications.id,
+        publication_id: publications.id,
         title: publications.title,
         abstract: publications.abstract,
         publication_type: publications.publicationType,
@@ -191,109 +203,113 @@ export async function GET(request: Request) {
         google_scholar_articles: publications.googleScholarArticles,
         created_at: publications.createdAt,
         updated_at: publications.updatedAt,
-        authors: sql<
-          Array<{
-            id: string;
-            name: string;
-            affiliation?: string;
-            is_external: boolean;
-          }>
-        >`(
-    SELECT COALESCE(
-      json_agg(
-        json_build_object(
-          'id', r.id,
-          'name', CONCAT(r.first_name, ' ', r.last_name),
-          'affiliation', t.name,
-          'is_external', false
-        )
-      ),
-      '[]'::json
-    )
-    FROM ${publicationAuthors} pa
-    JOIN ${researchers} r ON pa.researcher_id = r.id
-    LEFT JOIN ${researchTeams} t ON r.team_id = t.id
-    WHERE pa.publication_id = ${publications.id}
-  )`.as("authors"),
-        external_authors: sql<
-          Array<{
-            id: string;
-            name: string;
-            affiliation?: string;
-            is_external: boolean;
-          }>
-        >`(
-    SELECT COALESCE(
-      json_agg(
-        json_build_object(
-          'id', ea.id,
-          'name', ea.full_name,
-          'affiliation', ea.affiliation,
-          'is_external', true
-        )
-      ),
-      '[]'::json
-    )
-    FROM ${publicationExternalAuthors} pea
-    JOIN ${externalAuthors} ea ON pea.author_id = ea.id
-    WHERE pea.publication_id = ${publications.id}
-  )`.as("external_authors"),
-        venues: sql<
-          Array<{
-            id: string;
-            name: string;
-            type: string;
-            pages?: string;
-            volume?: string;
-            issue?: string;
-          }>
-        >`(
-    SELECT COALESCE(
-      json_agg(
-        json_build_object(
-          'id', v.id,
-          'name', v.name,
-          'type', v.type,
-          'pages', pv.pages,
-          'volume', pv.volume,
-          'issue', pv.issue
-        )
-      ),
-      '[]'::json
-    )
-    FROM ${publicationVenues} pv
-    JOIN ${venues} v ON pv.venue_id = v.id
-    WHERE pv.publication_id = ${publications.id}
-  )`.as("venues"),
-        classifications: sql<
-          Array<{
-            system_id: string;
-            system_name: string;
-            category: string;
-            year: number;
-          }>
-        >`(
-    SELECT COALESCE(
-      json_agg(
-        json_build_object(
-          'system_id', cs.id,
-          'system_name', cs.name,
-          'category', pc.category,
-          'year', pc.year
-        )
-      ),
-      '[]'::json
-    )
-    FROM ${publicationClassifications} pc
-    JOIN ${classificationSystems} cs ON pc.system_id = cs.id
-    WHERE pc.publication_id = ${publications.id}
-  )`.as("classifications"),
       })
       .from(publications)
       .where(and(...conditions))
       .orderBy(queryParams.order === "asc" ? asc(sortColumn) : desc(sortColumn))
       .limit(queryParams.pageSize)
       .offset(offset);
+
+      console.log("Publications data:");
+
+    // Fetch related data separately for each publication
+    const enhancedData = await Promise.all(
+      publicationsData.map(async (pub) => {
+        // Internal authors
+        const authors = await db
+          .select({
+            id: researchers.id,
+            firstName: researchers.firstName,
+            lastName: researchers.lastName,
+            teamName: researchTeams.name,
+          })
+          .from(publicationAuthors)
+          .innerJoin(
+            researchers,
+            eq(publicationAuthors.researcherId, researchers.id)
+          )
+          .leftJoin(researchTeams, eq(researchers.teamId, researchTeams.id))
+          .where(eq(publicationAuthors.publicationId, pub.publication_id));
+
+        // External authors
+        const extAuthors = await db
+          .select({
+            id: externalAuthors.id,
+            fullName: externalAuthors.fullName,
+            affiliation: externalAuthors.affiliation,
+          })
+          .from(publicationExternalAuthors)
+          .innerJoin(
+            externalAuthors,
+            eq(publicationExternalAuthors.authorId, externalAuthors.id)
+          )
+          .where(
+            eq(publicationExternalAuthors.publicationId, pub.publication_id)
+          );
+
+        // Venues
+        const vens = await db
+          .select({
+            id: venues.id,
+            name: venues.name,
+            type: venues.type,
+            pages: publicationVenues.pages,
+            volume: publicationVenues.volume,
+            issue: publicationVenues.issue,
+          })
+          .from(publicationVenues)
+          .innerJoin(venues, eq(publicationVenues.venueId, venues.id))
+          .where(eq(publicationVenues.publicationId, pub.publication_id));
+
+        // Classifications
+        const classifications = await db
+          .select({
+            system_id: classificationSystems.id,
+            system_name: classificationSystems.name,
+            category: publicationClassifications.category,
+            year: publicationClassifications.year,
+          })
+          .from(publicationClassifications)
+          .innerJoin(
+            classificationSystems,
+            eq(publicationClassifications.systemId, classificationSystems.id)
+          )
+          .where(
+            eq(publicationClassifications.publicationId, pub.publication_id)
+          );
+
+        return {
+          ...pub,
+          authors: authors.map((a) => ({
+            id: a.id,
+            name: `${a.firstName} ${a.lastName}`,
+            affiliation: a.teamName,
+            is_external: false,
+          })),
+          external_authors: extAuthors.map((ea) => ({
+            id: ea.id,
+            name: ea.fullName,
+            affiliation: ea.affiliation,
+            is_external: true,
+          })),
+          venues: vens.map((v) => ({
+            id: v.id,
+            name: v.name,
+            type: v.type,
+            pages: v.pages,
+            volume: v.volume,
+            issue: v.issue,
+          })),
+          classifications: classifications.map((c) => ({
+            system_id: c.system_id,
+            system_name: c.system_name,
+            category: c.category,
+            year: c.year,
+          })),
+        };
+      })
+    );
+    console.log("Enhanced data:");
 
     // Get total count for pagination
     const totalCountResult = await db
@@ -305,11 +321,7 @@ export async function GET(request: Request) {
     const totalPages = Math.ceil(totalCount / queryParams.pageSize);
 
     return NextResponse.json({
-      data: publicationsData.map((pub) => ({
-        ...pub,
-        // Combine internal and external authors
-        all_authors: [...pub.authors, ...pub.external_authors],
-      })),
+      data: enhancedData,
       pagination: {
         page: queryParams.page,
         pageSize: queryParams.pageSize,
@@ -325,40 +337,8 @@ export async function GET(request: Request) {
   }
 }
 
-export async function GET(request: Request) {
+export async function POST(request: Request) {
   try {
-    const { searchParams } = new URL(request.url);
-    
-    // Optional pagination parameters
-    const page = Number(searchParams.get('page')) || 1;
-    const limit = Number(searchParams.get('limit')) || 20;
-    const sort = searchParams.get('sort') || 'desc';
-    
-    // Query the database for all publications with pagination
-    const publicationsData = await db
-      .select()
-      .from(publications)
-      .orderBy(sort === 'asc' ? asc(publications.publicationDate) : desc(publications.publicationDate))
-      .limit(10)
-      .offset((page - 1) * limit);
-
-    // Get total count for pagination
-    const totalCount = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(publications);
-
-    return NextResponse.json({ 
-      data: publicationsData,
-      pagination: {
-        total: totalCount[0].count,
-        page,
-        limit,
-        totalPages: Math.ceil(totalCount[0].count / limit)
-      }
-    }, { status: 200 });
-  } catch (error) {
-    console.error("Error fetching publications:", error);
-    return NextResponse.json({ error: "Failed to fetch publications" }, { status: 500 });
     const { researcherId } = await request.json();
     if (!researcherId) {
       return NextResponse.json(
@@ -405,7 +385,6 @@ export async function GET(request: Request) {
       ...results,
     });
   } catch (error) {
-    console.error("Publication seeding failed:", error);
     return NextResponse.json(
       {
         success: false,
