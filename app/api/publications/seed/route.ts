@@ -1,3 +1,4 @@
+//api/publications/seed/route.ts
 import { db } from "@/db/client";
 import { ResearchDataScraper } from "@/scripts/scraper";
 import { seedPublications } from "@/scripts/seed-publications";
