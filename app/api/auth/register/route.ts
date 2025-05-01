@@ -35,7 +35,7 @@ export async function POST(request: Request) {
       email: data.email,
       password: hashedPassword,
       name: data.name,
-      role: "researcher",
+      role: "guest",
       researcherId: data.researcherId,
       createdAt: new Date(),
       updatedAt: new Date(),
