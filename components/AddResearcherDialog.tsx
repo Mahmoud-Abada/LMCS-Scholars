@@ -10,7 +10,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { AddResearcherForm } from './add-researcher-form';
+import { AddResearcherForm } from './AddResearcherForm';
 
 export function AddResearcherDialog() {
   const [open, setOpen] = useState(false);

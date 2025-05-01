@@ -4,34 +4,48 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { SubmitButton } from "@/components/submit-button";
 import Image from "next/image";
+import { Eye, EyeOff } from "lucide-react";
+import { toast } from "sonner"; // Import toast from sonner
 
 export default function LoginPage() {
   const router = useRouter();
-  const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // Renamed for consistency
 
   async function handleLogin(formData: FormData) {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
 
+    setIsLoading(true);
+    toast.dismiss(); // Clear any existing toasts
+
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json"
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password })
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Login failed');
+        throw new Error(errorData.error || "Login failed");
       }
 
-      // On successful login, redirect to dashboard
-      router.push("/dashboard");
-      router.refresh(); // Refresh to update auth state
+      // Show success toast before redirecting
+      toast.success("Login successful! Redirecting...");
+      
+      // Small delay to let user see the success message
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      router.push("/");
+      router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed");
+      const errorMessage = err instanceof Error ? err.message : "Login failed";
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -55,12 +69,6 @@ export default function LoginPage() {
           <p className="text-gray-600 mt-1">Sign in to your account</p>
         </div>
 
-        {error && (
-          <div className="bg-red-50 p-3 rounded-md">
-            <p className="text-red-600 text-sm text-center">{error}</p>
-          </div>
-        )}
-
         <div className="space-y-4">
           <div>
             <label className="block mb-2 text-sm font-medium text-gray-700">
@@ -75,31 +83,41 @@ export default function LoginPage() {
             />
           </div>
 
-          <div>
+          <div className="relative">
             <label className="block mb-2 text-sm font-medium text-gray-700">
               Password
             </label>
             <input
               name="password"
-              type="password"
+              type={showPassword ? "text" : "password"}
               required
-              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-10"
               placeholder="Enter your password"
             />
+            <button
+              type="button"
+              className="absolute right-3 top-9 text-gray-500 hover:text-gray-700"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+            </button>
           </div>
         </div>
 
-        <SubmitButton className="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition-colors font-medium">
-          Sign In
+        <SubmitButton 
+          className="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+          disabled={isLoading}
+        >
+          {isLoading ? "Signing In..." : "Sign In"}
         </SubmitButton>
 
         <p className="text-sm text-center text-gray-600">
-          Don&apos;t have an account?{" "}
-          <a 
-            href="/register" 
+          Forgot password?{" "}
+          <a
+            href="/forgot-password"
             className="text-blue-600 hover:underline font-medium"
           >
-            Register here
+            Reset it here
           </a>
         </p>
       </form>

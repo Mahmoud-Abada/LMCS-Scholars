@@ -38,9 +38,7 @@ export default function HomePage() {
               <Button asChild className="px-6 py-3 text-lg bg-white text-[#1a365d] hover:bg-[#ebf3ff] border border-[#b3d1ff]">
                 <Link href="/login">Login</Link>
               </Button>
-              <Button asChild className="px-6 py-3 text-lg bg-[#1a365d] text-white hover:bg-[#2c4d8a]">
-                <Link href="/register">Register</Link>
-              </Button>
+              
             </div>
           ) : (
             <div className="flex gap-4">
