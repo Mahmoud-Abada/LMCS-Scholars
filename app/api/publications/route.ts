@@ -1,53 +1,40 @@
-
+// app/api/publications/route.ts
 import { db } from '@/db/client';
 import { publications } from '@/db/schema';
 import { NextResponse } from 'next/server';
-import { ResearchDataScraper } from '../../../scripts/scraper';
-
-export async function POST(request: Request) {
-  try {
-    const body = await request.json();
-    const { researcherName } = body;
-
-    if (!researcherName) {
-      return NextResponse.json({ error: 'Researcher name is required' }, { status: 400 });
-    }
-    
-
-    const scraper = new ResearchDataScraper();
-    const scrapedPublications = await scraper.scrapeResearcherPublications(researcherName);
-
-
-    // Insert scraped publications into the database
-    for (const publication of scrapedPublications) {
-      await db.insert(publications).values(publication);
-    }
-
-    return NextResponse.json({ message: 'Publications added successfully', pubs: scrapedPublications }, { status: 201 });
-  } catch (error) {
-    console.error('Error in scraping publications:', error);
-    return NextResponse.json({ error: 'Failed to scrape publications' }, { status: 500 });
-  }
-}
+import { asc, desc, sql } from 'drizzle-orm';
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-
-    // Extract query parameters
-    const researcherName = searchParams.get("researcherName");
-
-    if (!researcherName) {
-      return NextResponse.json({ error: "Researcher name is required" }, { status: 400 });
-    }
-
-    // Query the database for publications by researcher name
+    
+    // Optional pagination parameters
+    const page = Number(searchParams.get('page')) || 1;
+    const limit = Number(searchParams.get('limit')) || 20;
+    const sort = searchParams.get('sort') || 'desc';
+    
+    // Query the database for all publications with pagination
     const publicationsData = await db
       .select()
       .from(publications)
-      .where(like(publications.researcherName, `%${researcherName}%`));
+      .orderBy(sort === 'asc' ? asc(publications.publicationDate) : desc(publications.publicationDate))
+      .limit(10)
+      .offset((page - 1) * limit);
 
-    return NextResponse.json({ data: publicationsData }, { status: 200 });
+    // Get total count for pagination
+    const totalCount = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(publications);
+
+    return NextResponse.json({ 
+      data: publicationsData,
+      pagination: {
+        total: totalCount[0].count,
+        page,
+        limit,
+        totalPages: Math.ceil(totalCount[0].count / limit)
+      }
+    }, { status: 200 });
   } catch (error) {
     console.error("Error fetching publications:", error);
     return NextResponse.json({ error: "Failed to fetch publications" }, { status: 500 });
