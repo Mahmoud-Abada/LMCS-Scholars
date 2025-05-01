@@ -73,7 +73,7 @@ export function AppSidebar() {
         },
         {
           title: "Sign Out",
-          url: "/logout",
+          url: "/login",
           icon: RiLogoutBoxLine,
         },
       ],

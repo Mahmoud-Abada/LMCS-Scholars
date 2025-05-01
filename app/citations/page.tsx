@@ -254,32 +254,34 @@ export default function CitationsAnalyticsPage() {
       </Card>
 
       {/* Collaboration Metrics */}
+
       <Card>
-        <CardHeader>
-          <CardTitle>Collaboration Types</CardTitle>
-        </CardHeader>
-        <CardContent className="h-96">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={data.collaboration_metrics}
-                dataKey="total_citations"
-                nameKey="collaboration_type"
-                cx="50%"
-                cy="50%"
-                outerRadius={100}
-                label
-              >
-                {data.collaboration_metrics.map((entry: any, index: number) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip />
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
+  <CardHeader>
+    <CardTitle>Collaboration Types</CardTitle>
+  </CardHeader>
+  <CardContent className="h-64">
+    <ResponsiveContainer width="100%" height="100%">
+      <BarChart
+        data={[
+          { name: 'Single', value: data.collaboration_metrics.find(m => m.collaboration_type === 'single-author')?.total_citations || 0 },
+          { name: 'Team', value: data.collaboration_metrics.find(m => m.collaboration_type === 'intra-team')?.total_citations || 0 },
+          { name: 'Cross', value: data.collaboration_metrics.find(m => m.collaboration_type === 'inter-team')?.total_citations || 0 },
+        ]}
+        margin={{ top: 20, right: 20, left: 20, bottom: 20 }}
+      >
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="name" />
+        <YAxis />
+        <Bar dataKey="value">
+          <Cell fill="#3b82f6" /> {/* Single - Blue */}
+          <Cell fill="#10b981" /> {/* Team - Green */}
+          <Cell fill="#f59e0b" /> {/* Cross - Orange */}
+        </Bar>
+      </BarChart>
+    </ResponsiveContainer>
+  </CardContent>
+</Card>
+
     </div>
   );
 }
