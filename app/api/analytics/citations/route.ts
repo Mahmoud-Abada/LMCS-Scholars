@@ -36,10 +36,10 @@ export async function GET(request: Request) {
     // Base filters for all queries
     const baseFilters = [
       query.yearFrom 
-        ? gte(sqlEXTRACT(YEAR FROM ${publications.publicationDate}), query.yearFrom)
+        ? gte(sql`EXTRACT(YEAR FROM ${publications.publicationDate})`, query.yearFrom)
         : undefined,
       query.yearTo
-        ? lte(sqlEXTRACT(YEAR FROM ${publications.publicationDate}), query.yearTo)
+        ? lte(sql`EXTRACT(YEAR FROM ${publications.publicationDate})`, query.yearTo)
         : undefined,
       query.teamId
         ? eq(researchers.teamId, query.teamId)
@@ -82,7 +82,7 @@ export async function GET(request: Request) {
       db.select({
         total_citations: sum(publications.citationCount).as('total_citations'),
         total_publications: count(publications.id).as('total_publications'),
-        avg_citations: sql<number>ROUND(AVG(${publications.citationCount})::numeric, 2).as('avg_citations'),
+        avg_citations: sql<number>`ROUND(AVG(${publications.citationCount})::numeric, 2)`.as('avg_citations'),
         max_citations: max(publications.citationCount).as('max_citations')
       })
       .from(publications)
@@ -90,10 +90,10 @@ export async function GET(request: Request) {
 
       // 2. YEARLY TRENDS
       db.select({
-        year: sql<number>EXTRACT(YEAR FROM ${publications.publicationDate}).as('year'),
+        year: sql<number>`EXTRACT(YEAR FROM ${publications.publicationDate})`.as('year'),
         total_citations: sum(publications.citationCount).as('total_citations'),
         publication_count: count(publications.id).as('publication_count'),
-        avg_citations: sql<number>ROUND(AVG(${publications.citationCount})::numeric, 2).as('avg_citations'),
+        avg_citations: sql<number>`ROUND(AVG(${publications.citationCount})::numeric, 2)`.as('avg_citations'),
         new_citations: sql<number>`SUM(
           CASE WHEN EXTRACT(YEAR FROM CURRENT_DATE) - EXTRACT(YEAR FROM ${publications.publicationDate}) <= 5 
           THEN ${publications.citationCount} ELSE 0 END
@@ -101,16 +101,16 @@ export async function GET(request: Request) {
       })
       .from(publications)
       .where(and(...baseFilters))
-      .groupBy(sqlyear)
-      .orderBy(sqlyear),
+      .groupBy(sql`year`)
+      .orderBy(sql`year`),
 
       // 3. RESEARCHER METRICS
       db.select({
         researcher_id: researchers.id,
-        name: sql<string>CONCAT(${researchers.firstName}, ' ', ${researchers.lastName}).as('name'),
+        name: sql<string>`CONCAT(${researchers.firstName}, ' ', ${researchers.lastName})`.as('name'),
         total_citations: sum(publications.citationCount).as('total_citations'),
         publication_count: count(publications.id).as('publication_count'),
-        avg_citations: sql<number>ROUND(AVG(${publications.citationCount})::numeric, 2).as('avg_citations'),
+        avg_citations: sql<number>`ROUND(AVG(${publications.citationCount})::numeric, 2)`.as('avg_citations'),
         h_index: max(researchers.hIndex).as('h_index'),
         i10_index: max(researchers.i10Index).as('i10_index')
       })
@@ -125,7 +125,7 @@ export async function GET(request: Request) {
       )
       .where(and(...baseFilters))
       .groupBy(researchers.id, researchers.firstName, researchers.lastName)
-      .orderBy(desc(sqltotal_citations))
+      .orderBy(desc(sql`total_citations`))
       .limit(query.limit),
 
       // 4. TEAM METRICS
@@ -133,8 +133,8 @@ export async function GET(request: Request) {
         team_id: researchTeams.id,
         team_name: researchTeams.name,
         total_citations: sum(publications.citationCount).as('total_citations'),
-        researcher_count: count(sqlDISTINCT ${researchers.id}).as('researcher_count'),
-        avg_citations_per_researcher: sql<number>ROUND(SUM(${publications.citationCount})::numeric / NULLIF(COUNT(DISTINCT ${researchers.id}), 0), 2).as('avg_citations_per_researcher'),
+        researcher_count: count(sql`DISTINCT ${researchers.id}`).as('researcher_count'),
+        avg_citations_per_researcher: sql<number>`ROUND(SUM(${publications.citationCount})::numeric / NULLIF(COUNT(DISTINCT ${researchers.id}), 0), 2)`.as('avg_citations_per_researcher'),
         publication_count: count(publications.id).as('publication_count')
       })
       .from(researchTeams)
@@ -152,7 +152,7 @@ export async function GET(request: Request) {
       )
       .where(and(...baseFilters))
       .groupBy(researchTeams.id, researchTeams.name)
-      .orderBy(desc(sqltotal_citations)),
+      .orderBy(desc(sql`total_citations`)),
 
       // 5. TOP PUBLICATIONS
       db.select({
@@ -185,7 +185,7 @@ export async function GET(request: Request) {
         venue_type: venues.type,
         total_citations: sum(publications.citationCount).as('total_citations'),
         publication_count: count(publications.id).as('publication_count'),
-        avg_citations: sql<number>ROUND(AVG(${publications.citationCount})::numeric, 2).as('avg_citations')
+        avg_citations: sql<number>`ROUND(AVG(${publications.citationCount})::numeric, 2)`.as('avg_citations')
       })
       .from(venues)
       .leftJoin(
@@ -198,7 +198,7 @@ export async function GET(request: Request) {
       )
       .where(and(...baseFilters))
       .groupBy(venues.id, venues.name, venues.type)
-      .orderBy(desc(sqltotal_citations)),
+      .orderBy(desc(sql`total_citations`)),
 
       // 7. CLASSIFICATION METRICS
       db.select({
@@ -207,7 +207,7 @@ export async function GET(request: Request) {
         category: publicationClassifications.category,
         total_citations: sum(publications.citationCount).as('total_citations'),
         publication_count: count(publications.id).as('publication_count'),
-        avg_citations: sql<number>ROUND(AVG(${publications.citationCount})::numeric, 2).as('avg_citations')
+        avg_citations: sql<number>`ROUND(AVG(${publications.citationCount})::numeric, 2)`.as('avg_citations')
       })
       .from(classificationSystems)
       .leftJoin(
@@ -220,7 +220,7 @@ export async function GET(request: Request) {
       )
       .where(and(...baseFilters))
       .groupBy(classificationSystems.id, classificationSystems.name, publicationClassifications.category)
-      .orderBy(desc(sqltotal_citations)),
+      .orderBy(desc(sql`total_citations`)),
 
       // 8. COLLABORATION METRICS
       db.select({
@@ -231,8 +231,8 @@ export async function GET(request: Request) {
         END`.as('collaboration_type'),
         total_citations: sum(publications.citationCount).as('total_citations'),
         publication_count: count(publications.id).as('publication_count'),
-        avg_citations: sql<number>ROUND(AVG(${publications.citationCount})::numeric, 2).as('avg_citations'),
-        author_count: sql<number>COUNT(DISTINCT ${publicationAuthors.researcherId}).as('author_count')
+        avg_citations: sql<number>`ROUND(AVG(${publications.citationCount})::numeric, 2)`.as('avg_citations'),
+        author_count: sql<number>`COUNT(DISTINCT ${publicationAuthors.researcherId})`.as('author_count')
       })
       .from(publications)
       .leftJoin(
@@ -254,7 +254,7 @@ export async function GET(request: Request) {
             SUM(${publications.citationCount}) AS total_citations,
             COUNT(${publications.id}) AS publication_count
           FROM ${publications}
-          ${and(...baseFilters) ? sqlWHERE ${and(...baseFilters)} : sql``}
+          ${and(...baseFilters) ? sql`WHERE ${and(...baseFilters)}` : sql``}
           GROUP BY year
           ORDER BY year
         )

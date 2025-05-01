@@ -1,10 +1,9 @@
 // app/layout.tsx
+// import { LazyMotion, domAnimation } from "framer-motion";
 import { SessionProvider } from "next-auth/react"
-import { Inter } from "next/font/google"
 import { Toaster } from "sonner" // Changed import
 import { LanguageProvider } from '@/components/language-provider'
 import { LayoutWrapper } from "@/components/layout-wrapper"
-import { Header } from "@/components/header"
 import "./globals.css"
 import FloatingChatbot from "@/components/FloatingChatbot.tsx"
 
@@ -13,6 +12,7 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  // ${fontSans.variable} font-sans antialiased
   return (
     <html lang="en" className="dark scheme-only-dark">
       <body className={``}>
