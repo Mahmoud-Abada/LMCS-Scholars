@@ -1,18 +1,11 @@
 // app/layout.tsx
 // import { LazyMotion, domAnimation } from "framer-motion";
 import { SessionProvider } from "next-auth/react"
-import { Inter } from "next/font/google"
-import { Toaster } from "@/components/ui/toaster"
-// import { Footer } from "@/components/footer"
+import { Toaster } from "sonner" // Changed import
 import { LanguageProvider } from '@/components/language-provider'
 import { LayoutWrapper } from "@/components/layout-wrapper"
-import { Header } from "@/components/header"
 import "./globals.css"
-
-// const fontSans = Inter({
-//   subsets: ["latin"],
-//   variable: "--font-sans"
-// })
+import FloatingChatbot from "@/components/FloatingChatbot.tsx"
 
 export default function RootLayout({
   children
@@ -27,14 +20,12 @@ export default function RootLayout({
           <SessionProvider>
             <div className="flex min-h-screen">
               <LayoutWrapper>
-                {/* <Header />  Added Header component here */}
-                 
-                    {children}
-                         
+                {children}
+                <FloatingChatbot />
               </LayoutWrapper>
             </div>
            
-            <Toaster />
+            <Toaster position="bottom-right" richColors /> {/* Updated Toaster */}
           </SessionProvider>
         </LanguageProvider>
       </body>
