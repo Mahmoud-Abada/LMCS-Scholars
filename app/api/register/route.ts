@@ -1,10 +1,10 @@
-
 import bcrypt from 'bcryptjs';
 import { db } from "@/db/client";
 import { users } from "@/db/schema";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
+import nodemailer from 'nodemailer';
 
 const schema = z.object({
   email: z.string().email(),
@@ -40,6 +40,24 @@ export async function POST(request: Request) {
       createdAt: new Date(),
       updatedAt: new Date(),
     });
+
+    // Send a welcome email
+    const transporter = nodemailer.createTransport({
+      service: 'gmail', // Use your email service provider
+      auth: {
+        user: process.env.EMAIL_USER, // Your email address
+        pass: process.env.EMAIL_PASS, // Your email password or app-specific password
+      },
+    });
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: data.email,
+      subject: 'Welcome to LMCS Scholars',
+      text: `Hello ${data.name},\n\nWelcome to LMCS Scholars! Your account has been successfully created.\n\nBest regards,\nThe LMCS Scholars Team`,
+    };
+
+    await transporter.sendMail(mailOptions);
 
     return NextResponse.json(
       { message: "User registered successfully" },

@@ -3,6 +3,8 @@ import { db } from '@/db/client';
 import { publications } from '@/db/schema';
 import { NextResponse } from 'next/server';
 import { ResearchDataScraper } from '../../../scripts/scraper';
+import { sql } from "drizzle-orm";
+
 
 export async function POST(request: Request) {
   try {
@@ -43,9 +45,9 @@ export async function GET(request: Request) {
 
     // Query the database for publications by researcher name
     const publicationsData = await db
-      .select()
-      .from(publications)
-      .where(like(publications.researcherName, `%${researcherName}%`));
+        .select()
+        .from(publications)
+        .where(sql`${publications.researcherName} ILIKE ${'%' + researcherName + '%'}`);
 
     return NextResponse.json({ data: publicationsData }, { status: 200 });
   } catch (error) {
