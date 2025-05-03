@@ -113,6 +113,19 @@ export default function AddResearcherPage() {
           personalWebsite: form.personalWebsite
         }
       }
+      // const response2 = await fetch('/api/admin/users', {
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //     'Authorization': `Bearer ${session?.accessToken}`
+      //   },
+      //   body: JSON.stringify(payload)
+      // })
+
+      // if (!response2.ok) {
+      //   const errorData = await response2.json()
+      //   throw new Error(errorData.error || 'Failed to add user')
+      // }
 
       const response = await fetch('/api/admin/researchers', {
         method: 'POST',
