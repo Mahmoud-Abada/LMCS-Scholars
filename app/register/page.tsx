@@ -54,9 +54,9 @@ export default function RegisterPage() {
             className="mb-3 rounded-lg"
           />
           <h1 className="text-xl font-bold text-center text-gray-800">
-            Create Account
+            Créer un Compte
           </h1>
-          <p className="text-gray-600 text-sm mt-1">Join the LMCS Research Portal</p>
+          <p className="text-gray-600 text-sm mt-1">Rejoignez le Portail de Recherche LMCS</p>
         </div>
 
         {error && (
@@ -68,14 +68,14 @@ export default function RegisterPage() {
         <div className="space-y-3">
           <div>
             <label className="block mb-1 text-sm font-medium text-gray-700">
-              Full Name
+              Nom Complet
             </label>
             <input
               name="name"
               type="text"
               required
               className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Enter your full name"
+              placeholder="Entrez votre nom complet"
             />
           </div>
 
@@ -88,35 +88,35 @@ export default function RegisterPage() {
               type="email"
               required
               className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Enter your email"
+              placeholder="Entrez votre email"
             />
           </div>
 
           <div>
             <label className="block mb-1 text-sm font-medium text-gray-700">
-              Password
+              Mot de Passe
             </label>
             <input
               name="password"
               type="password"
               required
               className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Create a password"
+              placeholder="Créez un mot de passe"
             />
           </div>
         </div>
 
         <SubmitButton className="w-full bg-blue-600 text-white p-2 text-sm rounded-lg hover:bg-blue-700 transition-colors font-medium">
-          Register
+          S'inscrire
         </SubmitButton>
 
         <p className="text-xs text-center text-gray-600">
-          Already have an account?{" "}
+          Vous avez déjà un compte ?{" "}
           <a 
             href="/login" 
             className="text-blue-600 hover:underline font-medium"
           >
-            Sign in
+            Connectez-vous
           </a>
         </p>
       </form>

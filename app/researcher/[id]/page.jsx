@@ -172,8 +172,8 @@ export default function ResearcherProfilePage() {
                 />
                 <div className="ml-6">
                   <h1 className="text-3xl font-bold text-gray-900">Dr. John Smith</h1>
-                  <p className="text-lg text-gray-600">Professor of Computer Science</p>
-                  <p className="text-sm text-gray-500">Stanford University</p>
+                  <p className="text-lg text-gray-600">Professeur d'Informatique</p>
+                  <p className="text-sm text-gray-500">Université de Stanford</p>
                   <div className="flex gap-4 mt-2">
                     <a href="https://dblp.org/pid/s/JohnSmith" target="_blank" rel="noopener noreferrer" className="flex items-center text-sm text-blue-600 hover:text-blue-800">
                       <FileText className="h-4 w-4 mr-1" /> DBLP Profile
@@ -190,7 +190,7 @@ export default function ResearcherProfilePage() {
               <div className="mt-6 flex flex-wrap gap-4 md:mt-0">
                 <div className="flex items-center">
                   <Users className="h-5 w-5 text-gray-400" />
-                  <span className="ml-2 text-sm text-gray-600">1.2K Collaborators</span>
+                  <span className="ml-2 text-sm text-gray-600">1.2K Collaborateurs</span>
                 </div>
                 <div className="flex items-center">
                   <BookOpen className="h-5 w-5 text-gray-400" />
@@ -198,7 +198,7 @@ export default function ResearcherProfilePage() {
                 </div>
                 <div className="flex items-center">
                   <Award className="h-5 w-5 text-gray-400" />
-                  <span className="ml-2 text-sm text-gray-600">h-index: 45</span>
+                  <span className="ml-2 text-sm text-gray-600">h-index : 45</span>
                 </div>
               </div>
             </div>
@@ -209,15 +209,15 @@ export default function ResearcherProfilePage() {
         <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
           <Tabs defaultValue="dashboard" className="space-y-6">
             <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+              <TabsTrigger value="dashboard">Tableau de Bord</TabsTrigger>
               <TabsTrigger value="publications">Publications</TabsTrigger>
-              <TabsTrigger value="citations">Impact & Metrics</TabsTrigger>
+              <TabsTrigger value="citations">Impact & Métriques</TabsTrigger>
             </TabsList>
 
             <TabsContent value="dashboard">
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 <Card className="p-6 col-span-2">
-                  <h3 className="text-lg font-semibold mb-4">Publication & Citation Trends</h3>
+                  <h3 className="text-lg font-semibold mb-4">Tendances des Publications & Citations</h3>
                   <div className="h-[300px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={publicationData}>
@@ -234,7 +234,7 @@ export default function ResearcherProfilePage() {
                 </Card>
 
                 <Card className="p-6">
-                  <h3 className="text-lg font-semibold mb-4">Research Areas</h3>
+                  <h3 className="text-lg font-semibold mb-4">Domaines de Recherche</h3>
                   <div className="h-[300px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
@@ -260,7 +260,7 @@ export default function ResearcherProfilePage() {
                 </Card>
 
                 <Card className="p-6 col-span-2">
-                  <h3 className="text-lg font-semibold mb-4">Top Collaborating Institutions</h3>
+                  <h3 className="text-lg font-semibold mb-4">Principales Institutions Collaboratrices</h3>
                   <div className="h-[300px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
@@ -278,18 +278,18 @@ export default function ResearcherProfilePage() {
                 </Card>
 
                 <Card className="p-6">
-                  <h3 className="text-lg font-semibold mb-4">Quick Stats</h3>
+                  <h3 className="text-lg font-semibold mb-4">Statistiques Rapides</h3>
                   <div className="space-y-4">
                     <div className="bg-gray-50 p-4 rounded-lg">
-                      <div className="text-sm text-gray-500">Publications this year</div>
+                      <div className="text-sm text-gray-500">Publications cette année</div>
                       <div className="text-2xl font-bold mt-1">9</div>
                     </div>
                     <div className="bg-gray-50 p-4 rounded-lg">
-                      <div className="text-sm text-gray-500">Citations this year</div>
+                      <div className="text-sm text-gray-500">Citations cette année</div>
                       <div className="text-2xl font-bold mt-1">1,100</div>
                     </div>
                     <div className="bg-gray-50 p-4 rounded-lg">
-                      <div className="text-sm text-gray-500">Active Projects</div>
+                      <div className="text-sm text-gray-500">Projets Actifs</div>
                       <div className="text-2xl font-bold mt-1">12</div>
                     </div>
                   </div>
@@ -300,7 +300,7 @@ export default function ResearcherProfilePage() {
             <TabsContent value="publications">
               <Card>
                 <div className="p-6">
-                  <h3 className="text-xl font-semibold mb-6">Recent Publications</h3>
+                  <h3 className="text-xl font-semibold mb-6">Publications Récentes</h3>
                   <div className="space-y-6">
                     {publications.map((pub, index) => (
                       <div key={index} className="border-b pb-4 last:border-0 last:pb-0">
@@ -337,28 +337,28 @@ export default function ResearcherProfilePage() {
             <TabsContent value="citations">
               <div className="grid gap-6">
                 <Card className="p-6">
-                  <h3 className="text-xl font-semibold mb-6">Citation Metrics</h3>
+                  <h3 className="text-xl font-semibold mb-6">Métriques de Citation</h3>
                   <div className="grid gap-6 md:grid-cols-3">
                     <div className="bg-gray-50 p-4 rounded-lg">
-                      <div className="text-sm text-gray-500">Total Citations</div>
+                      <div className="text-sm text-gray-500">Citations Totales</div>
                       <div className="text-3xl font-bold mt-1">4,521</div>
-                      <div className="text-sm text-green-600 mt-1">+15% this year</div>
+                      <div className="text-sm text-green-600 mt-1">+15% cette année</div>
                     </div>
                     <div className="bg-gray-50 p-4 rounded-lg">
                       <div className="text-sm text-gray-500">h-index</div>
                       <div className="text-3xl font-bold mt-1">45</div>
-                      <div className="text-sm text-green-600 mt-1">+3 from 2022</div>
+                      <div className="text-sm text-green-600 mt-1">+3 depuis 2022</div>
                     </div>
                     <div className="bg-gray-50 p-4 rounded-lg">
                       <div className="text-sm text-gray-500">i10-index</div>
                       <div className="text-3xl font-bold mt-1">98</div>
-                      <div className="text-sm text-green-600 mt-1">+8 from 2022</div>
+                      <div className="text-sm text-green-600 mt-1">+8 depuis 2022</div>
                     </div>
                   </div>
                 </Card>
 
                 <Card className="p-6">
-                  <h3 className="text-xl font-semibold mb-6">Citation Distribution by Year</h3>
+                  <h3 className="text-xl font-semibold mb-6">Répartition des Citations par Année</h3>
                   <div className="h-[300px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={publicationData} barCategoryGap="30%">

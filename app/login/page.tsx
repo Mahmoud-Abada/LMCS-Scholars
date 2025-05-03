@@ -50,9 +50,9 @@ export default function LoginPage() {
             className="mb-4 rounded-lg"
           />
           <h1 className="text-2xl font-bold text-center text-gray-800">
-            LMCS Research Portal
+            Portail de Recherche LMCS
           </h1>
-          <p className="text-gray-600 mt-1">Sign in to your account</p>
+          <p className="text-gray-600 mt-1">Connectez-vous à votre compte</p>
         </div>
 
         {error && (
@@ -71,35 +71,35 @@ export default function LoginPage() {
               type="email"
               required
               className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Enter your email"
+              placeholder="Entrez votre email"
             />
           </div>
 
           <div>
             <label className="block mb-2 text-sm font-medium text-gray-700">
-              Password
+              Mot de passe
             </label>
             <input
               name="password"
               type="password"
               required
               className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Enter your password"
+              placeholder="Entrez votre mot de passe"
             />
           </div>
         </div>
 
         <SubmitButton className="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition-colors font-medium">
-          Sign In
+          Se connecter
         </SubmitButton>
 
         <p className="text-sm text-center text-gray-600">
-          Don&apos;t have an account?{" "}
+          Vous n'avez pas de compte ?{" "}
           <a 
             href="/register" 
             className="text-blue-600 hover:underline font-medium"
           >
-            Register here
+            Inscrivez-vous ici
           </a>
         </p>
       </form>

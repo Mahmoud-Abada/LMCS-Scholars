@@ -174,9 +174,9 @@ export default function PublicationsPage() {
   return (
     <div className="flex-1 p-6">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight mb-2">Scientific Publications</h1>
+        <h1 className="text-2xl font-bold tracking-tight mb-2">Publications Scientifiques</h1>
         <p className="text-muted-foreground">
-          Track and explore all research publications from LMCS laboratory
+          Suivez et explorez toutes les publications de recherche du laboratoire LMCS
         </p>
       </div>
 
@@ -185,7 +185,7 @@ export default function PublicationsPage() {
         <div className="relative col-span-1 md:col-span-2">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search publications..."
+            placeholder="Rechercher des publications..."
             className="pl-8"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -193,21 +193,21 @@ export default function PublicationsPage() {
           <br />
           <div className="flex items-center gap-2 mt-4 w-full">
             <Input
-            placeholder="Enter searcher name"
+            placeholder="Entrez le nom du chercheur"
             className="pl-8"
             value={searcherName}
             onChange={(e) => setSearcherName(e.target.value)}
             />
-            <Button onClick={getSeacherPublications}>Get Searcher Publications</Button>
+            <Button onClick={getSeacherPublications}>Obtenir les publications du chercheur</Button>
           </div>
           
         </div>
         <Select value={yearFilter} onValueChange={setYearFilter}>
           <SelectTrigger>
-            <SelectValue placeholder="Year" />
+            <SelectValue placeholder="Année" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Years</SelectItem>
+            <SelectItem value="all">Toutes les années</SelectItem>
             {years.map(year => (
               <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
             ))}
@@ -218,7 +218,7 @@ export default function PublicationsPage() {
             <SelectValue placeholder="Type" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Types</SelectItem>
+            <SelectItem value="all">Tous les types</SelectItem>
             {publicationTypes.filter(t => t !== "All").map(type => (
               <SelectItem key={type} value={type}>{type.charAt(0).toUpperCase() + type.slice(1)}</SelectItem>
             ))}
@@ -226,10 +226,10 @@ export default function PublicationsPage() {
         </Select>
         <Select value={rankingFilter} onValueChange={setRankingFilter}>
           <SelectTrigger>
-            <SelectValue placeholder="Ranking" />
+            <SelectValue placeholder="Classement" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Rankings</SelectItem>
+            <SelectItem value="all">Tous les classements</SelectItem>
             {rankingSystems.filter(r => r !== "All").map(system => (
               <SelectItem key={system} value={system}>{system}</SelectItem>
             ))}
@@ -241,10 +241,10 @@ export default function PublicationsPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <Select value={themeFilter} onValueChange={setThemeFilter}>
           <SelectTrigger>
-            <SelectValue placeholder="Research Theme" />
+            <SelectValue placeholder="Thème de recherche" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Themes</SelectItem>
+            <SelectItem value="all">Tous les thèmes</SelectItem>
             {themes.map(theme => (
               <SelectItem key={theme} value={theme}>{theme}</SelectItem>
             ))}
@@ -256,21 +256,21 @@ export default function PublicationsPage() {
       <div className="bg-blue-50/50 p-4 rounded-lg shadow mb-6 border border-blue-100">
         <div className="flex items-center gap-2 mb-4">
           <BarChart2 className="h-5 w-5 text-blue-600" />
-          <h2 className="text-lg font-semibold text-blue-800">Publication Statistics</h2>
+          <h2 className="text-lg font-semibold text-blue-800">Statistiques des Publications</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
           <div className="bg-white p-4 rounded-lg border border-blue-100 shadow-sm">
-            <h3 className="text-sm font-medium text-gray-600 mb-2">Total Publications</h3>
+            <h3 className="text-sm font-medium text-gray-600 mb-2">Total des Publications</h3>
             <p className="text-2xl font-bold text-blue-600">{mockPublications.length}</p>
           </div>
           <div className="bg-white p-4 rounded-lg border border-blue-100 shadow-sm">
-            <h3 className="text-sm font-medium text-gray-600 mb-2">Publications This Year</h3>
+            <h3 className="text-sm font-medium text-gray-600 mb-2">Publications Cette Année</h3>
             <p className="text-2xl font-bold text-blue-600">
               {mockPublications.filter(pub => pub.year === new Date().getFullYear()).length}
             </p>
           </div>
           <div className="bg-white p-4 rounded-lg border border-blue-100 shadow-sm">
-            <h3 className="text-sm font-medium text-gray-600 mb-2">Top Ranking (A*)</h3>
+            <h3 className="text-sm font-medium text-gray-600 mb-2">Classement le Plus Élevé (A*)</h3>
             <p className="text-2xl font-bold text-blue-600">
               {mockPublications.filter(pub => pub.rankings.some(r => r.rank === "A*")).length}
             </p>
@@ -351,23 +351,23 @@ export default function PublicationsPage() {
         ) : (
           <div className="flex flex-col items-center justify-center py-12">
             <Filter className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold">No publications found</h3>
+            <h3 className="text-lg font-semibold">Aucune publication trouvée</h3>
             <p className="text-muted-foreground text-center">
-              Try adjusting your filters or search query to find what you're looking for.
+              Essayez d'ajuster vos filtres ou votre requête de recherche pour trouver ce que vous cherchez.
             </p>
           </div>
         )}
       </div>
       <div>
         {loading ? (
-          <p className="font-bold text-blue-400">Loading publications...</p>
+          <p className="font-bold text-blue-400">Chargement des publications...</p>
         ) : (
           publications ?(
             publications.map(pub => (
               <p>{pub.title}</p>
             ))
           ) : (
-            <p className="font-bold text-red-400">No publications found for the given searcher name.</p>
+            <p className="font-bold text-red-400">Aucune publication trouvée pour le nom de chercheur donné.</p>
           )
         )
           
@@ -382,7 +382,7 @@ export default function PublicationsPage() {
       <div className="bg-white p-4 rounded-lg shadow border border-gray-200">
         <div className="flex items-center gap-2 mb-4">
           <BarChart2 className="h-5 w-5 text-indigo-600" />
-          <h2 className="text-lg font-semibold text-gray-800">Publications by Year</h2>
+          <h2 className="text-lg font-semibold text-gray-800">Publications par Année</h2>
         </div>
         <div className="h-64">
           <Bar data={chartData} options={chartOptions} />

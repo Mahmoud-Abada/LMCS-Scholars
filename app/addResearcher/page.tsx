@@ -48,7 +48,7 @@ export default function AddResearcherPage() {
     <div className="max-w-3xl mx-auto p-6">
       <Card className="rounded-lg border border-[#e2e8f0] shadow-sm">
         <CardHeader className="border-b border-[#e2e8f0] bg-[#f8fafc]">
-          <CardTitle className="text-xl font-semibold text-[#1e293b]">Add New Researcher</CardTitle>
+          <CardTitle className="text-xl font-semibold text-[#1e293b]">Ajouter un nouveau chercheur</CardTitle>
         </CardHeader>
         <CardContent className="p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -65,7 +65,7 @@ export default function AddResearcherPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-[#475569] mb-1">Full Name</label>
+                  <label className="block text-sm font-medium text-[#475569] mb-1">Nom complet</label>
                   <Input 
                     name="nom_complet" 
                     value={form.nom_complet} 
@@ -84,7 +84,7 @@ export default function AddResearcherPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-[#475569] mb-1">Phone Number</label>
+                  <label className="block text-sm font-medium text-[#475569] mb-1">Numéro de téléphone</label>
                   <Input 
                     name="tel" 
                     value={form.tel} 
@@ -92,7 +92,7 @@ export default function AddResearcherPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-[#475569] mb-1">Diploma</label>
+                  <label className="block text-sm font-medium text-[#475569] mb-1">Diplôme</label>
                   <Input 
                     name="diplome" 
                     value={form.diplome} 
@@ -103,7 +103,7 @@ export default function AddResearcherPage() {
               
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-[#475569] mb-1">Etablissement d'origine</label>
+                  <label className="block text-sm font-medium text-[#475569] mb-1">Établissement d'origine</label>
                   <Input 
                     name="etablissement" 
                     value={form.etablissement} 
@@ -114,7 +114,7 @@ export default function AddResearcherPage() {
                   <label className="block text-sm font-medium text-[#475569] mb-1">Qualité</label>
                   <Select onValueChange={(value) => setForm({ ...form, qualite: value })}>
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select Qualité" />
+                      <SelectValue placeholder="Sélectionner Qualité" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="Enseignant-Chercheur">Enseignant-Chercheur</SelectItem>
@@ -127,7 +127,7 @@ export default function AddResearcherPage() {
                   <label className="block text-sm font-medium text-[#475569] mb-1">Grade de Recherche</label>
                   <Select onValueChange={(value) => setForm({ ...form, grade: value })}>
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select Grade" />
+                      <SelectValue placeholder="Sélectionner Grade" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="Attaché de recherche">Attaché de recherche</SelectItem>
@@ -143,7 +143,7 @@ export default function AddResearcherPage() {
                     defaultValue="Actif"
                   >
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select Statut" />
+                      <SelectValue placeholder="Sélectionner Statut" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="Actif">Actif</SelectItem>
@@ -173,7 +173,7 @@ export default function AddResearcherPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-[#475569] mb-1">Research Profile URL</label>
+                <label className="block text-sm font-medium text-[#475569] mb-1">URL du profil de recherche</label>
                 <Input 
                   name="url" 
                   value={form.url} 
@@ -188,7 +188,7 @@ export default function AddResearcherPage() {
                 type="submit" 
                 className="w-full bg-[#3b82f6] hover:bg-[#2563eb] text-white"
               >
-                Add Researcher
+                Ajouter Chercheur
               </Button>
             </div>
           </form>
@@ -198,22 +198,22 @@ export default function AddResearcherPage() {
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent className="border border-[#e2e8f0] rounded-lg">
           <DialogHeader>
-            <DialogTitle className="text-lg font-semibold text-[#1e293b]">Confirm Submission</DialogTitle>
+            <DialogTitle className="text-lg font-semibold text-[#1e293b]">Confirmer la soumission</DialogTitle>
           </DialogHeader>
-          <p className="text-[#475569]">This action will add a new researcher to the database. Do you want to continue?</p>
+          <p className="text-[#475569]">Cette action ajoutera un nouveau chercheur à la base de données. Voulez-vous continuer ?</p>
           <DialogFooter>
             <Button 
               variant="outline" 
               onClick={() => setShowDialog(false)}
               className="border-[#cbd5e1] text-[#475569] hover:bg-[#f1f5f9]"
             >
-              Cancel
+              Annuler
             </Button>
             <Button 
               onClick={confirmSubmit}
               className="bg-[#3b82f6] hover:bg-[#2563eb] text-white"
             >
-              Confirm
+              Confirmer
             </Button>
           </DialogFooter>
         </DialogContent>

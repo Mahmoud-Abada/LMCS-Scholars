@@ -239,25 +239,25 @@ export default function StatisticsDashboard() {
       <SidebarProvider>
         <div className="flex-1 p-8 ml-5">
           <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Research Analytics Dashboard</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Tableau de Bord des Analyses de Recherche</h1>
             <div className="flex gap-4">
               <Select value={timeRange} onValueChange={setTimeRange}>
                 <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Time Range" />
+                  <SelectValue placeholder="Plage Temporelle" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="1year">Last Year</SelectItem>
-                  <SelectItem value="3years">Last 3 Years</SelectItem>
-                  <SelectItem value="5years">Last 5 Years</SelectItem>
-                  <SelectItem value="all">All Time</SelectItem>
+                  <SelectItem value="1year">Dernière Année</SelectItem>
+                  <SelectItem value="3years">3 Dernières Années</SelectItem>
+                  <SelectItem value="5years">5 Dernières Années</SelectItem>
+                  <SelectItem value="all">Tout le Temps</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={teamFilter} onValueChange={setTeamFilter}>
                 <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Research Team" />
+                  <SelectValue placeholder="Équipe de Recherche" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Teams</SelectItem>
+                  <SelectItem value="all">Toutes les Équipes</SelectItem>
                   {researchTeams.map(team => (
                     <SelectItem key={team.name} value={team.name}>{team.name}</SelectItem>
                   ))}
@@ -269,60 +269,60 @@ export default function StatisticsDashboard() {
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Total Researchers</CardTitle>
+                <CardTitle className="text-sm font-medium">Total des Chercheurs</CardTitle>
                 <Users className="h-4 w-4 text-gray-500" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{metrics.totalResearchers}</div>
-                <p className="text-xs text-gray-500">Active researchers</p>
+                <p className="text-xs text-gray-500">Chercheurs actifs</p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Total Publications</CardTitle>
+                <CardTitle className="text-sm font-medium">Total des Publications</CardTitle>
                 <FileText className="h-4 w-4 text-gray-500" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{metrics.totalPublications}</div>
-                <p className="text-xs text-gray-500">Last {timeRange === "all" ? "all years" : timeRange}</p>
+                <p className="text-xs text-gray-500">Dernières {timeRange === "all" ? "toutes les années" : timeRange}</p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Average H-Index</CardTitle>
+                <CardTitle className="text-sm font-medium">Indice H Moyen</CardTitle>
                 <Award className="h-4 w-4 text-gray-500" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{metrics.avgHIndex.toFixed(1)}</div>
-                <p className="text-xs text-gray-500">Researcher impact</p>
+                <p className="text-xs text-gray-500">Impact des chercheurs</p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Top Venues</CardTitle>
+                <CardTitle className="text-sm font-medium">Meilleurs Lieux</CardTitle>
                 <BookOpen className="h-4 w-4 text-gray-500" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{metrics.topVenues}</div>
-                <p className="text-xs text-gray-500">High impact venues</p>
+                <p className="text-xs text-gray-500">Lieux à fort impact</p>
               </CardContent>
             </Card>
           </div>
 
           <Tabs defaultValue="overview" className="space-y-6">
             <TabsList>
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="researchers">Researchers</TabsTrigger>
+              <TabsTrigger value="overview">Aperçu</TabsTrigger>
+              <TabsTrigger value="researchers">Chercheurs</TabsTrigger>
               <TabsTrigger value="publications">Publications</TabsTrigger>
-              <TabsTrigger value="venues">Venues</TabsTrigger>
+              <TabsTrigger value="venues">Lieux</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview">
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 <Card className="col-span-2">
                   <CardHeader>
-                    <CardTitle>Publication & Citation Trends</CardTitle>
-                    <CardDescription>Research output over time</CardDescription>
+                    <CardTitle>Tendances des Publications & Citations</CardTitle>
+                    <CardDescription>Production de recherche au fil du temps</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="h-[300px]">
@@ -344,8 +344,8 @@ export default function StatisticsDashboard() {
 
                 <Card>
                   <CardHeader>
-                    <CardTitle>Research Teams</CardTitle>
-                    <CardDescription>Productivity by research team</CardDescription>
+                    <CardTitle>Équipes de Recherche</CardTitle>
+                    <CardDescription>Productivité par équipe de recherche</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="h-[300px]">
@@ -363,8 +363,8 @@ export default function StatisticsDashboard() {
 
                 <Card>
                   <CardHeader>
-                    <CardTitle>Publication Types</CardTitle>
-                    <CardDescription>Distribution of publication types</CardDescription>
+                    <CardTitle>Types de Publications</CardTitle>
+                    <CardDescription>Répartition des types de publications</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="h-[300px]">
@@ -393,8 +393,8 @@ export default function StatisticsDashboard() {
 
                 <Card className="col-span-2">
                   <CardHeader>
-                    <CardTitle>Venue Rankings</CardTitle>
-                    <CardDescription>Quality distribution of publication venues</CardDescription>
+                    <CardTitle>Classements des Lieux</CardTitle>
+                    <CardDescription>Répartition qualitative des lieux de publication</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="h-[300px]">
@@ -417,8 +417,8 @@ export default function StatisticsDashboard() {
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 <Card className="col-span-2">
                   <CardHeader>
-                    <CardTitle>Top Researchers</CardTitle>
-                    <CardDescription>By publications and citations</CardDescription>
+                    <CardTitle>Meilleurs Chercheurs</CardTitle>
+                    <CardDescription>Par publications et citations</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="h-[300px]">
@@ -461,8 +461,8 @@ export default function StatisticsDashboard() {
 
                 <Card>
                   <CardHeader>
-                    <CardTitle>H-Index Distribution</CardTitle>
-                    <CardDescription>Researcher impact distribution</CardDescription>
+                    <CardTitle>Répartition de l'Indice H</CardTitle>
+                    <CardDescription>Répartition de l'impact des chercheurs</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="h-[300px]">
@@ -490,8 +490,8 @@ export default function StatisticsDashboard() {
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 <Card className="col-span-2">
                   <CardHeader>
-                    <CardTitle>Publication Growth</CardTitle>
-                    <CardDescription>Cumulative publications over time</CardDescription>
+                    <CardTitle>Croissance des Publications</CardTitle>
+                    <CardDescription>Publications cumulées au fil du temps</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="h-[300px]">
@@ -510,8 +510,8 @@ export default function StatisticsDashboard() {
 
                 <Card>
                   <CardHeader>
-                    <CardTitle>Publications by Team</CardTitle>
-                    <CardDescription>Current year publications</CardDescription>
+                    <CardTitle>Publications par Équipe</CardTitle>
+                    <CardDescription>Publications de l'année en cours</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="h-[300px]">
@@ -543,8 +543,8 @@ export default function StatisticsDashboard() {
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Venue Types</CardTitle>
-                    <CardDescription>Conference vs Journal publications</CardDescription>
+                    <CardTitle>Types de Lieux</CardTitle>
+                    <CardDescription>Publications en conférence vs journal</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="h-[300px]">
@@ -574,8 +574,8 @@ export default function StatisticsDashboard() {
 
                 <Card className="col-span-2">
                   <CardHeader>
-                    <CardTitle>Venue Rankings</CardTitle>
-                    <CardDescription>Quality distribution of publication venues</CardDescription>
+                    <CardTitle>Classements des Lieux</CardTitle>
+                    <CardDescription>Répartition qualitative des lieux de publication</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="h-[300px]">

@@ -23,9 +23,9 @@ export default function Page() {
               {/* Page Header - unchanged but properly spaced */}
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-200">
                 <div className="space-y-1">
-                  <h1 className="text-2xl font-bold text-gray-800">Welcome, Admin!</h1>
+                  <h1 className="text-2xl font-bold text-gray-800">Bienvenue, Admin !</h1>
                   <p className="text-sm text-gray-500">
-                    Here's an overview of your Lab. Manage publications and researchers with ease!
+                    Voici un aperçu de votre laboratoire. Gérez les publications et les chercheurs en toute simplicité !
                   </p>
                 </div>
                 <div className="flex items-center gap-3 w-full sm:w-auto">
@@ -33,11 +33,11 @@ export default function Page() {
                     variant="outline" 
                     className="px-4 w-full sm:w-auto border-blue-200 bg-white hover:bg-blue-50 text-blue-600"
                   >
-                    Add Publication
+                    Ajouter une publication
                   </Button>
                   <Link href="/addResearcher" passHref>
                     <Button className="px-4 w-full sm:w-auto bg-blue-600 hover:bg-blue-700">
-                      Add Researcher
+                      Ajouter un chercheur
                     </Button>
                   </Link>
                 </div>
@@ -45,13 +45,13 @@ export default function Page() {
 
               {/* Stats Section - Fixed spacing and layout */}
               <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-  <h2 className="text-lg font-semibold text-gray-800 mb-4">Research Performance</h2>
+  <h2 className="text-lg font-semibold text-gray-800 mb-4">Performance de la recherche</h2>
   
   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
     {/* Researchers Card */}
     <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-sm font-medium text-gray-500">RESEARCHERS</span>
+        <span className="text-sm font-medium text-gray-500">CHERCHEURS</span>
         <div className="p-2 rounded-lg bg-blue-100 text-blue-600">
           <svg width={20} height={20} fill="currentColor">
             <path d="M9 0v2.013a8.001 8.001 0 1 0 5.905 14.258l1.424 1.422A9.958 9.958 0 0 1 10 19.951c-5.523 0-10-4.478-10-10C0 4.765 3.947.5 9 0Zm10.95 10.95a9.954 9.954 0 0 1-2.207 5.329l-1.423-1.423a7.96 7.96 0 0 0 1.618-3.905h2.013ZM11.002 0c4.724.47 8.48 4.227 8.95 8.95h-2.013a8.004 8.004 0 0 0-6.937-6.937V0Z" />
@@ -60,7 +60,7 @@ export default function Page() {
       </div>
       <div className="flex items-end gap-2">
         <span className="text-2xl font-bold text-gray-800">52</span>
-        <span className="text-sm text-green-600 bg-green-50 px-2 py-1 rounded-full">+2% vs last year</span>
+        <span className="text-sm text-green-600 bg-green-50 px-2 py-1 rounded-full">+2% vs l'année passée</span>
       </div>
     </div>
 
@@ -76,14 +76,14 @@ export default function Page() {
       </div>
       <div className="flex items-end gap-2">
         <span className="text-2xl font-bold text-gray-800">429</span>
-        <span className="text-sm text-green-600 bg-green-50 px-2 py-1 rounded-full">+7% vs last year</span>
+        <span className="text-sm text-green-600 bg-green-50 px-2 py-1 rounded-full">+7% vs l'année passée</span>
       </div>
     </div>
 
     {/* Funding Card */}
     <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-sm font-medium text-gray-500">FUNDING</span>
+        <span className="text-sm font-medium text-gray-500">FINANCEMENTS</span>
         <div className="p-2 rounded-lg bg-purple-100 text-purple-600">
           <svg width={20} height={20} fill="currentColor">
             <path d="M10 0c5.523 0 10 4.477 10 10s-4.477 10-10 10S0 15.523 0 10 4.477 0 10 0Zm0 2a8 8 0 1 0 0 16 8 8 0 0 0 0-16Zm3.833 3.337a.596.596 0 0 1 .763.067.59.59 0 0 1 .063.76c-2.18 3.046-3.38 4.678-3.598 4.897a1.5 1.5 0 0 1-2.122-2.122c.374-.373 2.005-1.574 4.894-3.602ZM15.5 9a1 1 0 1 1 0 2 1 1 0 0 1 0-2Zm-11 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2Zm2.318-3.596a1 1 0 1 1-1.414 1.414 1 1 0 0 1 1.414-1.414ZM10 3.5a1 1 0 1 1 0 2 1 1 0 0 1 0-2Z" />
@@ -92,7 +92,7 @@ export default function Page() {
       </div>
       <div className="flex items-end gap-2">
         <span className="text-2xl font-bold text-gray-800">$52,439</span>
-        <span className="text-sm text-green-600 bg-green-50 px-2 py-1 rounded-full">+37% vs last year</span>
+        <span className="text-sm text-green-600 bg-green-50 px-2 py-1 rounded-full">+37% vs l'année passée</span>
       </div>
     </div>
 
@@ -108,7 +108,7 @@ export default function Page() {
       </div>
       <div className="flex items-end gap-2">
         <span className="text-2xl font-bold text-gray-800">32</span>
-        <span className="text-sm text-green-600 bg-green-50 px-2 py-1 rounded-full">+17% vs last year</span>
+        <span className="text-sm text-green-600 bg-green-50 px-2 py-1 rounded-full">+17% vs l'année passée</span>
       </div>
     </div>
   </div>
@@ -117,8 +117,8 @@ export default function Page() {
               {/* Researchers Table - Fixed scrolling */}
               <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
                 <div className="mb-4">
-                  <h2 className="text-lg font-semibold text-gray-800">Researchers</h2>
-                  <p className="text-sm text-gray-500">Manage your laboratory researchers</p>
+                  <h2 className="text-lg font-semibold text-gray-800">Chercheurs</h2>
+                  <p className="text-sm text-gray-500">Gérez les chercheurs de votre laboratoire</p>
                 </div>
                 <div className="overflow-x-auto">
                   <div className="min-w-[800px]"> {/* Reduced from 1024px */}
