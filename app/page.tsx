@@ -97,11 +97,11 @@ export default function HomePage() {
         <h2 className="text-2xl font-bold mb-6 text-[#2d3748]">Laboratory at a Glance</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="p-4 text-center">
-            <p className="text-3xl font-bold text-[#3182ce]">50+</p>
+            <p className="text-3xl font-bold text-[#3182ce]">30+</p>
             <p className="text-[#4a5568] text-sm">Researchers</p>
           </div>
           <div className="p-4 text-center">
-            <p className="text-3xl font-bold text-[#3182ce]">500+</p>
+            <p className="text-3xl font-bold text-[#3182ce]">400+</p>
             <p className="text-[#4a5568] text-sm">Publications</p>
           </div>
           <div className="p-4 text-center">

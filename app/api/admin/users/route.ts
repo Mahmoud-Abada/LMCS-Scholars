@@ -129,13 +129,13 @@ const userCreateSchema = z.object({
 
 export async function POST(request: Request) {
   try {
-    // const session = await auth();
-    // if (
-    //   !session?.user ||
-    //   !["director", "admin", "assistant"].includes(session.user.role)
-    // ) {
-    //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    // }
+    const session = await auth();
+    if (
+      !session?.user ||
+      !["director", "admin", "assistant"].includes(session.user.role)
+    ) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
     const body = await request.json();
     const userData = userCreateSchema.parse(body);
