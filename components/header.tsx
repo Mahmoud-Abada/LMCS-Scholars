@@ -16,22 +16,38 @@ import { RiScanLine, RiSearchLine } from "@remixicon/react";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { Input } from "@/components/ui/input";
+import { useSession } from "next-auth/react";
+import { Button } from "./ui/button";
+import Link from "next/link";
+
+interface User {
+  id: string;
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+  role?: "admin" | "researcher" | "guest";
+  researcherId?: string | null;
+}
 
 export function Header() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const pathname = usePathname();
   const [currentPage, setCurrentPage] = useState("Researchers");
+  const { data: session, status } = useSession();
+  const user = session?.user as User | undefined;
+  const isResearcher = user?.role === "researcher";
 
   // Update current page based on pathname
   useEffect(() => {
     const pathSegments = pathname.split('/');
     const currentPath = pathSegments[1] || 'dashboard';
     const pageNames: Record<string, string> = {
-      'researchers': 'Researchers',
+      '/':'page d"accueil',
+      'researchers': 'rechercheurs',
       'publications': 'Publications',
       'statistics': 'Stats',
-      'about': 'About LMCS',
+      'about': 'a propo LMCS',
       'dashboard': 'Dashboard',
       'settings': 'Settings'
     };
@@ -140,11 +156,23 @@ export function Header() {
           </form>
         </div>
 
-        {/* Right section */}
-        <div className="flex items-center gap-2">
-          <FeedbackDialog />
-          <UserDropdown />
-        </div>
+        {/* Right section - Only show if user is logged in */}
+        {user && (
+          <div className="flex items-center gap-2">
+            <FeedbackDialog />
+            <UserDropdown 
+              user={user}
+              profileLink={isResearcher ? `/researchers/${user.researcherId}` : '/settings'}
+            />
+          </div>
+        )}
+        {
+          !user && (
+            <Button variant="outline" className="hidden md:inline-flex" >
+              <Link href="/login">Login</Link>
+            </Button>
+          )
+        }
       </div>
     </header>
   );
