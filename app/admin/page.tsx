@@ -24,7 +24,7 @@ export default async function ResearchersPage() {
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Researchers Management</h1>
+        <h1 className="text-2xl font-bold">Gestion Des Chercheurs</h1>
         <AddResearcherDialog />
       </div>
 

@@ -120,7 +120,7 @@ export default function PublicationsPage() {
 
       const response = await fetch(`/api/publications?${params.toString()}`);
       if (!response.ok) {
-        throw new Error("Failed to fetch publications");
+        throw new Error("Échec de la récupération des publications");
       }
       const data = await response.json();
       setPublications(data.data || []);
@@ -177,7 +177,7 @@ export default function PublicationsPage() {
       <div className="p-6">
         <Card className="border-destructive">
           <CardHeader>
-            <CardTitle>Error Loading Publications</CardTitle>
+            <CardTitle>Erreur lors du chargement des publications</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-destructive">{error}</p>
@@ -188,7 +188,7 @@ export default function PublicationsPage() {
                 fetchPublications();
               }}
             >
-              Retry
+              Réessayer
             </Button>
           </CardContent>
         </Card>
@@ -200,24 +200,24 @@ export default function PublicationsPage() {
     <div className="p-6 space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Research Publications</h1>
+        <h1 className="text-3xl font-bold">Publications de recherche</h1>
         <div className="flex gap-2">
           <Button variant="outline" onClick={toggleViewMode}>
             {viewMode === "list" ? (
               <>
                 <BarChart2 className="h-4 w-4 mr-2" />
-                Show Visualizations
+                Afficher les visualisations
               </>
             ) : (
               <>
                 <List className="h-4 w-4 mr-2" />
-                Show List
+                Afficher la liste
               </>
             )}
           </Button>
           <Button variant="outline">
             <Filter className="h-4 w-4 mr-2" />
-            Filters
+            Filtres
           </Button>
         </div>
       </div>
@@ -226,7 +226,7 @@ export default function PublicationsPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Publications</CardTitle>
+            <CardTitle className="text-sm font-medium">Total des publications</CardTitle>
             <Library className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -235,14 +235,14 @@ export default function PublicationsPage() {
             ) : (
               <>
                 <div className="text-2xl font-bold">{processedData?.totalPublications || 0}</div>
-                <p className="text-xs text-muted-foreground">Current filtered results</p>
+                <p className="text-xs text-muted-foreground">Résultats filtrés actuels</p>
               </>
             )}
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Citations</CardTitle>
+            <CardTitle className="text-sm font-medium">Total des citations</CardTitle>
             <LineChart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -251,14 +251,14 @@ export default function PublicationsPage() {
             ) : (
               <>
                 <div className="text-2xl font-bold">{processedData?.totalCitations || 0}</div>
-                <p className="text-xs text-muted-foreground">Combined citations</p>
+                <p className="text-xs text-muted-foreground">Citations combinées</p>
               </>
             )}
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg Citations</CardTitle>
+            <CardTitle className="text-sm font-medium">Moyenne des citations</CardTitle>
             <Award className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -267,14 +267,14 @@ export default function PublicationsPage() {
             ) : (
               <>
                 <div className="text-2xl font-bold">{processedData?.averageCitations || 0}</div>
-                <p className="text-xs text-muted-foreground">Per publication</p>
+                <p className="text-xs text-muted-foreground">Par publication</p>
               </>
             )}
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Unique Authors</CardTitle>
+            <CardTitle className="text-sm font-medium">Auteurs uniques</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -283,7 +283,7 @@ export default function PublicationsPage() {
             ) : (
               <>
                 <div className="text-2xl font-bold">{processedData?.uniqueAuthors || 0}</div>
-                <p className="text-xs text-muted-foreground">Contributing researchers</p>
+                <p className="text-xs text-muted-foreground">Chercheurs contributeurs</p>
               </>
             )}
           </CardContent>
@@ -293,16 +293,16 @@ export default function PublicationsPage() {
       {/* Filters */}
       <Card>
         <CardHeader>
-          <CardTitle>Filter Publications</CardTitle>
+          <CardTitle>Filtrer les publications</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Search</label>
+              <label className="text-sm font-medium">Rechercher</label>
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search publications..."
+                  placeholder="Rechercher des publications..."
                   className="pl-8"
                   value={filters.search}
                   onChange={handleSearchChange}
@@ -310,37 +310,37 @@ export default function PublicationsPage() {
               </div>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Publication Type</label>
+              <label className="text-sm font-medium">Type de publication</label>
               <Select
                 value={filters.publicationType}
                 onValueChange={handleTypeChange}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="All Types" />
+                  <SelectValue placeholder="Tous les types" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="any">All Types</SelectItem>
-                  <SelectItem value="journal_article">Journal Article</SelectItem>
-                  <SelectItem value="conference_paper">Conference Paper</SelectItem>
-                  <SelectItem value="book_chapter">Book Chapter</SelectItem>
-                  <SelectItem value="patent">Patent</SelectItem>
-                  <SelectItem value="technical_report">Technical Report</SelectItem>
-                  <SelectItem value="thesis">Thesis</SelectItem>
-                  <SelectItem value="preprint">Preprint</SelectItem>
+                  <SelectItem value="any">Tous les types</SelectItem>
+                  <SelectItem value="journal_article">Article de journal</SelectItem>
+                  <SelectItem value="conference_paper">Article de conférence</SelectItem>
+                  <SelectItem value="book_chapter">Chapitre de livre</SelectItem>
+                  <SelectItem value="patent">Brevet</SelectItem>
+                  <SelectItem value="technical_report">Rapport technique</SelectItem>
+                  <SelectItem value="thesis">Thèse</SelectItem>
+                  <SelectItem value="preprint">Préimpression</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">From Year</label>
+              <label className="text-sm font-medium">À partir de l'année</label>
               <Select
                 value={filters.yearFrom}
                 onValueChange={handleYearFromChange}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select year" />
+                  <SelectValue placeholder="Sélectionner l'année" />
                 </SelectTrigger>
                 <SelectContent className="max-h-[300px] overflow-y-auto">
-                  <SelectItem value="any">All years</SelectItem>
+                  <SelectItem value="any">Toutes les années</SelectItem>
                   {generateYearOptions().map((year) => (
                     <SelectItem key={`from-${year}`} value={year.toString()}>
                       {year}
@@ -350,16 +350,16 @@ export default function PublicationsPage() {
               </Select>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">To Year</label>
+              <label className="text-sm font-medium">Jusqu'à l'année</label>
               <Select
                 value={filters.yearTo}
                 onValueChange={handleYearToChange}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select year" />
+                  <SelectValue placeholder="Sélectionner l'année" />
                 </SelectTrigger>
                 <SelectContent className="max-h-[300px] overflow-y-auto">
-                  <SelectItem value="any">All years</SelectItem>
+                  <SelectItem value="any">Toutes les années</SelectItem>
                   {generateYearOptions().map((year) => (
                     <SelectItem key={`to-${year}`} value={year.toString()}>
                       {year}
@@ -376,9 +376,9 @@ export default function PublicationsPage() {
       {viewMode === "list" ? (
         <Card>
           <CardHeader>
-            <CardTitle>Publications List</CardTitle>
+            <CardTitle>Liste des publications</CardTitle>
             <CardDescription>
-              Showing {publications.length} publications
+              Affichage de {publications.length} publications
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -390,7 +390,7 @@ export default function PublicationsPage() {
               </div>
             ) : publications.length === 0 ? (
               <div className="text-center py-8">
-                <p className="text-muted-foreground">No publications found matching your filters</p>
+                <p className="text-muted-foreground">Aucune publication trouvée correspondant à vos filtres</p>
                 <Button 
                   variant="outline" 
                   className="mt-4"
@@ -406,7 +406,7 @@ export default function PublicationsPage() {
                     order: "desc",
                   })}
                 >
-                  Clear Filters
+                  Effacer les filtres
                 </Button>
               </div>
             ) : (
@@ -423,19 +423,19 @@ export default function PublicationsPage() {
                             </p>
                             <div className="flex flex-wrap gap-4 mt-2 text-sm">
                               <span className="text-muted-foreground">
-                                {pub.publication_date ? new Date(pub.publication_date).toLocaleDateString() : "Unknown date"}
+                                {pub.publication_date ? new Date(pub.publication_date).toLocaleDateString() : "Date inconnue"}
                               </span>
                               <span className="flex items-center">
                                 <LineChart className="h-4 w-4 mr-1" />
                                 {pub.citation_count || 0} citations
                               </span>
                               <span className="capitalize">
-                                {pub.publication_type?.replace("_", " ") || "Unknown type"}
+                                {pub.publication_type?.replace("_", " ") || "Type inconnu"}
                               </span>
                             </div>
                           </div>
                           <Button variant="outline" size="sm">
-                            View Details
+                            Voir les détails
                           </Button>
                         </div>
                       </CardContent>
@@ -446,7 +446,7 @@ export default function PublicationsPage() {
                 {/* Pagination */}
                 <div className="flex justify-between items-center mt-6">
                   <div className="text-sm text-muted-foreground">
-                    Showing page {filters.page}
+                    Affichage de la page {filters.page}
                   </div>
                   <div className="flex gap-2">
                     <Button
@@ -476,7 +476,7 @@ export default function PublicationsPage() {
           {/* Publication Types Chart */}
           <Card>
             <CardHeader>
-              <CardTitle>Publication Types Distribution</CardTitle>
+              <CardTitle>Répartition des types de publication</CardTitle>
             </CardHeader>
             <CardContent className="h-[400px]">
               {loading || !processedData ? (
@@ -528,7 +528,7 @@ export default function PublicationsPage() {
           {/* Citations Over Time */}
           <Card>
             <CardHeader>
-              <CardTitle>Citations Over Time</CardTitle>
+              <CardTitle>Citations au fil du temps</CardTitle>
             </CardHeader>
             <CardContent className="h-[400px]">
               {loading || !processedData ? (
@@ -555,11 +555,11 @@ export default function PublicationsPage() {
                   <div className="flex justify-center space-x-4 mt-4">
                     <div className="flex items-center">
                       <div className="w-4 h-4 bg-blue-500 mr-2" />
-                      <span className="text-sm">Total Citations</span>
+                      <span className="text-sm">Total des citations</span>
                     </div>
                     <div className="flex items-center">
                       <div className="w-4 h-4 bg-green-500 mr-2" />
-                      <span className="text-sm">Average</span>
+                      <span className="text-sm">Moyenne</span>
                     </div>
                   </div>
                 </div>
@@ -570,7 +570,7 @@ export default function PublicationsPage() {
           {/* Top Cited Publications */}
           <Card className="lg:col-span-2">
             <CardHeader>
-              <CardTitle>Top Cited Publications</CardTitle>
+              <CardTitle>Publications les plus citées</CardTitle>
             </CardHeader>
             <CardContent className="h-[400px]">
               {loading || !processedData ? (

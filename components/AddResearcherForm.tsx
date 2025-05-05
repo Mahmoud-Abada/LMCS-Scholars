@@ -72,7 +72,7 @@ export function AddResearcherForm({ onSuccess }: { onSuccess?: () => void }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <Label htmlFor="name">Full Name</Label>
+        <Label htmlFor="name">Nom complet</Label>
         <Input
           id="name"
           value={formData.name}
@@ -93,7 +93,7 @@ export function AddResearcherForm({ onSuccess }: { onSuccess?: () => void }) {
       </div>
 
       <div>
-        <Label htmlFor="password">Password</Label>
+        <Label htmlFor="password">Mot de passe</Label>
         <Input
           id="password"
           type="password"
@@ -104,7 +104,7 @@ export function AddResearcherForm({ onSuccess }: { onSuccess?: () => void }) {
       </div>
 
       <div>
-        <Label htmlFor="researcherId">Researcher ID (optional)</Label>
+        <Label htmlFor="researcherId">ID du chercheur (optionnel)</Label>
         <Input
           id="researcherId"
           value={formData.researcherId}
@@ -113,25 +113,25 @@ export function AddResearcherForm({ onSuccess }: { onSuccess?: () => void }) {
       </div>
 
       <div>
-        <Label htmlFor="role">Role</Label>
+        <Label htmlFor="role">Rôle</Label>
         <Select
           value={formData.role}
           onValueChange={(value) => setFormData({ ...formData, role: value })}
         >
           <SelectTrigger>
-            <SelectValue placeholder="Select role" />
+            <SelectValue placeholder="Sélectionner un rôle" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="admin">Admin</SelectItem>
-            <SelectItem value="director">Director</SelectItem>
-            <SelectItem value="researcher">Researcher</SelectItem>
+            <SelectItem value="admin">Administrateur</SelectItem>
+            <SelectItem value="director">Directeur</SelectItem>
+            <SelectItem value="researcher">Chercheur</SelectItem>
             <SelectItem value="assistant">Assistant</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
       <Button type="submit" disabled={loading}>
-        {loading ? 'Adding...' : 'Add Researcher'}
+        {loading ? 'Ajout en cours...' : 'Ajouter un chercheur'}
       </Button>
     </form>
   );

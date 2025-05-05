@@ -98,37 +98,37 @@ export default function PublicationDetails() {
     
   
   <Head>
-    <title>{publication.titre_publication} | LMCS Publications</title>
+    <title>{publication.titre_publication} | Publications LMCS</title>
   </Head>
 
-  {/* Remove ml-* class completely and add pl-[sidebar-width] */}
-  <div className="min-h-screen  pl-16"> {/* Assuming sidebar is 64px wide */}
+  {/* Supprimer complètement la classe ml-* et ajouter pl-[sidebar-width] */}
+  <div className="min-h-screen  pl-16"> {/* Supposons que la barre latérale mesure 64px de large */}
     <div className="p-4 max-w-7xl mx-auto">
-      {/* Header with back button - now flush with sidebar */}
+      {/* En-tête avec bouton retour - maintenant aligné avec la barre latérale */}
       <div className="flex items-center mb-4">
         <Button variant="ghost" onClick={() => router.back()} className="mr-2">
           <ChevronLeft className="h-4 w-4 mr-1" />
-          Back
+          Retour
         </Button>
-        <h1 className="text-xl font-bold text-gray-900">Publication Details</h1>
+        <h1 className="text-xl font-bold text-gray-900">Détails de la publication</h1>
       </div>
 
-          {/* Main content with tabs */}
+          {/* Contenu principal avec onglets */}
           <Tabs defaultValue="overview" className="space-y-6">
             <TabsList>
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="authors">Authors</TabsTrigger>
+              <TabsTrigger value="overview">Aperçu</TabsTrigger>
+              <TabsTrigger value="authors">Auteurs</TabsTrigger>
               <TabsTrigger value="impact">Impact</TabsTrigger>
-              <TabsTrigger value="venue">Venue</TabsTrigger>
+              <TabsTrigger value="venue">Lieu</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview">
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {/* Publication Info Card */}
+                {/* Carte d'info de la publication */}
                 <Card className="col-span-2">
                   <CardHeader>
                     <CardTitle className="text-2xl">{publication.titre_publication}</CardTitle>
-                    <CardDescription>Published in {publication.annee}</CardDescription>
+                    <CardDescription>Publié en {publication.annee}</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-3 gap-4 mb-6">
@@ -141,7 +141,7 @@ export default function PublicationDetails() {
                         <p className="text-xl font-semibold">{publication.volumes}</p>
                       </div>
                       <div className="bg-gray-100 p-4 rounded-lg">
-                        <p className="text-sm text-gray-500">Venue Rank</p>
+                        <p className="text-sm text-gray-500">Classement du lieu</p>
                         <p className="text-xl font-semibold">{publication.classifications[0].classement}</p>
                       </div>
                     </div>
@@ -156,36 +156,36 @@ export default function PublicationDetails() {
                           <Bar dataKey="count" fill="#3b82f6" name="Mentions" />
                         </BarChart>
                       </ResponsiveContainer>
-                      <p className="text-center text-sm text-gray-500 mt-2">Keyword Frequency</p>
+                      <p className="text-center text-sm text-gray-500 mt-2">Fréquence des mots-clés</p>
                     </div>
                   </CardContent>
                 </Card>
 
-                {/* Quick Stats */}
+                {/* Statistiques rapides */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Quick Stats</CardTitle>
+                    <CardTitle>Statistiques rapides</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="bg-blue-50 p-4 rounded-lg">
-                      <p className="text-sm text-blue-600">Total Citations</p>
+                      <p className="text-sm text-blue-600">Citations totales</p>
                       <p className="text-2xl font-bold">235</p>
-                      <p className="text-xs text-blue-500">+32% from last year</p>
+                      <p className="text-xs text-blue-500">+32% par rapport à l'année dernière</p>
                     </div>
                     <div className="bg-green-50 p-4 rounded-lg">
-                      <p className="text-sm text-green-600">Venue Rank</p>
+                      <p className="text-sm text-green-600">Classement du lieu</p>
                       <p className="text-2xl font-bold">A*</p>
-                      <p className="text-xs text-green-500">Top 5% in field</p>
+                      <p className="text-xs text-green-500">Top 5% dans le domaine</p>
                     </div>
                     <div className="bg-purple-50 p-4 rounded-lg">
-                      <p className="text-sm text-purple-600">Authors</p>
+                      <p className="text-sm text-purple-600">Auteurs</p>
                       <p className="text-2xl font-bold">2</p>
-                      <p className="text-xs text-purple-500">Avg. H-index: 21</p>
+                      <p className="text-xs text-purple-500">H-index moyen : 21</p>
                     </div>
                     <Button asChild className="w-full">
                       <a href={publication.lien} target="_blank" rel="noopener noreferrer">
                         <FileText className="h-4 w-4 mr-2" />
-                        View Full Publication
+                        Voir la publication complète
                       </a>
                     </Button>
                   </CardContent>
@@ -195,11 +195,11 @@ export default function PublicationDetails() {
 
             <TabsContent value="authors">
               <div className="grid gap-6 md:grid-cols-2">
-                {/* Authors List */}
+                {/* Liste des auteurs */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Authors</CardTitle>
-                    <CardDescription>Researchers who contributed to this publication</CardDescription>
+                    <CardTitle>Auteurs</CardTitle>
+                    <CardDescription>Les chercheurs ayant contribué à cette publication</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
@@ -210,7 +210,7 @@ export default function PublicationDetails() {
                           </div>
                           <div>
                             <p className="font-semibold">{author.nom_complet}</p>
-                            <p className="text-sm text-gray-500">H-index: {author.hindex}</p>
+                            <p className="text-sm text-gray-500">H-index : {author.hindex}</p>
                           </div>
                         </div>
                       ))}
@@ -218,10 +218,10 @@ export default function PublicationDetails() {
                   </CardContent>
                 </Card>
 
-                {/* Author Contributions */}
+                {/* Contributions des auteurs */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Author Contributions</CardTitle>
+                    <CardTitle>Contributions des auteurs</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="h-[300px]">
@@ -236,7 +236,7 @@ export default function PublicationDetails() {
                             fill="#8884d8"
                             paddingAngle={5}
                             dataKey="contribution"
-                            label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                            label={({ name, percent }) => `${name} : ${(percent * 100).toFixed(0)}%`}
                           >
                             {publication.stats.authorContributions.map((entry, index) => (
                               <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -253,11 +253,11 @@ export default function PublicationDetails() {
 
             <TabsContent value="impact">
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {/* Citation Trends */}
+                {/* Tendances des citations */}
                 <Card className="col-span-2">
                   <CardHeader>
-                    <CardTitle>Citation Trends</CardTitle>
-                    <CardDescription>Citations over time</CardDescription>
+                    <CardTitle>Tendances des citations</CardTitle>
+                    <CardDescription>Citations au fil du temps</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="h-[300px]">
@@ -274,10 +274,10 @@ export default function PublicationDetails() {
                   </CardContent>
                 </Card>
 
-                {/* Citation Comparison */}
+                {/* Comparaison des citations */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Citation Comparison</CardTitle>
+                    <CardTitle>Comparaison des citations</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="h-[300px]">
@@ -298,10 +298,10 @@ export default function PublicationDetails() {
 
             <TabsContent value="venue">
               <div className="grid gap-6 md:grid-cols-2">
-                {/* Venue Info */}
+                {/* Informations sur le lieu */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Venue Information</CardTitle>
+                    <CardTitle>Informations sur le lieu</CardTitle>
                     <CardDescription>{publication.venue.nom}</CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -311,43 +311,43 @@ export default function PublicationDetails() {
                         <span className="font-medium">{publication.venue.type}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-sm text-gray-500">Location</span>
+                        <span className="text-sm text-gray-500">Lieu</span>
                         <span className="font-medium">{publication.venue.lieu}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-sm text-gray-500">Period</span>
+                        <span className="text-sm text-gray-500">Période</span>
                         <span className="font-medium">{publication.venue.periode}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-sm text-gray-500">Periodicity</span>
+                        <span className="text-sm text-gray-500">Périodicité</span>
                         <span className="font-medium">{publication.venue.periodicite}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-sm text-gray-500">Scope</span>
+                        <span className="text-sm text-gray-500">Portée</span>
                         <span className="font-medium">{publication.venue.scope}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-sm text-gray-500">Ranking</span>
+                        <span className="text-sm text-gray-500">Classement</span>
                         <span className="font-medium">{publication.classifications[0].classement}</span>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
 
-                {/* Venue Stats */}
+                {/* Statistiques du lieu */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Venue Performance</CardTitle>
+                    <CardTitle>Performance du lieu</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="h-[300px]">
                       <ResponsiveContainer width="100%" height="100%">
                         <RadarChart cx="50%" cy="50%" outerRadius="80%" data={[
-                          { subject: 'Rank', A: 95 },
+                          { subject: 'Classement', A: 95 },
                           { subject: 'Impact', A: 85 },
-                          { subject: 'Acceptance', A: 70 },
+                          { subject: 'Acceptation', A: 70 },
                           { subject: 'Citations', A: 90 },
-                          { subject: 'Reputation', A: 88 },
+                          { subject: 'Réputation', A: 88 },
                         ]}>
                           <PolarGrid />
                           <PolarAngleAxis dataKey="subject" />

@@ -1,4 +1,3 @@
-
 import type { Metadata } from "next";
 import {
   SidebarInset,
@@ -42,7 +41,7 @@ export async function StatsCards() {
       {/* Researchers Card */}
       <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium text-gray-500">ACTIVE RESEARCHERS</span>
+          <span className="text-sm font-medium text-gray-500">CHERCHEURS ACTIFS</span>
           <div className="p-2 rounded-lg bg-blue-100 text-blue-600">
             <svg width={20} height={20} fill="currentColor">
               <path d="M9 0v2.013a8.001 8.001 0 1 0 5.905 14.258l1.424 1.422A9.958 9.958 0 0 1 10 19.951c-5.523 0-10-4.478-10-10C0 4.765 3.947.5 9 0Zm10.95 10.95a9.954 9.954 0 0 1-2.207 5.329l-1.423-1.423a7.96 7.96 0 0 0 1.618-3.905h2.013ZM11.002 0c4.724.47 8.48 4.227 8.95 8.95h-2.013a8.004 8.004 0 0 0-6.937-6.937V0Z" />
@@ -118,10 +117,10 @@ export default async function Page() {
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-200">
                 <div className="space-y-1">
                   <h1 className="text-2xl font-bold text-gray-800">
-                    Welcome, {user?.name || 'Admin'}!
+                    Bienvenue, {user?.name || 'Admin'}!
                   </h1>
                   <p className="text-sm text-gray-500">
-                    Here's an overview of your Lab. Manage publications and researchers with ease!
+                    Voici un aperçu de votre laboratoire. Gérez les publications et les chercheurs en toute simplicité !
                   </p>
                 </div>
                 {/* Removed the buttons from here */}
@@ -129,23 +128,23 @@ export default async function Page() {
 
               {/* Stats Section - unchanged */}
               <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                <h2 className="text-lg font-semibold text-gray-800 mb-4">Lab Statistics</h2>
+                <h2 className="text-lg font-semibold text-gray-800 mb-4">Statistiques du laboratoire</h2>
                 <StatsCards /></div>
      
 
               {/* Researchers Table */}
               <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
                 <div className="mb-4">
-                  <h2 className="text-lg font-semibold text-gray-800">Researchers</h2>
-                  <p className="text-sm text-gray-500">Manage your laboratory researchers</p>
+                  <h2 className="text-lg font-semibold text-gray-800">Chercheurs</h2>
+                  <p className="text-sm text-gray-500">Gérez les chercheurs de votre laboratoire</p>
                 </div>
                 <div className="overflow-x-auto">
                   <div className="min-w-[800px]">
                     <div className="flex justify-between items-center">
-                      <h1 className="text-2xl font-bold">Researchers Management</h1>
+                      <h1 className="text-2xl font-bold">Gestion des chercheurs</h1>
                       {showAddResearcher && (<Link href="/addResearcher">
                           <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-                            Add Researcher
+                            Ajouter un chercheur
                           </Button>
                         </Link>)}
                     </div>

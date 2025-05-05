@@ -94,13 +94,13 @@ export default function ResearchersAnalyticsPage() {
 
   return (
     <div className="container mx-auto py-8 space-y-6">
-      <h1 className="text-3xl font-bold">Researcher Analytics</h1>
+      <h1 className="text-3xl font-bold">Analyse des Chercheurs</h1>
       
       {/* Filters Section */}
       <Card>
         <CardHeader>
-          <CardTitle>Filters</CardTitle>
-          <CardDescription>Refine the researcher metrics</CardDescription>
+          <CardTitle>Filtres</CardTitle>
+          <CardDescription>Affiner les métriques des chercheurs</CardDescription>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
           <Select
@@ -108,12 +108,15 @@ export default function ResearchersAnalyticsPage() {
             onValueChange={(value) => setFilters({...filters, status: value})}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Status" />
+              <SelectValue placeholder="Statut" />
             </SelectTrigger>
             <SelectContent>
               {researcherStatusEnum.enumValues.map((status) => (
                 <SelectItem key={status} value={status}>
-                  {status.split('_').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ')}
+                  {status === 'active' ? 'Actif' : 
+                   status === 'on_leave' ? 'En congé' : 
+                   status === 'inactive' ? 'Inactif' : 
+                   status === 'retired' ? 'Retraité' : status}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -129,7 +132,12 @@ export default function ResearchersAnalyticsPage() {
             <SelectContent>
               {researcherQualificationEnum.enumValues.map((qualification) => (
                 <SelectItem key={qualification} value={qualification}>
-                  {qualification.split('_').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ')}
+                  {qualification === 'professor' ? 'Professeur' :
+                   qualification === 'associate_professor' ? 'Professeur associé' :
+                   qualification === 'assistant_professor' ? 'Professeur assistant' :
+                   qualification === 'postdoc' ? 'Post-doctorant' :
+                   qualification === 'phd_candidate' ? 'Doctorant' :
+                   qualification === 'research_scientist' ? 'Chercheur scientifique' : qualification}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -140,12 +148,17 @@ export default function ResearchersAnalyticsPage() {
             onValueChange={(value) => setFilters({...filters, position: value})}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Position" />
+              <SelectValue placeholder="Poste" />
             </SelectTrigger>
             <SelectContent>
               {researcherPositionEnum.enumValues.map((position) => (
                 <SelectItem key={position} value={position}>
-                  {position.split('_').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ')}
+                  {position === 'director' ? 'Directeur' :
+                   position === 'department_head' ? 'Chef de département' :
+                   position === 'principal_investigator' ? 'Chercheur principal' :
+                   position === 'senior_researcher' ? 'Chercheur senior' :
+                   position === 'researcher' ? 'Chercheur' :
+                   position === 'assistant' ? 'Assistant' : position}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -154,7 +167,7 @@ export default function ResearchersAnalyticsPage() {
           <div className="flex gap-2">
             <Input
               type="number"
-              placeholder="Min H-Index"
+              placeholder="H-Index min"
               value={filters.hIndexMin}
               onChange={(e) => setFilters({...filters, hIndexMin: e.target.value})}
               min="0"
@@ -162,7 +175,7 @@ export default function ResearchersAnalyticsPage() {
             />
             <Input
               type="number"
-              placeholder="Max H-Index"
+              placeholder="H-Index max"
               value={filters.hIndexMax}
               onChange={(e) => setFilters({...filters, hIndexMax: e.target.value})}
               min="0"
@@ -173,14 +186,14 @@ export default function ResearchersAnalyticsPage() {
           <div className="flex gap-2">
             <Input
               type="number"
-              placeholder="Min Citations"
+              placeholder="Citations min"
               value={filters.citationMin}
               onChange={(e) => setFilters({...filters, citationMin: e.target.value})}
               min="0"
             />
             <Input
               type="number"
-              placeholder="Max Citations"
+              placeholder="Citations max"
               value={filters.citationMax}
               onChange={(e) => setFilters({...filters, citationMax: e.target.value})}
               min="0"
@@ -190,7 +203,7 @@ export default function ResearchersAnalyticsPage() {
           <div className="flex gap-2">
             <Input
               type="number"
-              placeholder="From year"
+              placeholder="Année début"
               value={filters.yearFrom}
               onChange={(e) => setFilters({...filters, yearFrom: e.target.value})}
               min="1990"
@@ -198,7 +211,7 @@ export default function ResearchersAnalyticsPage() {
             />
             <Input
               type="number"
-              placeholder="To year"
+              placeholder="Année fin"
               value={filters.yearTo}
               onChange={(e) => setFilters({...filters, yearTo: e.target.value})}
               min="1990"
@@ -208,7 +221,7 @@ export default function ResearchersAnalyticsPage() {
 
           <Input
             type="number"
-            placeholder="Results limit"
+            placeholder="Limite de résultats"
             value={filters.limit}
             onChange={(e) => setFilters({...filters, limit: e.target.value})}
             min="1"
@@ -218,27 +231,27 @@ export default function ResearchersAnalyticsPage() {
       </Card>
 
       <Button onClick={applyFilters} disabled={loading}>
-        {loading ? 'Loading...' : 'Apply Filters'}
+        {loading ? 'Chargement...' : 'Appliquer les filtres'}
       </Button>
 
       {/* Overview Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <MetricCard 
-          title="Total Researchers" 
+          title="Total des chercheurs" 
           value={data.researcher_metrics.length} 
         />
         <MetricCard 
-          title="Avg H-Index" 
+          title="H-Index moyen" 
           value={data.researcher_metrics.reduce((acc: number, r: any) => acc + r.hIndex, 0) / data.researcher_metrics.length || 0} 
           precision={2}
         />
         <MetricCard 
-          title="Avg Citations" 
+          title="Citations moyennes" 
           value={data.researcher_metrics.reduce((acc: number, r: any) => acc + r.citations, 0) / data.researcher_metrics.length || 0} 
           precision={0}
         />
         <MetricCard 
-          title="Total Publications" 
+          title="Total des publications" 
           value={data.researcher_metrics.reduce((acc: number, r: any) => acc + r.publicationCount, 0)} 
         />
       </div>
@@ -246,7 +259,7 @@ export default function ResearchersAnalyticsPage() {
       {/* Researcher Performance Scatter Plot */}
       <Card>
         <CardHeader>
-          <CardTitle>Researcher Impact</CardTitle>
+          <CardTitle>Impact des chercheurs</CardTitle>
           <CardDescription>H-Index vs Citations</CardDescription>
         </CardHeader>
         <CardContent className="h-96">
@@ -291,8 +304,8 @@ export default function ResearchersAnalyticsPage() {
       {/* Yearly Trends */}
       <Card>
         <CardHeader>
-          <CardTitle>Yearly Trends</CardTitle>
-          <CardDescription>Researcher metrics over time</CardDescription>
+          <CardTitle>Tendances annuelles</CardTitle>
+          <CardDescription>Métriques des chercheurs au fil du temps</CardDescription>
         </CardHeader>
         <CardContent className="h-96">
           <ResponsiveContainer width="100%" height="100%">
@@ -314,8 +327,8 @@ export default function ResearchersAnalyticsPage() {
       {/* Team Distribution */}
       <Card>
         <CardHeader>
-          <CardTitle>Team Performance</CardTitle>
-          <CardDescription>Metrics by research team</CardDescription>
+          <CardTitle>Performance des équipes</CardTitle>
+          <CardDescription>Métriques par équipe de recherche</CardDescription>
         </CardHeader>
         <CardContent className="h-96">
           <ResponsiveContainer width="100%" height="100%">
@@ -337,8 +350,8 @@ export default function ResearchersAnalyticsPage() {
       {/* Qualification Stats */}
       <Card>
         <CardHeader>
-          <CardTitle>Qualification Metrics</CardTitle>
-          <CardDescription>Performance by academic qualification</CardDescription>
+          <CardTitle>Métriques par qualification</CardTitle>
+          <CardDescription>Performance par qualification académique</CardDescription>
         </CardHeader>
         <CardContent className="h-96">
           <ResponsiveContainer width="100%" height="100%">
@@ -360,20 +373,20 @@ export default function ResearchersAnalyticsPage() {
       {/* Top Researchers Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Top Researchers</CardTitle>
-          <CardDescription>Ranked by citation count</CardDescription>
+          <CardTitle>Meilleurs chercheurs</CardTitle>
+          <CardDescription>Classés par nombre de citations</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead>
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Researcher</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Team</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Chercheur</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Équipe</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Citations</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">H-Index</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Publications</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">

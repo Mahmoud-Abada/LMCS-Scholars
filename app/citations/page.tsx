@@ -84,18 +84,18 @@ export default function CitationsAnalyticsPage() {
 
   return (
     <div className="container mx-auto py-8 space-y-6">
-      <h1 className="text-3xl font-bold">Citations Analytics</h1>
+      <h1 className="text-3xl font-bold">Analyse des citations</h1>
       
       {/* Filters Section */}
       <Card>
         <CardHeader>
-          <CardTitle>Filters</CardTitle>
+          <CardTitle>Filtres</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="flex gap-2">
             <Input
               type="number"
-              placeholder="From year"
+              placeholder="De l'année"
               value={filters.yearFrom}
               onChange={(e) => setFilters({...filters, yearFrom: e.target.value})}
               min="1990"
@@ -103,7 +103,7 @@ export default function CitationsAnalyticsPage() {
             />
             <Input
               type="number"
-              placeholder="To year"
+              placeholder="À l'année"
               value={filters.yearTo}
               onChange={(e) => setFilters({...filters, yearTo: e.target.value})}
               min="1990"
@@ -111,22 +111,22 @@ export default function CitationsAnalyticsPage() {
             />
           </div>
           <Input
-            placeholder="Team ID"
+            placeholder="ID de l'équipe"
             value={filters.teamId}
             onChange={(e) => setFilters({...filters, teamId: e.target.value})}
           />
           <Input
-            placeholder="Researcher ID"
+            placeholder="ID du chercheur"
             value={filters.researcherId}
             onChange={(e) => setFilters({...filters, researcherId: e.target.value})}
           />
           <Input
-            placeholder="Venue ID"
+            placeholder="ID du lieu"
             value={filters.venueId}
             onChange={(e) => setFilters({...filters, venueId: e.target.value})}
           />
           <Input
-            placeholder="Classification ID"
+            placeholder="ID de classification"
             value={filters.classificationId}
             onChange={(e) => setFilters({...filters, classificationId: e.target.value})}
           />
@@ -135,7 +135,7 @@ export default function CitationsAnalyticsPage() {
             value={filters.publicationType}
             onChange={(e) => setFilters({...filters, publicationType: e.target.value})}
           >
-            <option value="">All types</option>
+            <option value="">Tous les types</option>
             {publicationTypeEnum.enumValues.map((type) => (
               <option key={type} value={type}>
                 {type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
@@ -144,7 +144,7 @@ export default function CitationsAnalyticsPage() {
           </select>
           <Input
             type="number"
-            placeholder="Limit"
+            placeholder="Limite"
             value={filters.limit}
             onChange={(e) => setFilters({...filters, limit: e.target.value})}
             min="1"
@@ -154,21 +154,21 @@ export default function CitationsAnalyticsPage() {
       </Card>
 
       <Button onClick={fetchData} disabled={loading}>
-        {loading ? 'Loading...' : 'Apply Filters'}
+        {loading ? 'Chargement...' : 'Appliquer les filtres'}
       </Button>
 
       {/* Metrics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <MetricCard title="Total Citations" value={data.high_level_metrics.total_citations} />
-        <MetricCard title="Total Publications" value={data.high_level_metrics.total_publications} />
-        <MetricCard title="Avg Citations" value={data.high_level_metrics.avg_citations} />
-        <MetricCard title="Max Citations" value={data.high_level_metrics.max_citations} />
+        <MetricCard title="Citations totales" value={data.high_level_metrics.total_citations} />
+        <MetricCard title="Publications totales" value={data.high_level_metrics.total_publications} />
+        <MetricCard title="Moyenne des citations" value={data.high_level_metrics.avg_citations} />
+        <MetricCard title="Citations maximales" value={data.high_level_metrics.max_citations} />
       </div>
 
       {/* Yearly Trends Chart */}
       <Card>
         <CardHeader>
-          <CardTitle>Citation Trends</CardTitle>
+          <CardTitle>Tendances des citations</CardTitle>
         </CardHeader>
         <CardContent className="h-96">
           <ResponsiveContainer width="100%" height="100%">
@@ -189,16 +189,16 @@ export default function CitationsAnalyticsPage() {
       {/* Top Researchers Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Top Researchers</CardTitle>
+          <CardTitle>Meilleurs chercheurs</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
             <table className="min-w-full">
               <thead>
                 <tr>
-                  <th className="text-left p-2">Researcher</th>
+                  <th className="text-left p-2">Chercheur</th>
                   <th className="text-left p-2">Citations</th>
-                  <th className="text-left p-2">Papers</th>
+                  <th className="text-left p-2">Articles</th>
                   <th className="text-left p-2">H-Index</th>
                 </tr>
               </thead>
@@ -220,7 +220,7 @@ export default function CitationsAnalyticsPage() {
       {/* Team Performance */}
       <Card>
         <CardHeader>
-          <CardTitle>Team Performance</CardTitle>
+          <CardTitle>Performance des équipes</CardTitle>
         </CardHeader>
         <CardContent className="h-96">
           <ResponsiveContainer width="100%" height="100%">
@@ -238,15 +238,15 @@ export default function CitationsAnalyticsPage() {
       {/* Top Publications */}
       <Card>
         <CardHeader>
-          <CardTitle>Top Publications</CardTitle>
+          <CardTitle>Meilleures publications</CardTitle>
         </CardHeader>
         <CardContent>
           {data.top_publications.map((pub: any) => (
             <div key={pub.id} className="border-b py-4">
               <h3 className="font-medium">{pub.title}</h3>
               <div className="text-sm text-gray-600">
-                <div>Authors: {pub.authors?.join(', ') || 'N/A'}</div>
-                <div>Citations: {pub.citation_count}</div>
+                <div>Auteurs : {pub.authors?.join(', ') || 'N/A'}</div>
+                <div>Citations : {pub.citation_count}</div>
               </div>
             </div>
           ))}
@@ -257,15 +257,15 @@ export default function CitationsAnalyticsPage() {
 
       <Card>
   <CardHeader>
-    <CardTitle>Collaboration Types</CardTitle>
+    <CardTitle>Types de collaboration</CardTitle>
   </CardHeader>
   <CardContent className="h-64">
     <ResponsiveContainer width="100%" height="100%">
       <BarChart
         data={[
-          { name: 'Single', value: data.collaboration_metrics.find(m => m.collaboration_type === 'single-author')?.total_citations || 0 },
-          { name: 'Team', value: data.collaboration_metrics.find(m => m.collaboration_type === 'intra-team')?.total_citations || 0 },
-          { name: 'Cross', value: data.collaboration_metrics.find(m => m.collaboration_type === 'inter-team')?.total_citations || 0 },
+          { name: 'Individuel', value: data.collaboration_metrics.find(m => m.collaboration_type === 'single-author')?.total_citations || 0 },
+          { name: 'Équipe', value: data.collaboration_metrics.find(m => m.collaboration_type === 'intra-team')?.total_citations || 0 },
+          { name: 'Croisée', value: data.collaboration_metrics.find(m => m.collaboration_type === 'inter-team')?.total_citations || 0 },
         ]}
         margin={{ top: 20, right: 20, left: 20, bottom: 20 }}
       >

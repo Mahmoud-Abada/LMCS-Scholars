@@ -57,19 +57,19 @@ export default function AddResearcherPage() {
 
   const validateForm = () => {
     if (!form.firstName.trim()) {
-      toast.error("First name is required")
+      toast.error("Le Prenom est obligatoire")
       return false
     }
     if (!form.lastName.trim()) {
-      toast.error("Last name is required")
+      toast.error("Le Nom est obligatoire")
       return false
     }
     if (!form.email.trim()) {
-      toast.error("Email is required")
+      toast.error("l'Email est obligatoire")
       return false
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-      toast.error("Invalid email format")
+      toast.error("Format d'email invalide")
       return false
     }
     return true
@@ -141,7 +141,7 @@ export default function AddResearcherPage() {
         throw new Error(errorData.error || 'Failed to add researcher')
       }
 
-      toast.success("Researcher added successfully!")
+      toast.success("Chercheur ajouté avec succés!")
       router.push('/')
     } catch (error: any) {
       toast.error(error.message)
@@ -155,14 +155,14 @@ export default function AddResearcherPage() {
     <div className="max-w-3xl mx-auto p-6">
       <Card className="rounded-lg border border-[#e2e8f0] shadow-sm">
         <CardHeader className="border-b border-[#e2e8f0] bg-[#f8fafc]">
-          <CardTitle className="text-xl font-semibold text-[#1e293b]">Add New Researcher</CardTitle>
+          <CardTitle className="text-xl font-semibold text-[#1e293b]">Ajouter un nouveau chercheur</CardTitle>
         </CardHeader>
         <CardContent className="p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-[#475569] mb-1">First Name *</label>
+                  <label className="block text-sm font-medium text-[#475569] mb-1">Prénom *</label>
                   <Input 
                     name="firstName" 
                     value={form.firstName} 
@@ -171,7 +171,7 @@ export default function AddResearcherPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-[#475569] mb-1">Last Name *</label>
+                  <label className="block text-sm font-medium text-[#475569] mb-1">Nom *</label>
                   <Input 
                     name="lastName" 
                     value={form.lastName} 
@@ -190,7 +190,7 @@ export default function AddResearcherPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-[#475569] mb-1">ORCID ID</label>
+                  <label className="block text-sm font-medium text-[#475569] mb-1">ID ORCID</label>
                   <Input 
                     name="orcidId" 
                     value={form.orcidId} 
@@ -199,7 +199,7 @@ export default function AddResearcherPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-[#475569] mb-1">Phone</label>
+                  <label className="block text-sm font-medium text-[#475569] mb-1">Téléphone</label>
                   <Input 
                     name="phone" 
                     value={form.phone} 
@@ -235,15 +235,15 @@ export default function AddResearcherPage() {
     onValueChange={(value) => handleSelectChange("qualification", value)}
   >
     <SelectTrigger>
-      <SelectValue placeholder="Select qualification" />
+      <SelectValue placeholder="Sélectionnez la qualification" />
     </SelectTrigger>
     <SelectContent>
-      <SelectItem value="professor">Professor</SelectItem>
-      <SelectItem value="associate_professor">Associate Professor</SelectItem>
-      <SelectItem value="assistant_professor">Assistant Professor</SelectItem>
-      <SelectItem value="postdoc">Postdoc</SelectItem>
-      <SelectItem value="phd_candidate">PhD Candidate</SelectItem>
-      <SelectItem value="research_scientist">Research Scientist</SelectItem>
+      <SelectItem value="professor">Professeur</SelectItem>
+      <SelectItem value="associate_professor">Professeur associé</SelectItem>
+      <SelectItem value="assistant_professor">Professeur assistant</SelectItem>
+      <SelectItem value="postdoc">Postdoctorant</SelectItem>
+      <SelectItem value="phd_candidate">Doctorant</SelectItem>
+      <SelectItem value="research_scientist">Chercheur scientifique</SelectItem>
     </SelectContent>
   </Select>
 </div>
@@ -256,20 +256,20 @@ export default function AddResearcherPage() {
     onValueChange={(value) => handleSelectChange("position", value)}
   >
     <SelectTrigger>
-      <SelectValue placeholder="Select position" />
+      <SelectValue placeholder="Sélectionnez le poste" />
     </SelectTrigger>
     <SelectContent>
-      <SelectItem value="director">Director</SelectItem>
-      <SelectItem value="department_head">Department Head</SelectItem>
-      <SelectItem value="principal_investigator">Principal Investigator</SelectItem>
-      <SelectItem value="senior_researcher">Senior Researcher</SelectItem>
-      <SelectItem value="researcher">Researcher</SelectItem>
+      <SelectItem value="director">Directeur</SelectItem>
+      <SelectItem value="department_head">Chef de département</SelectItem>
+      <SelectItem value="principal_investigator">Chercheur principal</SelectItem>
+      <SelectItem value="senior_researcher">Chercheur senior</SelectItem>
+      <SelectItem value="researcher">Chercheur</SelectItem>
       <SelectItem value="assistant">Assistant</SelectItem>
     </SelectContent>
   </Select>
 </div>
                 <div>
-                  <label className="block text-sm font-medium text-[#475569] mb-1">Join Date</label>
+                  <label className="block text-sm font-medium text-[#475569] mb-1">Date d'entrée</label>
                   <Input 
                     name="joinDate" 
                     type="date" 
@@ -278,7 +278,7 @@ export default function AddResearcherPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-[#475569] mb-1">Leave Date</label>
+                  <label className="block text-sm font-medium text-[#475569] mb-1">Date de sortie</label>
                   <Input 
                     name="leaveDate" 
                     type="date" 
@@ -324,7 +324,7 @@ export default function AddResearcherPage() {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-[#475569] mb-1">Biography</label>
+                <label className="block text-sm font-medium text-[#475569] mb-1">Biographie</label>
                 <Input 
                   name="biography" 
                   value={form.biography} 
@@ -332,7 +332,7 @@ export default function AddResearcherPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-[#475569] mb-1">Research Interests</label>
+                <label className="block text-sm font-medium text-[#475569] mb-1">Domaines de recherche</label>
                 <Input 
                   name="researchInterests" 
                   value={form.researchInterests} 
@@ -343,7 +343,7 @@ export default function AddResearcherPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-[#475569] mb-1">DBLP URL</label>
+                <label className="block text-sm font-medium text-[#475569] mb-1">URL DBLP</label>
                 <Input 
                   name="dblpUrl" 
                   value={form.dblpUrl} 
@@ -351,7 +351,7 @@ export default function AddResearcherPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-[#475569] mb-1">Google Scholar URL</label>
+                <label className="block text-sm font-medium text-[#475569] mb-1">URL Google Scholar</label>
                 <Input 
                   name="googleScholarUrl" 
                   value={form.googleScholarUrl} 
@@ -359,7 +359,7 @@ export default function AddResearcherPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-[#475569] mb-1">ResearchGate URL</label>
+                <label className="block text-sm font-medium text-[#475569] mb-1">URL ResearchGate</label>
                 <Input 
                   name="researchGateUrl" 
                   value={form.researchGateUrl} 
@@ -367,7 +367,7 @@ export default function AddResearcherPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-[#475569] mb-1">Personal Website</label>
+                <label className="block text-sm font-medium text-[#475569] mb-1">Site personnel</label>
                 <Input 
                   name="personalWebsite" 
                   value={form.personalWebsite} 
@@ -398,7 +398,7 @@ export default function AddResearcherPage() {
 
             <div className="pt-4">
               <Button type="submit" className="w-full">
-                Add Researcher
+                Ajouter un chercheur
               </Button>
             </div>
           </form>
@@ -408,15 +408,15 @@ export default function AddResearcherPage() {
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Confirm Submission</DialogTitle>
+            <DialogTitle>Confirmer la soumission</DialogTitle>
           </DialogHeader>
-          <p>Are you sure you want to add this researcher?</p>
+          <p>Êtes-vous sûr de vouloir ajouter ce chercheur ?</p>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowDialog(false)}>
-              Cancel
+              Annuler
             </Button>
             <Button onClick={confirmSubmit}>
-              Confirm
+              Confirmer
             </Button>
           </DialogFooter>
         </DialogContent>

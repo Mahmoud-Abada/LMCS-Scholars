@@ -333,7 +333,7 @@ export function ResearchersTable({ researchers, isAdmin }: { researchers: Resear
         <div className="relative w-full md:w-96">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input
-            placeholder="Search researchers..."
+            placeholder="Rechercher des chercheurs..."
             value={globalFilter}
             onChange={(e) => setGlobalFilter(e.target.value)}
             className="pl-10 w-full"
@@ -451,8 +451,8 @@ export function ResearchersTable({ researchers, isAdmin }: { researchers: Resear
       {/* Pagination */}
       <div className="flex flex-col md:flex-row items-center justify-between gap-4 px-2">
         <div className="flex-1 text-sm text-muted-foreground">
-          Showing {table.getRowModel().rows.length} of{" "}
-          {table.getFilteredRowModel().rows.length} researcher(s)
+          Affichage de {table.getRowModel().rows.length} sur{" "}
+          {table.getFilteredRowModel().rows.length} chercheur(s)
         </div>
 
         <div className="flex items-center space-x-6 lg:space-x-8">
@@ -528,20 +528,20 @@ export function ResearchersTable({ researchers, isAdmin }: { researchers: Resear
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogTitle>Êtes-vous absolument sûr ?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the researcher
-              and all associated data.
+              Cette action ne peut pas être annulée. Cette action supprimera définitivement le chercheur
+              et toutes les données associées.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={pendingAction}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={pendingAction}>Annuler</AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleDelete}
               disabled={pendingAction}
               className="bg-destructive hover:bg-destructive/90"
             >
-              {pendingAction ? "Deleting..." : "Delete"}
+              {pendingAction ? "Suppression..." : "Supprimer"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

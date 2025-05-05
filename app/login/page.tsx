@@ -35,13 +35,13 @@ export default function LoginPage() {
         throw new Error(errorData.error || "Login failed");
       }
 
-      toast.success("Login successful! Redirecting...");
+      toast.success("Connexion réussie ! Redirection…");
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       router.push("/");
       router.refresh();
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Login failed";
+      const errorMessage = err instanceof Error ? err.message : "La connexion a échoué";
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);
@@ -93,7 +93,7 @@ export default function LoginPage() {
         throw new Error("Failed to authenticate guest account");
       }
 
-      toast.success("Guest session started! Redirecting...");
+      toast.success("Session invité démarrée ! Redirection…");
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       router.push("/");
@@ -115,15 +115,15 @@ export default function LoginPage() {
         <div className="flex flex-col items-center">
           <Image
             src="/images/lmcs.jpg"
-            alt="LMCS Logo"
+            alt="Logo LMCS"
             width={120}
             height={120}
             className="mb-4 rounded-lg"
           />
           <h1 className="text-2xl font-bold text-center text-gray-800">
-            LMCS Research Portal
+            Portail de Recherche LMCS
           </h1>
-          <p className="text-gray-600 mt-1">Sign in to your account</p>
+          <p className="text-gray-600 mt-1">Connectez-vous à votre compte</p>
         </div>
 
         <div className="space-y-4">
@@ -136,20 +136,20 @@ export default function LoginPage() {
               type="email"
               required
               className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Enter your email"
+              placeholder="Entrez votre email"
             />
           </div>
 
           <div className="relative">
             <label className="block mb-2 text-sm font-medium text-gray-700">
-              Password
+              Mot de passe
             </label>
             <input
               name="password"
               type={showPassword ? "text" : "password"}
               required
               className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-10"
-              placeholder="Enter your password"
+              placeholder="Entrez votre mot de passe"
             />
             <button
               type="button"
@@ -165,12 +165,12 @@ export default function LoginPage() {
           className="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
           disabled={isLoading}
         >
-          {isLoading ? "Signing In..." : "Sign In"}
+          {isLoading ? "Connexion en cours..." : "Se connecter"}
         </SubmitButton>
 
         <div className="relative flex items-center">
           <div className="flex-grow border-t border-gray-300"></div>
-          <span className="flex-shrink mx-4 text-gray-500">or</span>
+          <span className="flex-shrink mx-4 text-gray-500">ou</span>
           <div className="flex-grow border-t border-gray-300"></div>
         </div>
 
@@ -180,16 +180,16 @@ export default function LoginPage() {
           disabled={isGuestLoading}
           className="w-full bg-gray-600 text-white p-3 rounded-lg hover:bg-gray-700 transition-colors font-medium disabled:opacity-50"
         >
-          {isGuestLoading ? "Creating Guest Session..." : "Continue as Guest"}
+          {isGuestLoading ? "Création de session invité..." : "Continuer en tant qu'invité"}
         </button>
 
         <p className="text-sm text-center text-gray-600">
-          Forgot password?{" "}
+          Mot de passe oublié ?{" "}
           <a
             href="/forgot-password"
             className="text-blue-600 hover:underline font-medium"
           >
-            Reset it here
+            Réinitialisez-le ici
           </a>
         </p>
       </form>

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -19,7 +18,7 @@ export default function ForgotPasswordPage() {
     toast.dismiss(); // Clear previous toasts
 
     if (newPassword.length < 8) {
-      toast.error("Password must be at least 8 characters");
+      toast.error("Mot De Passe doit contenir au moins 8 caractères");
       return;
     }
 
@@ -40,10 +39,10 @@ export default function ForgotPasswordPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || "Failed to reset password");
+        throw new Error(data.error || "Une erreur s'est produite lors de la réinitialisation du mot de passe");
       }
 
-      toast.success("Password reset successfully!");
+      toast.success("Mot de passe réinitialisé avec succès !");
       setEmail("");
       setNewPassword("");
     } catch (err: any) {
@@ -53,7 +52,6 @@ export default function ForgotPasswordPage() {
     }
   };
 
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#d2e8ff] px-4">
       <form
@@ -61,10 +59,10 @@ export default function ForgotPasswordPage() {
         className="space-y-6 w-full max-w-md p-8 bg-white shadow-lg rounded-xl border border-gray-200"
       >
         <h1 className="text-2xl font-bold text-center text-gray-800">
-          Reset Password
+          Réinitialiser le mot de passe
         </h1>
         <p className="text-gray-600 text-center mb-4">
-          Enter your email and new password
+          Entrez votre email et votre nouveau mot de passe
         </p>
 
         <div className="space-y-4">
@@ -76,19 +74,19 @@ export default function ForgotPasswordPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              placeholder="Enter your email"
+              placeholder="Entrez votre email"
             />
           </div>
 
           <div className="relative">
-            <Label htmlFor="newPassword">New Password</Label>
+            <Label htmlFor="newPassword">Nouveau Mot De Passe</Label>
             <Input
               id="newPassword"
               type={showPassword ? "text" : "password"}
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               required
-              placeholder="Enter your new password (min 8 characters)"
+              placeholder="Entrez votre nouveau mot de passe (min 8 caractères)"
               className="pr-10"
             />
             <button
@@ -111,7 +109,7 @@ export default function ForgotPasswordPage() {
 
         <p className="text-sm text-center text-gray-600">
           <a href="/login" className="text-blue-600 hover:underline font-medium">
-            Back to login
+            Aller vers login
           </a>
         </p>
       </form>

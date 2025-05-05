@@ -149,17 +149,17 @@ export default function UserDropdown() {
           <DropdownMenuGroup>
             <DropdownMenuItem onClick={() => setShowProfileDialog(true)}>
               <RiUserLine size={16} className="opacity-60 mr-2" />
-              <span>Profile Settings</span>
+              <span>Paramètres du profil</span>
             </DropdownMenuItem>
             <DropdownMenuItem>
               <RiTeamLine size={16} className="opacity-60 mr-2" />
-              <span>Community area</span>
+              <span>Espace communautaire</span>
             </DropdownMenuItem>
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => signOut({ callbackUrl: "/login" })}>
             <RiLogoutBoxLine size={16} className="opacity-60 mr-2" />
-            <span>Sign out</span>
+            <span>Déconnexion</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -168,11 +168,11 @@ export default function UserDropdown() {
       <Dialog open={showProfileDialog} onOpenChange={setShowProfileDialog}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Profile Settings</DialogTitle>
+            <DialogTitle>Paramètres du profil</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label htmlFor="name">Full Name</Label>
+              <Label htmlFor="name">Nom complet</Label>
               <Input
                 id="name"
                 name="name"
@@ -194,47 +194,47 @@ export default function UserDropdown() {
                 className="bg-gray-100"
               />
               <p className="text-sm text-gray-500 mt-1">
-                Contact admin to change your email address
+                Contactez l'administrateur pour changer votre adresse email
               </p>
             </div>
 
             <div className="border-t pt-4">
-              <h3 className="text-lg font-medium mb-3">Change Password</h3>
+              <h3 className="text-lg font-medium mb-3">Changer le mot de passe</h3>
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="currentPassword">Current Password</Label>
+                  <Label htmlFor="currentPassword">Mot de passe actuel</Label>
                   <Input
                     id="currentPassword"
                     name="currentPassword"
                     type="password"
                     value={formData.currentPassword}
                     onChange={handleChange}
-                    placeholder="Enter current password"
+                    placeholder="Entrez le mot de passe actuel"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="newPassword">New Password</Label>
+                  <Label htmlFor="newPassword">Nouveau mot de passe</Label>
                   <Input
                     id="newPassword"
                     name="newPassword"
                     type="password"
                     value={formData.newPassword}
                     onChange={handleChange}
-                    placeholder="Enter new password (min 8 characters)"
+                    placeholder="Entrez un nouveau mot de passe (min 8 caractères)"
                     minLength={8}
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                  <Label htmlFor="confirmPassword">Confirmer le nouveau mot de passe</Label>
                   <Input
                     id="confirmPassword"
                     name="confirmPassword"
                     type="password"
                     value={formData.confirmPassword}
                     onChange={handleChange}
-                    placeholder="Confirm new password"
+                    placeholder="Confirmez le nouveau mot de passe"
                   />
                 </div>
               </div>
@@ -247,16 +247,16 @@ export default function UserDropdown() {
                 onClick={() => setShowProfileDialog(false)}
                 disabled={loading}
               >
-                Cancel
+                Annuler
               </Button>
               <Button type="submit" disabled={loading}>
                 {loading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Saving...
+                    Enregistrement...
                   </>
                 ) : (
-                  'Save Changes'
+                  'Enregistrer les modifications'
                 )}
               </Button>
             </div>
