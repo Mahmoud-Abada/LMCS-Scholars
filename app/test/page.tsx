@@ -1,63 +1,111 @@
-'use client';
+import Link from "next/link";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  QuoteIcon,
+  FileTextIcon,
+  TrendingUpIcon,
+  UsersIcon,
+} from "lucide-react"; // or your preferred icon library
 
-import { useEffect, useState } from 'react';
+interface DashboardItem {
+  name: string;
+  icon: React.ReactNode;
+  href: string;
+}
 
-export default function TestAllPublicationsPage() {
-  const [publications, setPublications] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+interface DashboardCategory {
+  name: string;
+  items: DashboardItem[];
+}
 
-  useEffect(() => {
-    const fetchPublications = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await fetch('/api/publications');
-        const json = await res.json();
-
-        if (!res.ok) throw new Error(json.error || 'Failed to fetch publications');
-        setPublications(json.data || []);
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPublications();
-  }, []);
+export default function AnalyticsHub() {
+  const categories: DashboardCategory[] = [
+    {
+      name: "Research Metrics",
+      items: [
+        { 
+          name: "Citations", 
+          icon: <QuoteIcon className="w-5 h-5" />, 
+          href: "/citations" 
+        },
+        { 
+          name: "Publications", 
+          icon: <FileTextIcon className="w-5 h-5" />, 
+          href: "/analytics/publications" 
+        },
+      ]
+    },
+    {
+      name: "Productivity",
+      items: [
+        { 
+          name: "Output Trends", 
+          icon: <TrendingUpIcon className="w-5 h-5" />, 
+          href: "/analytics/productivity" 
+        },
+        { 
+          name: "Collaborations", 
+          icon: <UsersIcon className="w-5 h-5" />, 
+          href: "/analytics/collaborations" 
+        },
+      ]
+    },
+    {
+      name: "Statistics",
+      items: [
+        { 
+          name: "Annual Reports", 
+          icon: <FileTextIcon className="w-5 h-5" />, 
+          href: "/analytics/annual-reports" 
+        },
+        { 
+          name: "Researcher Profiles", 
+          icon: <UsersIcon className="w-5 h-5" />, 
+          href: "/analytics/researcher-profiles" 
+        },
+      ]
+    }
+  ];
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-6">
-      <h1 className="text-2xl font-bold">All Publications</h1>
+    <div className="p-6 max-w-7xl mx-auto">
+      <header className="mb-10">
+        <h1 className="text-3xl font-bold mb-2">Research Analytics</h1>
+        <p className="text-muted-foreground">
+          Comprehensive metrics and insights for your research activities
+        </p>
+      </header>
 
-      {loading && <p>Loading...</p>}
-      {error && <p className="text-red-600">Error: {error}</p>}
-
-      {publications.length > 0 ? (
-        <table className="w-full border text-sm">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="p-2 border">Title</th>
-              <th className="p-2 border">Year</th>
-              <th className="p-2 border">Citations</th>
-              <th className="p-2 border">Researcher</th>
-            </tr>
-          </thead>
-          <tbody>
-            {publications.map((pub, index) => (
-              <tr key={index}>
-                <td className="p-2 border">{pub.title || '—'}</td>
-                <td className="p-2 border text-center">{pub.year || '—'}</td>
-                <td className="p-2 border text-center">{pub.citationCount || 0}</td>
-                <td className="p-2 border">{pub.researcherName || '—'}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      ) : (
-        !loading && <p>No publications found.</p>
-      )}
+      <div className="space-y-12">
+        {categories.map((category) => (
+          <section key={category.name} className="space-y-4">
+            <h2 className="text-xl font-semibold">{category.name}</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {category.items.map((item) => (
+                <Card 
+                  key={item.name}
+                  className="hover:shadow-md transition-shadow hover:border-primary/20"
+                >
+                  <Link href={item.href} className="block h-full">
+                    <CardHeader className="h-full">
+                      <div className="flex items-center gap-4">
+                        <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                          {item.icon}
+                        </div>
+                        <CardTitle className="text-lg">{item.name}</CardTitle>
+                      </div>
+                    </CardHeader>
+                  </Link>
+                </Card>
+              ))}
+            </div>
+          </section>
+        ))}
+      </div>
     </div>
   );
 }

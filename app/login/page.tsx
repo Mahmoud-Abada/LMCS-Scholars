@@ -5,19 +5,21 @@ import { useState } from "react";
 import { SubmitButton } from "@/components/submit-button";
 import Image from "next/image";
 import { Eye, EyeOff } from "lucide-react";
-import { toast } from "sonner"; // Import toast from sonner
+import { toast } from "sonner";
 
 export default function LoginPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false); // Renamed for consistency
+  const [isLoading, setIsLoading] = useState(false);
+  const [isGuestLoading, setIsGuestLoading] = useState(false);
 
+  // Your existing login function remains unchanged
   async function handleLogin(formData: FormData) {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
 
     setIsLoading(true);
-    toast.dismiss(); // Clear any existing toasts
+    toast.dismiss();
 
     try {
       const response = await fetch("/api/auth/login", {
@@ -33,10 +35,7 @@ export default function LoginPage() {
         throw new Error(errorData.error || "Login failed");
       }
 
-      // Show success toast before redirecting
       toast.success("Login successful! Redirecting...");
-      
-      // Small delay to let user see the success message
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       router.push("/");
@@ -46,6 +45,64 @@ export default function LoginPage() {
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  async function handleGuestLogin() {
+    setIsGuestLoading(true);
+    toast.dismiss();
+
+    try {
+      // Generate unique guest credentials
+      const timestamp = Date.now();
+      const guestEmail = `guest_${timestamp}@esi.com`;
+      const guestPassword = `guest_${timestamp}`;
+      const guestName = `Guest User ${timestamp.toString().slice(-4)}`;
+
+      // Register the guest user
+      const registerResponse = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          email: guestEmail,
+          password: guestPassword,
+          name: guestName,
+          role: "guest" // This matches your schema
+        })
+      });
+
+      if (!registerResponse.ok) {
+        throw new Error("Failed to create guest account");
+      }
+
+      // Login with the new guest credentials
+      const loginResponse = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          email: guestEmail,
+          password: guestPassword
+        })
+      });
+
+      if (!loginResponse.ok) {
+        throw new Error("Failed to authenticate guest account");
+      }
+
+      toast.success("Guest session started! Redirecting...");
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      router.push("/");
+      router.refresh();
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Guest login failed";
+      toast.error(errorMessage);
+    } finally {
+      setIsGuestLoading(false);
     }
   }
 
@@ -110,6 +167,21 @@ export default function LoginPage() {
         >
           {isLoading ? "Signing In..." : "Sign In"}
         </SubmitButton>
+
+        <div className="relative flex items-center">
+          <div className="flex-grow border-t border-gray-300"></div>
+          <span className="flex-shrink mx-4 text-gray-500">or</span>
+          <div className="flex-grow border-t border-gray-300"></div>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleGuestLogin}
+          disabled={isGuestLoading}
+          className="w-full bg-gray-600 text-white p-3 rounded-lg hover:bg-gray-700 transition-colors font-medium disabled:opacity-50"
+        >
+          {isGuestLoading ? "Creating Guest Session..." : "Continue as Guest"}
+        </button>
 
         <p className="text-sm text-center text-gray-600">
           Forgot password?{" "}

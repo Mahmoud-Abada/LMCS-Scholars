@@ -95,9 +95,9 @@ export function Header() {
         {/* Left section */}
         <div className="flex items-center gap-2">
           <div className="relative group">
-            <button onClick={handleSidebarToggle}>
+            <div onClick={handleSidebarToggle}>
               <SidebarTrigger className="-ml-2 p-1" />
-            </button>
+            </div>
             <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 scale-95 whitespace-nowrap rounded bg-black px-2 py-1 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity z-50">
               {isSidebarOpen ? 'Close sidebar' : 'Open sidebar'}
             </div>

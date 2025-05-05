@@ -1,13 +1,12 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
-import { BookOpenText, Users, LineChart, Mail, Phone, MapPin } from "lucide-react"
-import { useSession } from "next-auth/react"
-import { Skeleton } from "@/components/ui/skeleton"
-
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { BookOpenText, Users, LineChart, Mail, Phone, MapPin } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { Skeleton } from "@/components/ui/skeleton";
 export default function HomePage() {
-  const { data: session, status } = useSession()
+  const { data: session, status } = useSession();
 
   if (status === "loading") {
     return (
@@ -20,7 +19,7 @@ export default function HomePage() {
         </div>
         <Skeleton className="h-40 w-full mb-8" />
       </div>
-    )
+    );
   }
 
   return (
@@ -33,23 +32,24 @@ export default function HomePage() {
             Advancing scientific knowledge through cutting-edge research in computer science
           </p>
           
-          {!session ? (
-            <div className="flex gap-4">
-              <Button asChild className="px-6 py-3 text-lg bg-white text-[#1a365d] hover:bg-[#ebf3ff] border border-[#b3d1ff]">
-                <Link href="/login">Login</Link>
-              </Button>
-              
-            </div>
-          ) : (
+          {/* ✅ Reactive session-based buttons */}
+          {session ? (
             <div className="flex gap-4">
               <Button asChild className="px-6 py-3 text-lg bg-[#1a365d] text-white hover:bg-[#2c4d8a]">
                 <Link href="/dashboard">Go to Dashboard</Link>
               </Button>
             </div>
+          ) : (
+            <div className="flex gap-4">
+            <Button asChild className="px-6 py-3 text-lg bg-[#1a365d] text-white hover:bg-[#2c4d8a]">
+              <Link href="/dashboard">Go to Dashboard</Link>
+            </Button>
+          </div>
           )}
         </div>
       </div>
 
+      {/* Rest of your page content remains exactly the same */}
       {/* Quick Links */}
       <div className="mb-8">
         <h2 className="text-2xl font-bold mb-6 text-[#2d3748]">Explore Our Laboratory</h2>
@@ -97,11 +97,11 @@ export default function HomePage() {
         <h2 className="text-2xl font-bold mb-6 text-[#2d3748]">Laboratory at a Glance</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="p-4 text-center">
-            <p className="text-3xl font-bold text-[#3182ce]">50+</p>
+            <p className="text-3xl font-bold text-[#3182ce]">30+</p>
             <p className="text-[#4a5568] text-sm">Researchers</p>
           </div>
           <div className="p-4 text-center">
-            <p className="text-3xl font-bold text-[#3182ce]">500+</p>
+            <p className="text-3xl font-bold text-[#3182ce]">400+</p>
             <p className="text-[#4a5568] text-sm">Publications</p>
           </div>
           <div className="p-4 text-center">
@@ -162,5 +162,5 @@ export default function HomePage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

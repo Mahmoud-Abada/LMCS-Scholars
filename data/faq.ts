@@ -1,103 +1,143 @@
 // src/data/faq.ts
 
 export const faqData = [
-  // General User
+  // Utilisateur Général
   {
-    question: "How do I login?",
-    answer: "Click 'Login' at the top right and enter your credentials.",
-    keywords: ["login", "sign in", "connect"],
+    question: "Comment se connecter ?",
+    answer: "Cliquez sur 'Connexion' en haut à droite et entrez vos identifiants.",
+    keywords: ["connexion", "se connecter", "login"],
   },
   {
-    question: "How do I reset my password?",
-    answer: "Go to the login page and click 'Forgot Password'.",
-    keywords: ["password", "forgot", "reset"],
+    question: "Comment réinitialiser mon mot de passe ?",
+    answer: "Rendez-vous sur la page de connexion et cliquez sur 'Mot de passe oublié'.",
+    keywords: ["mot de passe", "oublié", "réinitialiser"],
   },
   {
-    question: "Where can I see my profile?",
-    answer: "Click your avatar at the top right, then select 'Profile'.",
-    keywords: ["profile", "account", "settings"],
+    question: "Où puis-je voir mon profil ?",
+    answer: "Cliquez sur votre avatar en haut à droite, puis sélectionnez 'Profil'.",
+    keywords: ["profil", "compte", "paramètres"],
   },
   {
-    question: "How do I edit my profile information?",
-    answer: "Go to 'Profile' and click 'Edit Profile' to update your details.",
-    keywords: ["edit profile", "update info", "change name"],
+    question: "Comment modifier les informations de mon profil ?",
+    answer: "Allez dans 'Profil' et cliquez sur 'Modifier le profil' pour mettre à jour vos informations.",
+    keywords: ["modifier profil", "changer infos", "mettre à jour"],
+  },
+  {
+    question: "Puis-je changer mon adresse e-mail ?",
+    answer: "Oui, allez dans 'Profil' > 'Modifier le profil' et changez votre e-mail.",
+    keywords: ["changer email", "adresse email", "modifier e-mail"],
+  },
+  {
+    question: "Comment me déconnecter ?",
+    answer: "Cliquez sur votre avatar en haut à droite puis sélectionnez 'Déconnexion'.",
+    keywords: ["déconnexion", "logout", "quitter le compte"],
   },
 
   // Publications
   {
-    question: "How can I submit a new publication?",
-    answer: "Login as a researcher, go to 'My Publications', and click 'Submit New Publication'.",
-    keywords: ["submit", "publication", "add paper"],
+    question: "Comment soumettre une nouvelle publication ?",
+    answer: "Connectez-vous en tant que chercheur, allez dans 'Mes Publications' et cliquez sur 'Nouvelle Publication'.",
+    keywords: ["soumettre", "publication", "ajouter article"],
   },
   {
-    question: "How do I edit a publication?",
-    answer: "Go to 'My Publications', find the publication, and click 'Edit'.",
-    keywords: ["edit", "update publication", "modify paper"],
+    question: "Comment modifier une publication ?",
+    answer: "Allez dans 'Mes Publications', trouvez la publication, puis cliquez sur 'Modifier'.",
+    keywords: ["modifier", "mettre à jour publication", "changer article"],
   },
   {
-    question: "How can I delete a publication?",
-    answer: "Researchers can request deletion through 'My Publications' > 'Delete Request'.",
-    keywords: ["delete publication", "remove paper"],
+    question: "Comment supprimer une publication ?",
+    answer: "Les chercheurs peuvent demander la suppression via 'Mes Publications' > 'Demande de suppression'.",
+    keywords: ["supprimer publication", "retirer article"],
   },
   {
-    question: "How do I search for publications?",
-    answer: "Visitors can search publications by title, author, or keywords from the homepage.",
-    keywords: ["search", "publications", "visitor"],
-  },
-
-  // Researchers
-  {
-    question: "How can I see the list of researchers?",
-    answer: "Visitors can view researchers under the 'Researchers' section.",
-    keywords: ["list researchers", "view researchers"],
+    question: "Comment rechercher des publications ?",
+    answer: "Les visiteurs peuvent rechercher par titre, auteur ou mots-clés depuis la page d'accueil.",
+    keywords: ["recherche", "publications", "trouver article"],
   },
   {
-    question: "How do I request to become a researcher?",
-    answer: "You need to register first and request research privileges via your profile settings.",
-    keywords: ["become researcher", "request researcher role"],
+    question: "Puis-je télécharger les publications ?",
+    answer: "Oui, si le fichier est disponible, vous verrez un bouton 'Télécharger'.",
+    keywords: ["télécharger publication", "accès article", "pdf"],
   },
 
-  // Admin Section
+  // Chercheurs
   {
-    question: "How do admins manage users?",
-    answer: "Admins can manage users from the 'Admin Dashboard' under the 'Users' tab.",
-    keywords: ["manage users", "admin dashboard"],
+    question: "Comment voir la liste des chercheurs ?",
+    answer: "Les visiteurs peuvent consulter la section 'Chercheurs' sur le site.",
+    keywords: ["liste chercheurs", "voir chercheurs"],
   },
   {
-    question: "How do admins manage researchers?",
-    answer: "Admins can add, edit, or delete researchers from the 'Researchers' management page.",
-    keywords: ["manage researchers", "admin researchers"],
+    question: "Comment demander à devenir chercheur ?",
+    answer: "Inscrivez-vous d'abord, puis demandez le rôle de chercheur depuis les paramètres de votre profil.",
+    keywords: ["devenir chercheur", "demande rôle chercheur"],
   },
   {
-    question: "How to activate or deactivate a user?",
-    answer: "Admins can toggle user activation status under 'Admin Dashboard' > 'Users'.",
-    keywords: ["activate", "deactivate", "user", "admin"],
+    question: "Comment modifier mon profil de chercheur ?",
+    answer: "Allez dans 'Mon Profil Chercheur' et cliquez sur 'Modifier'.",
+    keywords: ["modifier profil chercheur", "changer biographie"],
   },
   {
-    question: "How do admins approve publications?",
-    answer: "Pending publications appear in 'Admin Dashboard' > 'Publications' > 'Pending Approval'.",
-    keywords: ["approve publication", "validate paper"],
-  },
-  {
-    question: "How to link a researcher to a user account?",
-    answer: "While editing a user, admins can link them to a researcher profile.",
-    keywords: ["link researcher", "account link"],
+    question: "Comment ajouter une biographie ou une photo ?",
+    answer: "Accédez à votre profil chercheur et ajoutez les informations depuis l’éditeur de profil.",
+    keywords: ["ajouter bio", "photo chercheur"],
   },
 
-  // Miscellaneous
+  // Section Admin
   {
-    question: "What if I encounter a bug?",
-    answer: "Please contact support through the 'Contact Us' form or notify the admin.",
-    keywords: ["bug", "issue", "problem"],
+    question: "Comment les administrateurs gèrent-ils les utilisateurs ?",
+    answer: "Depuis le 'Tableau de Bord Admin', onglet 'Utilisateurs'.",
+    keywords: ["gestion utilisateurs", "admin", "tableau de bord"],
   },
   {
-    question: "Is there a dark mode?",
-    answer: "Currently, dark mode is not available but it is planned for future updates.",
-    keywords: ["dark mode", "theme", "appearance"],
+    question: "Comment les admins gèrent-ils les chercheurs ?",
+    answer: "Ils peuvent ajouter, modifier ou supprimer des chercheurs dans la section dédiée.",
+    keywords: ["admin chercheurs", "gérer chercheurs"],
   },
   {
-    question: "Can I export publication data?",
-    answer: "Researchers can export their publication list from their dashboard in CSV format.",
-    keywords: ["export data", "download publications"],
+    question: "Comment activer ou désactiver un utilisateur ?",
+    answer: "Les admins peuvent changer le statut d'un utilisateur dans l'onglet 'Utilisateurs'.",
+    keywords: ["activer", "désactiver", "statut utilisateur"],
+  },
+  {
+    question: "Comment approuver les publications ?",
+    answer: "Les publications en attente sont visibles dans 'Publications' > 'En attente de validation'.",
+    keywords: ["approuver", "valider publication", "modération"],
+  },
+  {
+    question: "Comment lier un chercheur à un compte utilisateur ?",
+    answer: "En modifiant un utilisateur, les admins peuvent l'associer à un profil chercheur.",
+    keywords: ["lier chercheur", "associer compte"],
+  },
+  {
+    question: "Comment voir les statistiques d’utilisation ?",
+    answer: "Les statistiques sont disponibles dans le tableau de bord admin sous l’onglet 'Statistiques'.",
+    keywords: ["statistiques", "utilisation", "activité admin"],
+  },
+
+  // Divers
+  {
+    question: "Que faire si je rencontre un bug ?",
+    answer: "Contactez le support via le formulaire 'Contactez-nous' ou informez l'admin.",
+    keywords: ["bug", "erreur", "problème technique"],
+  },
+  {
+    question: "Y a-t-il un mode sombre ?",
+    answer: "Le mode sombre n’est pas encore disponible, mais prévu dans les prochaines mises à jour.",
+    keywords: ["mode sombre", "thème", "apparence"],
+  },
+  {
+    question: "Puis-je exporter mes données de publications ?",
+    answer: "Oui, vous pouvez exporter votre liste de publications en format CSV depuis votre tableau de bord.",
+    keywords: ["exporter", "csv", "données publications"],
+  },
+  {
+    question: "Puis-je recevoir des notifications par e-mail ?",
+    answer: "Oui, vous pouvez activer les notifications depuis vos paramètres de compte.",
+    keywords: ["notifications", "e-mail", "alertes"],
+  },
+  {
+    question: "Comment contacter l’équipe du site ?",
+    answer: "Utilisez la page 'Contactez-nous' pour nous envoyer un message.",
+    keywords: ["contact", "support", "aide"],
   },
 ];
