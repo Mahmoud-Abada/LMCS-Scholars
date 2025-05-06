@@ -33,75 +33,26 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { FileText, Link as LinkIcon, Users, Award, BookOpen, ChevronLeft } from "lucide-react";
+import { FileText, Link as LinkIcon, Users, Award, BookOpen, ChevronLeft, Pencil } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { UpdatePublicationForm } from "@/components/UpdatePublicationForm";
+import { toast } from 'sonner';
+import { useSession } from "next-auth/react";
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
-type Publication = {
-  id: string;
-  title: string;
-  abstract?: string;
-  authors: Array<{
-    id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    affiliationDuringWork?: string;
-    hIndex?: number;
-  }>;
-  externalAuthors: Array<{
-    id: string;
-    fullName: string;
-    affiliation?: string;
-  }>;
-  venues: Array<{
-    id: string;
-    name: string;
-    type: string;
-    publisher?: string;
-    issn?: string;
-    eissn?: string;
-    sjrIndicator?: number;
-    isOpenAccess: boolean;
-    pages?: string;
-    volume?: string;
-    issue?: string;
-    eventDate?: string;
-  }>;
-  classifications: Array<{
-    systemId: string;
-    systemName: string;
-    category: string;
-    year: number;
-    evidenceUrl?: string;
-  }>;
-  publicationType?: string;
-  publicationDate?: string;
-  doi?: string;
-  url?: string;
-  pdfUrl?: string;
-  scholarLink?: string;
-  dblpLink?: string;
-  citationCount: number;
-  pages?: string;
-  volume?: string;
-  issue?: string;
-  publisher?: string;
-  journal?: string;
-  language?: string;
-  citationGraph?: any;
-  googleScholarArticles?: any;
-  createdAt: string;
-  updatedAt: string;
-};
+// import { Publication } from '@/types/publication';
 
 export default function PublicationDetails() {
   const router = useRouter();
   const { id } = useParams();
+  const { data: session } = useSession();
   const [publication, setPublication] = useState<Publication | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [editMode, setEditMode] = useState(false);
+
+  const isAdmin = session?.user?.role === 'admin';
 
   useEffect(() => {
     const fetchPublication = async () => {
@@ -121,6 +72,34 @@ export default function PublicationDetails() {
 
     fetchPublication();
   }, [id]);
+
+  const handleUpdateSuccess = (updatedPublication: Publication) => {
+    setPublication(updatedPublication);
+    setEditMode(false);
+    toast.success('Publication updated successfully');
+  };
+
+  if (editMode && publication) {
+    return (
+      <SidebarProvider>
+        <div className="min-h-screen pl-16">
+          <div className="p-4 max-w-7xl mx-auto">
+            <div className="flex items-center justify-between mb-4">
+              <Button variant="ghost" onClick={() => setEditMode(false)} className="mr-2">
+                <ChevronLeft className="h-4 w-4 mr-1" />
+                Back to Publication
+              </Button>
+              <h1 className="text-xl font-bold text-gray-900">Edit Publication</h1>
+            </div>
+            <UpdatePublicationForm 
+              publication={publication} 
+              onSuccess={handleUpdateSuccess}
+            />
+          </div>
+        </div>
+      </SidebarProvider>
+    );
+  }
 
   if (loading) {
     return (
@@ -192,6 +171,17 @@ export default function PublicationDetails() {
               <h1 className="text-xl font-bold text-gray-900">Publication Details</h1>
             </div>
             <div className="text-red-500">{error}</div>
+            <Button 
+              variant="outline" 
+              className="mt-4"
+              onClick={() => {
+                setLoading(true);
+                setError(null);
+                fetchPublication();
+              }}
+            >
+              Retry
+            </Button>
           </div>
         </div>
       </SidebarProvider>
@@ -210,7 +200,13 @@ export default function PublicationDetails() {
               </Button>
               <h1 className="text-xl font-bold text-gray-900">Publication Details</h1>
             </div>
-            <div>Publication not found</div>
+            <div className="text-center py-8">
+              <BookOpen className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-2 text-lg font-medium text-gray-900">Publication not found</h3>
+              <p className="mt-1 text-sm text-gray-500">
+                The requested publication could not be found.
+              </p>
+            </div>
           </div>
         </div>
       </SidebarProvider>
@@ -228,7 +224,7 @@ export default function PublicationDetails() {
     ...publication.authors.map(author => ({
       name: `${author.firstName} ${author.lastName}`,
       hIndex: author.hIndex || 0,
-      contribution: 50 // This would ideally come from your data
+      contribution: 50
     })),
     ...publication.externalAuthors.map(author => ({
       name: author.fullName,
@@ -257,12 +253,22 @@ export default function PublicationDetails() {
     <SidebarProvider>
       <div className="min-h-screen pl-16">
         <div className="p-4 max-w-7xl mx-auto">
-          <div className="flex items-center mb-4">
+          <div className="flex items-center justify-between mb-4">
             <Button variant="ghost" onClick={() => router.back()} className="mr-2">
               <ChevronLeft className="h-4 w-4 mr-1" />
               Back
             </Button>
             <h1 className="text-xl font-bold text-gray-900">Publication Details</h1>
+            {isAdmin && (
+              <Button 
+                variant="outline" 
+                onClick={() => setEditMode(true)}
+                className="flex items-center gap-2"
+              >
+                <Pencil className="h-4 w-4" />
+                Edit Publication
+              </Button>
+            )}
           </div>
 
           <Tabs defaultValue="overview" className="space-y-6">
