@@ -11,6 +11,15 @@ interface ScraperConfig {
   executablePath?: string;
 }
 
+interface DGRSDTJournalInfo {
+  name: string;
+  publisher: string;
+  issn: string;
+  eissn: string;
+  category: 'A' | 'B';
+  subcategory?: string;
+}
+
 export type ScrapedPublication = {
   authors?: string[];
   journal?: string;
@@ -31,6 +40,8 @@ export type ScrapedPublication = {
   language?: string;
   googleScholarArticles?: { title: string; link: string }[];
   citationGraph?: { year: number; count: number }[];
+  dgrsdtInfo?: DGRSDTJournalInfo;
+  sjr?: string;
   venue: {
     publisher: string;
     name: string;
@@ -49,11 +60,16 @@ export class ResearchDataScraper {
   private config: ScraperConfig;
   private logger: Logger;
 
+  private readonly CATEGORY_B_SUBCATEGORIES = [
+    "ABDC", "De_Gruyter", "Erih_plus", "Journal_quality",
+    "AERES", "CNRS", "SCOPUS", "Finacial_Times"
+  ];
+
   constructor(config: Partial<ScraperConfig> = {}) {
     this.config = {
       maxRetries: 3,
       timeout: 30000,
-      headless: true,
+      headless: false,
       ...config,
     };
     this.logger = new Logger("ResearchDataScraper");
@@ -116,45 +132,193 @@ export class ResearchDataScraper {
       timeout
     ]);
   }
-
   public async _scrapeResearcherPublications(
     researcherName: string,
-    scholarProfileLink?: string // Add optional profile link parameter
+    scholarProfileLink?: string
   ): Promise<ScrapedPublication[]> {
     await this.ensureReady();
-
+    const scrapedPublications: ScrapedPublication[] = [];
+    const journalClassificationMap = new Map<string, { dgrsdt?: DGRSDTJournalInfo; sjr?: string }>();
+  
     try {
       this.page = await this.browser!.newPage();
       await this.configurePage();
-
-      const [googleScholarResults, dblpResults] = await Promise.allSettled([
-        // Use profile link if provided, otherwise fall back to name
+  
+      // Scrape Google Scholar and DBLP in parallel
+      const [scholarRes, dblpRes] = await Promise.allSettled([
         this.scrapeGoogleScholar(scholarProfileLink, researcherName),
-        this.scrapeDBLP(researcherName),
+        this.scrapeDBLP(researcherName)
       ]);
-
-      const publications: ScrapedPublication[] = [];
-
-      if (googleScholarResults.status === "fulfilled") {
-        publications.push(...googleScholarResults.value);
+  
+      if (scholarRes.status === "fulfilled") {
+        scrapedPublications.push(...scholarRes.value);
       } else {
-        this.logger.warn(
-          "Google Scholar scraping failed",
-          googleScholarResults.reason
-        );
+        this.logger.warn("Google Scholar scraping failed", scholarRes.reason);
       }
-
-      if (dblpResults.status === "fulfilled") {
-        publications.push(...dblpResults.value);
+  
+      if (dblpRes.status === "fulfilled") {
+        scrapedPublications.push(...dblpRes.value);
       } else {
-        this.logger.warn("DBLP scraping failed", dblpResults.reason);
+        this.logger.warn("DBLP scraping failed", dblpRes.reason);
       }
-
-      return this.mergeAndDeduplicatePublications(publications);
+  
+      // Merge and deduplicate
+      const publications = await this.mergeAndDeduplicatePublications(scrapedPublications);
+  
+    /*  // Extract unique venue names
+      const uniqueVenues = Array.from(
+        new Set(publications.map((pub) => pub.venue?.name).filter((name): name is string => !!name))
+      );
+  
+      // Scrape DGRSDT and SJR info in parallel per venue
+      for (const venueName of uniqueVenues) {
+        this.logger.info(`🧠 Classifying venue ➜ ${venueName}`);
+        const [dgrsdt, sjr] = await Promise.all([
+          this.scrapeDGRSDT(venueName),
+          this.scrapeSJR(venueName)
+        ]);
+        journalClassificationMap.set(venueName, { dgrsdt: dgrsdt || undefined, sjr: sjr || undefined });
+      }
+  
+      // Attach classification data to publications
+      for (const pub of publications) {
+        const venueName = pub.venue?.name;
+        if (venueName && journalClassificationMap.has(venueName)) {
+          const info = journalClassificationMap.get(venueName)!;
+          pub.dgrsdtInfo = info.dgrsdt || undefined;
+          pub.sjr = info.sjr || undefined;
+        }
+      }*/
+  
+      return publications;
     } finally {
       if (this.page) await this.page.close();
     }
   }
+  
+
+
+
+
+  private async scrapeDGRSDT(journalName: string): Promise<DGRSDTJournalInfo | null> {
+    const page = await this.browser!.newPage();
+    try {
+      // === CATEGORY A ===
+      this.logger.info(`🔎 Searching Category A ➜ ${journalName}`);
+      try {
+        await page.goto("https://www.dgrsdt.dz/fr/revues_A", { timeout: 60000 });
+        await page.waitForSelector("input.input-search-job", { timeout: 30000 });
+
+        const searchInput = await page.$("input.input-search-job");
+        if (searchInput) {
+          await searchInput.fill(journalName);
+          await page.waitForTimeout(2000); // Let DOM update
+
+          const rows = await page.$$("li.table-row");
+          for (const row of rows) {
+            const text = await row.innerText();
+            if (text.toLowerCase().includes(journalName.toLowerCase())) {
+              const cols = await row.$$("div.col");
+              const journalInfo: DGRSDTJournalInfo = {
+                name: await cols[0].innerText(),
+                publisher: await cols[1].innerText(),
+                issn: await cols[2].innerText(),
+                eissn: await cols[3].innerText(),
+                category: 'A' as const,
+              };
+              return journalInfo;
+            }
+          }
+        }
+      } catch {
+        this.logger.warn("⚠️ Failed to process Category A");
+      }
+
+      // === CATEGORY B ===
+      this.logger.info(`🔎 Searching Category B ➜ ${journalName}`);
+      await page.goto("https://www.dgrsdt.dz/fr/revues_B", { timeout: 60000 });
+
+      for (const subcat of this.CATEGORY_B_SUBCATEGORIES) {
+        this.logger.info(`🔄 Trying subcategory ➜ ${subcat}`);
+        try {
+          const button = await page.$(`button#${subcat}`);
+          if (!button) continue;
+
+          await button.click();
+          await page.waitForSelector("input.input-search-job", { timeout: 5000 });
+
+          const searchInput = await page.$("input.input-search-job");
+          if (searchInput) {
+            await searchInput.fill(journalName);
+            await page.waitForTimeout(2000);
+
+            const rows = await page.$$("li.table-row");
+            for (const row of rows) {
+              const text = await row.innerText();
+              if (text.toLowerCase().includes(journalName.toLowerCase())) {
+                const cols = await row.$$("div.col");
+                const journalInfo: DGRSDTJournalInfo = {
+                  name: await cols[0].innerText(),
+                  publisher: await cols[1].innerText(),
+                  issn: await cols[2].innerText(),
+                  eissn: await cols[3].innerText(),
+                  category: 'B' as const,
+                  subcategory: subcat
+                };
+                return journalInfo;
+              }
+            }
+          }
+        } catch (e) {
+          this.logger.warn(`⚠️ Failed to search in subcategory ${subcat} ➜ ${e}`);
+        }
+      }
+
+      this.logger.info(`❌ Journal not found in Category A or B`);
+      return null;
+    } finally {
+      await page.close();
+    }
+  }
+
+  private async scrapeSJR(journalName: string): Promise<string | null> {
+    const page = await this.browser!.newPage();
+    try {
+      await page.goto('https://www.scimagojr.com/', { timeout: 30000 });
+
+      // Fill the search box and press Enter
+      await page.fill('#searchbox input[name="q"]', journalName);
+      await page.keyboard.press('Enter');
+
+      // Wait for and click the first result
+      await page.waitForSelector('.search_results > a', { timeout: 10000 });
+      const firstResult = await page.$('.search_results > a');
+      if (!firstResult) {
+        this.logger.info("No results found.");
+        return null;
+      }
+
+      await firstResult.click();
+
+      // Wait for SJR value to load
+      await page.waitForSelector('p.hindexnumber', { timeout: 15000 });
+      const element = await page.$('p.hindexnumber');
+
+      if (!element) {
+        this.logger.info("SJR element not found.");
+        return null;
+      }
+
+      const text = await element.innerText();
+      return text.split(' ')[0]; // Just the numeric value
+    } catch (error) {
+      this.logger.error("Error occurred while scraping SJR:", error);
+      return null;
+    } finally {
+      await page.close();
+    }
+  }
+
 
   private async configurePage(): Promise<void> {
     if (!this.page) return;
