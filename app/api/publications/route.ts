@@ -337,60 +337,88 @@ export async function GET(request: Request) {
   }
 }
 
-export async function POST(request: Request) {
+
+
+
+
+export async function POST(req: Request) {
+  let scraper: ResearchDataScraper | null = null;
+
   try {
-    const { researcherId } = await request.json();
-    if (!researcherId) {
+    const body = await req.json();
+    const ids: string[] = body.ids;
+
+    if (!Array.isArray(ids) || ids.some(id => typeof id !== "string")) {
       return NextResponse.json(
-        { error: "Researcher ID is required" },
+        { error: "Invalid payload. Expected { ids: string[] }" },
         { status: 400 }
       );
     }
 
-    // Get researcher info
-    const researcher = await db.query.researchers.findFirst({
-      where: eq(researchers.id, researcherId),
+    const researchers = await db.query.researchers.findMany({
+      where: (researchers, { inArray }) => inArray(researchers.id, ids),
       columns: {
         id: true,
         firstName: true,
         lastName: true,
+        googleScholarUrl: true,
       },
     });
 
-    if (!researcher) {
-      return NextResponse.json(
-        { error: "Researcher not found" },
-        { status: 404 }
-      );
+    scraper = new ResearchDataScraper();
+  
+
+    for (const researcher of researchers) {
+      try {
+        const fullName = `${researcher.firstName} ${researcher.lastName}`;
+        console.log(`🔄 Updating publications for ${fullName}`);
+
+        const scrapedData = await scraper.scrapeResearcherPublications(
+          fullName,
+          researcher?.googleScholarUrl ?? undefined
+        );
+
+        if (!scrapedData?.length) {
+          console.log(`⚠ No publications found for ${fullName}`);
+          continue;
+        }
+
+        const seedResult = await seedPublications(scrapedData, researcher.id);
+
+
+        console.log(
+          `✅ Updated ${seedResult.publications} publications for ${fullName}`
+        );
+      } catch (error) {
+        const errorMsg = `Error updating ${researcher.firstName} ${
+          researcher.lastName
+        }: ${error instanceof Error ? error.message : "Unknown error"}`;
+        console.error(`❌ ${errorMsg}`);
+      }
     }
-
-    // Scrape publications
-    const scraper = new ResearchDataScraper();
-    const fullName = `${researcher.firstName} ${researcher.lastName}`;
-    const scrapedData = await scraper.scrapeResearcherPublications(fullName);
-
-    if (!scrapedData?.length) {
-      return NextResponse.json(
-        { message: "No publications found for this researcher" },
-        { status: 404 }
-      );
-    }
-
-    // Seed publications
-    const results = await seedPublications(scrapedData, researcher.id);
 
     return NextResponse.json({
       success: true,
-      researcher: fullName,
-      ...results,
+      message: "Publications updated successfully",
+
     });
   } catch (error) {
+    console.error("🚨 Publication update failed:", error);
     return NextResponse.json(
       {
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",
+        details:
+          process.env.NODE_ENV === "development" && error instanceof Error
+            ? error.stack
+            : undefined,
       },
       { status: 500 }
     );
+  } finally {
+    if (scraper) {
+      await scraper.close();
+    }
   }
 }
+

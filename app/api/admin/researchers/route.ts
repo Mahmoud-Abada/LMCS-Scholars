@@ -1,26 +1,26 @@
-// src/app/api/admin/researchers/route.ts
-import { db } from "@/db/client";
-import { researchers, users } from "@/db/schema";
-import bcrypt from "bcryptjs";
-import { eq } from "drizzle-orm";
-import { NextResponse } from "next/server";
-import { z } from "zod";
+// api/admin/researchers/route.ts
+import { NextResponse } from 'next/server';
+import { db } from '@/db/client';
+import { eq } from 'drizzle-orm';
+import { researchers, users } from '@/db/schema';
+import bcrypt from 'bcryptjs';
+import { z } from 'zod';
 
 const schema = z.object({
-  name: z.string().min(2),
+  name: z.string(),
   email: z.string().email(),
-  password: z.string().min(8),
-  role: z.enum(["admin", "director", "researcher", "assistant"]),
+  password: z.string().min(6),
+  role: z.enum(['admin', 'director', 'researcher', 'assistant', 'guest']),
   researcherData: z.object({
-    firstName: z.string().min(1),
-    lastName: z.string().min(1),
+    firstName: z.string(),
+    lastName: z.string(),
     phone: z.string().optional(),
-    status: z.enum(["active", "on_leave", "inactive", "retired"]),
+    status: z.enum(['active', 'on_leave', 'inactive', 'retired']),
     qualification: z.string().optional(),
     position: z.string().optional(),
-    hIndex: z.number().min(0),
-    i10Index: z.number().min(0),
-    citations: z.number().min(0),
+    hIndex: z.number().optional(),
+    i10Index: z.number().optional(),
+    citations: z.number().optional(),
     teamId: z.string().optional(),
     orcidId: z.string().optional(),
     joinDate: z.string().optional(),
@@ -31,9 +31,14 @@ const schema = z.object({
     googleScholarUrl: z.string().optional(),
     researchGateUrl: z.string().optional(),
     linkedinUrl: z.string().optional(),
-    personalWebsite: z.string().optional()
-  })
+    personalWebsite: z.string().optional(),
+  }),
 });
+
+async function hashPassword(password: string): Promise<string> {
+  const salt = await bcrypt.genSalt(10);
+  return await bcrypt.hash(password, salt);
+}
 
 export async function POST(req: Request) {
   try {
@@ -67,9 +72,9 @@ export async function POST(req: Request) {
         status: data.researcherData.status,
         qualification: data.researcherData.qualification || null,
         position: data.researcherData.position || null,
-        hIndex: data.researcherData.hIndex,
-        i10Index: data.researcherData.i10Index,
-        citations: data.researcherData.citations,
+        hIndex: data.researcherData.hIndex || 0,
+        i10Index: data.researcherData.i10Index || 0,
+        citations: data.researcherData.citations || 0,
         teamId: data.researcherData.teamId || null,
         orcidId: data.researcherData.orcidId || null,
         joinDate: data.researcherData.joinDate || null,
@@ -82,7 +87,13 @@ export async function POST(req: Request) {
         linkedinUrl: data.researcherData.linkedinUrl || null,
         personalWebsite: data.researcherData.personalWebsite || null
       })
-      .returning({ id: researchers.id });
+      .returning({ 
+        id: researchers.id,
+        firstName: researchers.firstName,
+        lastName: researchers.lastName,
+        email: researchers.email,
+        googleScholarUrl: researchers.googleScholarUrl
+      });
 
     // Create user
     const [user] = await db
@@ -98,19 +109,20 @@ export async function POST(req: Request) {
       .returning();
 
     return NextResponse.json({
+      success: true,
       user,
       researcher: newResearcher
     });
+
   } catch (error) {
     console.error("Error creating researcher:", error);
     return NextResponse.json(
-      { error: "Failed to create researcher: " + error },
+      { 
+        success: false,
+        error: "Failed to create researcher",
+        details: error instanceof Error ? error.message : "Unknown error"
+      },
       { status: 500 }
     );
   }
-}
-
-async function hashPassword(password: string): Promise<string> {
-  const salt = await bcrypt.genSalt(10);
-  return await bcrypt.hash(password, salt);
 }

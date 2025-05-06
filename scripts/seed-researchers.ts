@@ -2,50 +2,52 @@ import { researchers, researchTeams, users } from "@/db/schema";
 import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
 import { db } from "@/db/client";
+import fs from "fs";
+import path from "path";
 
-export const LMCS_RESEARCHERS = [
-  { lastName: "ABDELAOUI", firstName: "Sabrina" , googleScholarUrl:"https://scholar.google.com/citations?user=EbCO7zUAAAAJ&hl=en"},
-  { lastName: "AMROUCHE", firstName: "Hakim" , googleScholarUrl:"https://scholar.google.com/citations?hl=en&user=y5DKQy4AAAAJ"},
-  { lastName: "ARTABAZ", firstName: "Saliha" , googleScholarUrl:"https://scholar.google.com/citations?user=R0oPubgAAAAJ&hl=en"},
-  { lastName: "BENATCHBA", firstName: "Karima" , googleScholarUrl:"https://scholar.google.com/citations?user=7iGY4M0AAAAJ&hl=en"},
-  { lastName: "BESSEDIK", firstName: "Malika" , googleScholarUrl:"https://scholar.google.com/citations?hl=en&user=FTzfUeEAAAAJ"},
-  { lastName: "BELAHRACHE", firstName: "Abderahmane" , googleScholarUrl:"https://scholar.google.com/citations?hl=en&user=D_XqaEAAAAAJ"},
-  { lastName: "BOUKHEDIMI", firstName: "Sohila" , googleScholarUrl:""},
-  { lastName: "BOUKHADRA", firstName: "Adel" , googleScholarUrl:""},
-  { lastName: "BOUSBIA", firstName: "Nabila" , googleScholarUrl:"https://scholar.google.com/citations?hl=en&user=_u5IOC4AAAAJ"},
-  { lastName: "BOUSSAHA", firstName: "Ryma" , googleScholarUrl:"https://scholar.google.com/citations?hl=en&user=mg6cCloAAAAJ"},
-  { lastName: "CHALAL", firstName: "Rachid" , googleScholarUrl:"https://scholar.google.com/citations?hl=en&user=qMYUliQAAAAJ"},
-  { lastName: "CHERID", firstName: "Nacera" , googleScholarUrl:""},
-  { lastName: "DAHAMNI", firstName: "Fodil" , googleScholarUrl:""},
-  { lastName: "DEKICHE", firstName: "Narimane" , googleScholarUrl:"https://scholar.google.com/citations?hl=en&user=NWKs57cAAAAJ"},
-  { lastName: "DELLYS", firstName: "Elhachmi" , googleScholarUrl:"https://scholar.google.com/citations?hl=en&user=DSsOZeEAAAAJ"},
-  { lastName: "FAYCEL", firstName: "Touka" , googleScholarUrl:""},
-  { lastName: "GHOMARI", firstName: "Abdesamed Réda" , googleScholarUrl:"https://scholar.google.com/citations?hl=en&user=hha1UuUAAAAJ"},
-  { lastName: "GUERROUT", firstName: "Elhachmi" , googleScholarUrl:"https://scholar.google.com/citations?hl=en&user=Dbvc8CwAAAAJ"},
-  { lastName: "HAMANI", firstName: "Nacer" , googleScholarUrl:"https://scholar.google.com/citations?hl=en&user=Sx9QpVUAAAAJ"},
-  { lastName: "HAROUNE", firstName: "Hayat" , googleScholarUrl:"https://scholar.google.com/citations?hl=en&user=qe1cbMAAAAAJ"},
-  { lastName: "HASSINI", firstName: "Sabrina" , googleScholarUrl:"https://scholar.google.com/citations?hl=en&user=LG1jBMYAAAAJ"},
-  { lastName: "KECHIDE", firstName: "Amine" , googleScholarUrl:""},
-  { lastName: "KHELOUAT", firstName: "Boualem" , googleScholarUrl:""},
-  { lastName: "KHELIFATI", firstName: "Si Larabi" , googleScholarUrl:"https://scholar.google.com/citations?hl=en&user=G-iDEugAAAAJ"},
-  { lastName: "KERMI", firstName: "Adel" , googleScholarUrl:"https://scholar.google.com/citations?hl=en&user=1UEZWYAAAAAJ"},
-  { lastName: "KOUDIL", firstName: "Mouloud" , googleScholarUrl:"https://scholar.google.com/citations?user=9Zbx-EYAAAAJ&hl=en"},
-  { lastName: "MAHIOU", firstName: "Ramdane" , googleScholarUrl:"https://scholar.google.com/citations?hl=en&user=eFAj_SkAAAAJ"},
-  { lastName: "NADER", firstName: "Fahima" , googleScholarUrl:"https://scholar.google.com/citations?user=XhP-NkYAAAAJ&hl=en"},
-  { lastName: "SI TAYEB", firstName: "Fatima" , googleScholarUrl:"https://scholar.google.com/citations?hl=en&user=ri2J--kAAAAJ"},
-];
+// Type for our researcher data
+interface Researcher {
+  orcidId?: string;
+  firstName: string;
+  lastName: string;
+  email?: string;
+  phone?: string | number;
+  qualification?: string;
+  position?: string;
+  hIndex?: number;
+  i10Index?: number;
+  citations?: number;
+  joinDate?: string;
+  leaveDate?: string;
+  biography?: string;
+  researchInterests?: string;
+  dblpUrl?: string;
+  googleScholarUrl?: string;
+  researchGateUrl?: string;
+  linkedinUrl?: string;
+  personalWebsite?: string;
+  profilePic?: string;
+}
 
 export async function hashPassword(password: string): Promise<string> {
   const salt = await bcrypt.genSalt(10);
   return await bcrypt.hash(password, salt);
 }
 
-
-
 export async function seedResearchers() {
   console.log("🚀 Starting researcher seeding...");
 
   try {
+    // Load researchers data from JSON file
+    const jsonPath = path.join(process.cwd(), "data", "researchers.json");
+    const researchersData: Researcher[] = JSON.parse(fs.readFileSync(jsonPath, "utf-8"));
+    
+    if (!researchersData || !Array.isArray(researchersData)) {
+      throw new Error("Invalid researchers data format");
+    }
+    
+    console.log(`📊 Loaded ${researchersData.length} researchers from JSON file`);
+
     // Create default research team
     const [defaultTeam] = await db
       .insert(researchTeams)
@@ -69,37 +71,65 @@ export async function seedResearchers() {
 
     // Process each researcher
     const results = [];
-    for (const researcher of LMCS_RESEARCHERS) {
+    for (const researcher of researchersData) {
       const fullName = `${researcher.firstName} ${researcher.lastName}`.trim();
-      const email = generateEmail(researcher);
+      const email = researcher.email || generateEmail(researcher);
       const password = generatePassword(researcher.lastName);
-      const orcidId = generateOrcidId();
+      const orcidId = researcher.orcidId || generateOrcidId();
 
       console.log(`Processing: ${fullName}`);
+
+      // Map qualification from JSON to our enum values
+      const qualificationMap: Record<string, string> = {
+        "Professeur": "professor",
+        "Maître de conférences": "associate_professor",
+        "Maître assistant": "assistant_professor",
+        "Doctorant": "phd_candidate",
+        "Postdoc": "postdoc",
+        "Chercheur": "research_scientist"
+      };
+
+      const qualification = researcher.qualification 
+        ? qualificationMap[researcher.qualification] || getRandomQualification()
+        : getRandomQualification();
+
+      // Map position from JSON to our enum values
+      const positionMap: Record<string, string> = {
+        "Professeur": "senior_researcher",
+        "Directeur": "director",
+        "Chef de département": "department_head",
+        "Responsable d'équipe": "principal_investigator",
+        "Chercheur": "researcher",
+        "Assistant": "assistant"
+      };
+
+      const position = researcher.position 
+        ? positionMap[researcher.position] || getRandomPosition()
+        : getRandomPosition();
 
       // Insert researcher with all fields
       const [dbResearcher] = await db
         .insert(researchers)
         .values({
-          firstName: researcher.firstName || "",
+          firstName: researcher.firstName,
           lastName: researcher.lastName,
           email,
-          phone: generatePhoneNumber(),
+          phone: researcher.phone ? String(researcher.phone) : generatePhoneNumber(),
           status: "active",
-          qualification: getRandomQualification(),
-          position: getRandomPosition(),
-          hIndex: Math.floor(Math.random() * 30),
-          i10Index: Math.floor(Math.random() * 50),
-          citations: Math.floor(Math.random() * 1000),
+          qualification: qualification as "professor" | "associate_professor" | "assistant_professor" | "postdoc" | "phd_candidate" | "research_scientist",
+          position: position as "director" | "department_head" | "principal_investigator" | "senior_researcher" | "researcher" | "assistant",
+          hIndex: researcher.hIndex || Math.floor(Math.random() * 30),
+          i10Index: researcher.i10Index || Math.floor(Math.random() * 50),
+          citations: researcher.citations || Math.floor(Math.random() * 1000),
           teamId,
-          joinDate: randomDate(new Date(2010, 0, 1)).toISOString(),
-          biography: generateBiography(researcher),
-          researchInterests: getResearchInterests(),
-          dblpUrl: `https://dblp.org/pid/${researcher.lastName.toLowerCase()}`,
-          googleScholarUrl: researcher.googleScholarUrl,
-          researchGateUrl: `https://www.researchgate.net/profile/${fullName.replace(/\s+/g, "-")}`,
-          linkedinUrl: `https://www.linkedin.com/in/${fullName.replace(/\s+/g, "-")}`,
-          personalWebsite: `https://www.esi.dz/~${researcher.lastName.toLowerCase()}`,
+          joinDate: researcher.joinDate || randomDate(new Date(2010, 0, 1)).toISOString(),
+          biography: researcher.biography || generateBiography(researcher),
+          researchInterests: researcher.researchInterests || getResearchInterests(),
+          dblpUrl: researcher.dblpUrl || `https://dblp.org/pid/${researcher.lastName.toLowerCase()}`,
+          googleScholarUrl: researcher.googleScholarUrl || "",
+          researchGateUrl: researcher.researchGateUrl || `https://www.researchgate.net/profile/${fullName.replace(/\s+/g, "-")}`,
+          linkedinUrl: researcher.linkedinUrl || `https://www.linkedin.com/in/${fullName.replace(/\s+/g, "-")}`,
+          personalWebsite: researcher.personalWebsite || `https://www.esi.dz/~${researcher.lastName.toLowerCase()}`,
           orcidId,
         })
         .returning({ id: researchers.id });
@@ -115,9 +145,10 @@ export async function seedResearchers() {
         name: fullName,
         email,
         password: hashedPassword,
-        role: getRandomRole(),
+        role: "researcher",
         researcherId: dbResearcher.id,
         isActive: true,
+        image: researcher.profilePic || undefined,
       });
 
       results.push({
@@ -137,7 +168,7 @@ export async function seedResearchers() {
   }
 }
 
-// Helper functions
+// Helper functions (unchanged from original)
 function generateEmail(researcher: { firstName: string; lastName: string }): string {
   const firstInitial = researcher.firstName ? researcher.firstName.charAt(0).toLowerCase() : "x";
   const cleanLastName = researcher.lastName
@@ -157,15 +188,12 @@ function generatePhoneNumber(): string {
 }
 
 function generateOrcidId(): string {
- // return `0000-000${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(1000 + Math.random() * 9000)}`;
- return `${Math.floor(1000 + Math.random() * 90)}-${Math.floor(1000 + Math.random() * 90)}-${Math.floor(1000 + Math.random() * 90)}`;
+  return `0000-000${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(1000 + Math.random() * 9000)}`;
 }
-
 
 function randomDate(start: Date, end: Date = new Date()): Date {
   return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
 }
-
 
 function getRandomQualification() {
   const qualifications = [
@@ -189,18 +217,6 @@ function getRandomPosition(): "director" | "department_head" | "principal_invest
     "assistant",
   ] as const;
   return positions[Math.floor(Math.random() * positions.length)];
-}
-
-function getRandomRole(): "director" | "researcher" | "assistant" | "admin" | "guest" {
-  const roles = [
-    "researcher",
-    "researcher",
-    "researcher",
-    //"assistant",
-    //"admin",
-    //"director",
-  ] as const;
-  return roles[Math.floor(Math.random() * roles.length)];
 }
 
 function generateBiography(researcher: {

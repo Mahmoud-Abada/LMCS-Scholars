@@ -112,45 +112,65 @@ export default function AddResearcherPage() {
           linkedinUrl: form.linkedinUrl,
           personalWebsite: form.personalWebsite
         }
-      }
-      // const response2 = await fetch('/api/admin/users', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //     'Authorization': `Bearer ${session?.accessToken}`
-      //   },
-      //   body: JSON.stringify(payload)
-      // })
-
-      // if (!response2.ok) {
-      //   const errorData = await response2.json()
-      //   throw new Error(errorData.error || 'Failed to add user')
-      // }
-
-      const response = await fetch('/api/admin/researchers', {
+      };
+  
+      // Step 1: Create researcher + user
+      const createResponse = await fetch('/api/admin/researchers', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session?.accessToken}`
+          Authorization: `Bearer ${session?.expires}`
         },
         body: JSON.stringify(payload)
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to add researcher')
+      });
+  
+      const createResult = await createResponse.json();
+  
+      if (!createResponse.ok) {
+        throw new Error(createResult.error || 'Failed to create researcher');
       }
-
-      toast.success("Researcher added successfully!")
-      router.push('/')
-    } catch (error: any) {
-      toast.error(error.message)
-      console.error('Error adding researcher:', error)
+  
+      const researcherId = createResult.researcher?.id;
+      if (!researcherId) {
+        throw new Error('Researcher created, but ID not returned');
+      }
+  
+      // Step 2: Trigger publication update
+        try {
+          const updateResponse = await fetch('/api/publications/update', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${session?.expires}`
+            },
+            body: JSON.stringify({ ids: [researcherId] })
+          });
+  
+          const updateResult = await updateResponse.json();
+  
+          if (!updateResponse.ok) {
+            toast.warning('Researcher created, but publication scraping failed');
+            console.warn('Scraping error:', updateResult.error);
+          } else if (updateResult.totalPublications > 0) {
+            toast.success(`Researcher created with ${updateResult.totalPublications} publications`);
+          } else {
+            toast.success('Researcher created (no publications found)');
+          }
+        } catch (scrapeError) {
+          console.warn('Scraping request failed:', scrapeError);
+          toast.warning('Researcher created but scraping failed');
+        }
+  
+      router.push('/');
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error occurred';
+      toast.error(message);
+      console.error('Add researcher failed:', error);
     } finally {
-      setShowDialog(false)
+      setShowDialog(false);
     }
-  }
-
+  };
+  
   return (
     <div className="max-w-3xl mx-auto p-6">
       <Card className="rounded-lg border border-[#e2e8f0] shadow-sm">
