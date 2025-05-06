@@ -31,7 +31,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "app/researcher/[id]/page.jsx",
+    "app/researcher/[id]/page.tsx",
     "scripts/reset-db.js"
   ],
   "exclude": ["node_modules"]

@@ -71,7 +71,7 @@ export function AppSidebar() {
             items: [
               {
                 title: "Mon Profil",
-                url: `/researchers/${user?.researcherId}`,
+                url: `/researcher/${user?.researcherId}`,
                 icon: RiUserLine,
                 exact: true, // Requires exact match
               },
@@ -88,11 +88,7 @@ export function AppSidebar() {
           url: "/",
           icon: RiTeamLine,
         },
-        {
-          title: "Chercheurs",
-          url: "/researchers",
-          icon: RiUserFollowLine,
-        },
+        
         {
           title: "Publications",
           url: "/publications",
@@ -104,7 +100,7 @@ export function AppSidebar() {
           icon: RiScanLine,
         },
         {
-          title: "Dashboard",
+          title: "chercheurs",
           url: "/dashboard",
           icon: RiBarChartHorizontalFill,
         },
