@@ -23,10 +23,13 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs"
-import { FileText, Award, Globe, Users, BookOpen, Link2, ExternalLink } from "lucide-react"
+import { FileText, Award, Globe, Users, BookOpen, Link2, ExternalLink, Pencil } from "lucide-react"
 import Link from "next/link"
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Button } from "@/components/ui/button"
+import { UpdateProfileForm } from "@/components/UpdateProfileForm"
+import { useSession } from "next-auth/react"
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
@@ -99,9 +102,12 @@ type Researcher = {
 
 export default function ResearcherProfilePage() {
   const { id } = useParams()
+  const router = useRouter()
+  const { data: session } = useSession()
   const [researcher, setResearcher] = useState<Researcher | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [editMode, setEditMode] = useState(false)
 
   useEffect(() => {
     const fetchResearcher = async () => {
@@ -121,6 +127,11 @@ export default function ResearcherProfilePage() {
 
     fetchResearcher()
   }, [id])
+
+  const handleUpdateSuccess = (updatedResearcher: Researcher) => {
+    setResearcher(updatedResearcher)
+    setEditMode(false)
+  }
 
   if (loading) {
     return (
@@ -158,13 +169,7 @@ export default function ResearcherProfilePage() {
   }
 
   if (!researcher) {
-    return (
-      <div className="min-h-screen bg-white p-8">
-        <div className="max-w-7xl mx-auto">
-          <div>Researcher not found</div>
-        </div>
-      </div>
-    )
+    router.push(`/researcher/${id}`)
   }
 
   // Prepare chart data
@@ -184,12 +189,36 @@ export default function ResearcherProfilePage() {
   ];
 
   const collaborationData = [
-    { institution: "MIT", count: 15 },
-    { institution: "Stanford", count: 12 },
-    { institution: "ETH Zurich", count: 8 },
-    { institution: "Cambridge", count: 6 },
-    { institution: "Berkeley", count: 5 },
+    { institution: "esi", count: 15 },
+    { institution: "esi", count: 12 },
+    { institution: "esi", count: 8 },
+    { institution: "esi", count: 6 },
+    { institution: "esi", count: 5 },
   ];
+
+  const isCurrentUser = session?.user?.email === researcher.email;
+
+  if (editMode) {
+    return (
+      <div className="bg-white min-h-screen p-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex justify-between items-center mb-8">
+            <h1 className="text-2xl font-bold">Edit Profile</h1>
+            <Button 
+              variant="outline" 
+              onClick={() => setEditMode(false)}
+            >
+              Cancel
+            </Button>
+          </div>
+          <UpdateProfileForm 
+            researcher={researcher} 
+            onSuccess={handleUpdateSuccess} 
+          />
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="bg-white min-h-screen">
@@ -204,9 +233,22 @@ export default function ResearcherProfilePage() {
                 </span>
               </div>
               <div className="ml-6">
-                <h1 className="text-3xl font-bold text-gray-900">
-                  {researcher.firstName} {researcher.lastName}
-                </h1>
+                <div className="flex items-center gap-4">
+                  <h1 className="text-3xl font-bold text-gray-900">
+                    {researcher.firstName} {researcher.lastName}
+                  </h1>
+                  {isCurrentUser && (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => setEditMode(true)}
+                      className="flex items-center gap-2"
+                    >
+                      <Pencil className="h-4 w-4" />
+                      Edit Profile
+                    </Button>
+                  )}
+                </div>
                 <p className="text-lg text-gray-600">
                   {researcher.position && `${researcher.position}, `}
                   {researcher.qualification}
@@ -240,6 +282,15 @@ export default function ResearcherProfilePage() {
                       className="flex items-center text-sm text-blue-600 hover:text-blue-800"
                     >
                       <Globe className="h-4 w-4 mr-1" /> Website
+                    </Link>
+                  )}
+                  {researcher?.dblpUrl && (
+                    <Link 
+                      href={researcher.dblpUrl} 
+                      target="_blank" 
+                      className="flex items-center text-sm text-blue-600 hover:text-blue-800"
+                    >
+                      <Globe className="h-4 w-4 mr-1" /> DBLP
                     </Link>
                   )}
                 </div>

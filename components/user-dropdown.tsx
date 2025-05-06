@@ -159,7 +159,7 @@ export default function UserDropdown({ user }: UserDropdownProps) {
           <DropdownMenuGroup>
             {isResearcher ? (
               <DropdownMenuItem asChild>
-                <Link href={`/researchers/${currentUser?.researcherId}`}>
+                <Link href={`/researcher/${currentUser?.researcherId}`}>
                   <RiUserLine size={16} className="opacity-60 mr-2" />
                   <span>My Researcher Profile</span>
                 </Link>
