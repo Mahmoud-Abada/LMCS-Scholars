@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import {
   Card,
   CardHeader,
@@ -23,6 +24,7 @@ import { Search, Filter, BookOpenText, LineChart, ChevronLeft, ChevronRight, Bar
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
 export default function PublicationsPage() {
+  const router = useRouter();
   const [publications, setPublications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -44,24 +46,24 @@ export default function PublicationsPage() {
     if (!publications.length) return null;
 
     // Calculate total citations
-    const totalCitations = publications.reduce((sum, pub) => sum + (pub.citation_count || 0), 0);
+    const totalCitations = publications.reduce((sum, pub) => sum + (pub.citationCount || 0), 0);
     const averageCitations = publications.length > 0 
       ? Math.round((totalCitations / publications.length) * 10) / 10 
       : 0;
 
     // Group by publication type
     const typeCounts = publications.reduce((acc, pub) => {
-      const type = pub.publication_type || "unknown";
+      const type = pub.publicationType || "unknown";
       acc[type] = (acc[type] || 0) + 1;
       return acc;
     }, {});
 
     // Prepare yearly trends
     const yearlyData = publications.reduce((acc, pub) => {
-      if (!pub.publication_date) return acc;
-      const year = new Date(pub.publication_date).getFullYear();
+      if (!pub.publicationDate) return acc;
+      const year = new Date(pub.publicationDate).getFullYear();
       const existing = acc.find(item => item.year === year);
-      const citations = pub.citation_count || 0;
+      const citations = pub.citationCount || 0;
       
       if (existing) {
         existing.citations += citations;
@@ -74,11 +76,12 @@ export default function PublicationsPage() {
 
     // Get top 5 cited publications
     const topCited = [...publications]
-      .sort((a, b) => (b.citation_count || 0) - (a.citation_count || 0))
+      .sort((a, b) => (b.citationCount || 0) - (a.citationCount || 0))
       .slice(0, 5)
       .map(pub => ({
         name: pub.title.length > 30 ? `${pub.title.substring(0, 30)}...` : pub.title,
-        citations: pub.citation_count || 0,
+        citations: pub.citationCount || 0,
+        id: pub.id,
       }));
 
     // Get unique authors count
@@ -143,12 +146,12 @@ export default function PublicationsPage() {
     setFilters({ ...filters, publicationType: value, page: 1 });
   };
 
-  const handleYearFromChange = (e) => {
-    setFilters({ ...filters, yearFrom: e, page: 1 });
+  const handleYearFromChange = (value) => {
+    setFilters({ ...filters, yearFrom: value, page: 1 });
   };
 
-  const handleYearToChange = (e) => {
-    setFilters({ ...filters, yearTo: e, page: 1 });
+  const handleYearToChange = (value) => {
+    setFilters({ ...filters, yearTo: value, page: 1 });
   };
 
   const handleMinCitationsChange = (e) => {
@@ -171,6 +174,11 @@ export default function PublicationsPage() {
     }
     return years;
   };
+
+  const handlePublicationClick = (id: string) => {
+    router.push(`/publication/${id}`);
+  };
+  
 
   if (error) {
     return (
@@ -214,10 +222,6 @@ export default function PublicationsPage() {
                 Show List
               </>
             )}
-          </Button>
-          <Button variant="outline">
-            <Filter className="h-4 w-4 mr-2" />
-            Filters
           </Button>
         </div>
       </div>
@@ -319,7 +323,7 @@ export default function PublicationsPage() {
                   <SelectValue placeholder="All Types" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="any">All Types</SelectItem>
+                  <SelectItem value="default">All Types</SelectItem>
                   <SelectItem value="journal_article">Journal Article</SelectItem>
                   <SelectItem value="conference_paper">Conference Paper</SelectItem>
                   <SelectItem value="book_chapter">Book Chapter</SelectItem>
@@ -340,7 +344,7 @@ export default function PublicationsPage() {
                   <SelectValue placeholder="Select year" />
                 </SelectTrigger>
                 <SelectContent className="max-h-[300px] overflow-y-auto">
-                  <SelectItem value="any">All years</SelectItem>
+                  <SelectItem value="default">All years</SelectItem>
                   {generateYearOptions().map((year) => (
                     <SelectItem key={`from-${year}`} value={year.toString()}>
                       {year}
@@ -359,7 +363,7 @@ export default function PublicationsPage() {
                   <SelectValue placeholder="Select year" />
                 </SelectTrigger>
                 <SelectContent className="max-h-[300px] overflow-y-auto">
-                  <SelectItem value="any">All years</SelectItem>
+                  <SelectItem value="default">All years</SelectItem>
                   {generateYearOptions().map((year) => (
                     <SelectItem key={`to-${year}`} value={year.toString()}>
                       {year}
@@ -367,6 +371,15 @@ export default function PublicationsPage() {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Min Citations</label>
+              <Input
+                type="number"
+                placeholder="Minimum citations"
+                value={filters.minCitations}
+                onChange={handleMinCitationsChange}
+              />
             </div>
           </div>
         </CardContent>
@@ -413,30 +426,34 @@ export default function PublicationsPage() {
               <>
                 <div className="space-y-4">
                   {publications.map((pub) => (
-                    <Card key={pub.publication_id} className="hover:shadow-md transition-shadow">
+                    <Card 
+                      key={pub.publication_id} 
+                      className="hover:shadow-md transition-shadow cursor-pointer"
+                      onClick={() => handlePublicationClick(pub.publication_id)}
+                    >
                       <CardContent className="p-4">
                         <div className="flex justify-between items-start">
                           <div>
                             <h3 className="text-lg font-semibold">{pub.title}</h3>
                             <p className="text-sm text-muted-foreground mt-1">
-                              {pub.authors?.map(a => a.name).join(", ")}
+                              {pub.authors?.map(a => `${a.firstName} ${a.lastName}`).join(", ")}
                             </p>
                             <div className="flex flex-wrap gap-4 mt-2 text-sm">
                               <span className="text-muted-foreground">
-                                {pub.publication_date ? new Date(pub.publication_date).toLocaleDateString() : "Unknown date"}
+                                {pub.publicationDate ? new Date(pub.publicationDate).toLocaleDateString() : "Unknown date"}
                               </span>
                               <span className="flex items-center">
                                 <LineChart className="h-4 w-4 mr-1" />
-                                {pub.citation_count || 0} citations
+                                {pub.citationCount || 0} citations
                               </span>
                               <span className="capitalize">
-                                {pub.publication_type?.replace("_", " ") || "Unknown type"}
+                                {pub.publicationType?.replace("_", " ") || "Unknown type"}
                               </span>
                             </div>
                           </div>
-                          <Button variant="outline" size="sm">
-                            View Details
-                          </Button>
+                          <div className="flex items-center">
+                            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
@@ -578,7 +595,11 @@ export default function PublicationsPage() {
               ) : (
                 <div className="w-full h-full overflow-y-auto">
                   {processedData.topCited.map((item, index) => (
-                    <div key={index} className="mb-4">
+                    <div 
+                      key={index} 
+                      className="mb-4 p-2 hover:bg-gray-50 rounded cursor-pointer"
+                      onClick={() => handlePublicationClick(item.publication_id)}
+                    >
                       <div className="text-sm mb-1">{item.name}</div>
                       <div className="w-full bg-gray-200 rounded-full h-4">
                         <div

@@ -71,7 +71,7 @@ export function AppSidebar() {
             items: [
               {
                 title: "Mon Profil",
-                url: `/researchers/${user?.researcherId}`,
+                url: `/researcher/${user?.researcherId}`,
                 icon: RiUserLine,
                 exact: true, // Requires exact match
               },
@@ -84,10 +84,11 @@ export function AppSidebar() {
       group: "SECTIONS",
       items: [
         {
-          title: "Chercheurs",
-          url: "/researchers",
-          icon: RiUserFollowLine,
+          title: "Accueil",
+          url: "/",
+          icon: RiTeamLine,
         },
+        
         {
           title: "Publications",
           url: "/publications",
@@ -95,11 +96,11 @@ export function AppSidebar() {
         },
         {
           title: "Statistiques",
-          url: "/statistics",
+          url: "/stats",
           icon: RiScanLine,
         },
         {
-          title: "Dashboard",
+          title: "chercheurs",
           url: "/dashboard",
           icon: RiBarChartHorizontalFill,
         },
@@ -110,29 +111,29 @@ export function AppSidebar() {
         },
       ],
     },
-    {
-      group: "COMPTE",
-      items: [
-        {
-          title: "Paramètres",
-          url: "/settings",
-          icon: RiSettings3Line,
-        },
-        {
-          title: "Déconnexion",
-          url: "#",
-          icon: RiLogoutBoxLine,
-          onClick: () => signOut({ callbackUrl: "/login" }),
-        },
-      ],
-    },
+    // {
+    //   group: "COMPTE",
+    //   items: [
+    //     {
+    //       title: "Paramètres",
+    //       url: "/settings",
+    //       icon: RiSettings3Line,
+    //     },
+    //     {
+    //       title: "Déconnexion",
+    //       url: "#",
+    //       icon: RiLogoutBoxLine,
+    //       onClick: () => signOut({ callbackUrl: "/login" }),
+    //     },
+    //   ],
+    // },
   ];
 
   return (
     <Sidebar className="!bg-[#d2e8ff] text-gray-800 !fixed h-screen border-r border-blue-300">
       <SidebarHeader className="px-4 pt-4 !bg-[#d2e8ff] border-b border-blue-300 pb-4">
         <div className="flex flex-col items-center">
-          <div className="relative h-15 w-20 mb-1   rounded-lg ">
+          <div className="relative h-13 w-20 mb-1   rounded-lg ">
             <Image
               src={user?.image || "/images/lmcs.jpg"}
               alt="Profile"
