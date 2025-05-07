@@ -210,8 +210,6 @@ export async function GET(request: Request) {
       .limit(queryParams.pageSize)
       .offset(offset);
 
-      console.log("Publications data:");
-
     // Fetch related data separately for each publication
     const enhancedData = await Promise.all(
       publicationsData.map(async (pub) => {
@@ -309,7 +307,6 @@ export async function GET(request: Request) {
         };
       })
     );
-    console.log("Enhanced data:");
 
     // Get total count for pagination
     const totalCountResult = await db
@@ -337,10 +334,6 @@ export async function GET(request: Request) {
   }
 }
 
-
-
-
-
 export async function POST(req: Request) {
   let scraper: ResearchDataScraper | null = null;
 
@@ -348,7 +341,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     const ids: string[] = body.ids;
 
-    if (!Array.isArray(ids) || ids.some(id => typeof id !== "string")) {
+    if (!Array.isArray(ids) || ids.some((id) => typeof id !== "string")) {
       return NextResponse.json(
         { error: "Invalid payload. Expected { ids: string[] }" },
         { status: 400 }
@@ -366,29 +359,17 @@ export async function POST(req: Request) {
     });
 
     scraper = new ResearchDataScraper();
-  
 
     for (const researcher of researchers) {
       try {
         const fullName = `${researcher.firstName} ${researcher.lastName}`;
-        console.log(`🔄 Updating publications for ${fullName}`);
 
         const scrapedData = await scraper.scrapeResearcherPublications(
           fullName,
           researcher?.googleScholarUrl ?? undefined
         );
 
-        if (!scrapedData?.length) {
-          console.log(`⚠ No publications found for ${fullName}`);
-          continue;
-        }
-
-        const seedResult = await seedPublications(scrapedData, researcher.id);
-
-
-        console.log(
-          `✅ Updated ${seedResult.publications} publications for ${fullName}`
-        );
+        await seedPublications(scrapedData, researcher.id);
       } catch (error) {
         const errorMsg = `Error updating ${researcher.firstName} ${
           researcher.lastName
@@ -400,7 +381,6 @@ export async function POST(req: Request) {
     return NextResponse.json({
       success: true,
       message: "Publications updated successfully",
-
     });
   } catch (error) {
     console.error("🚨 Publication update failed:", error);
@@ -421,4 +401,3 @@ export async function POST(req: Request) {
     }
   }
 }
-
