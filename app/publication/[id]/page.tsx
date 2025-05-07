@@ -52,7 +52,7 @@ export default function PublicationDetails() {
   const [error, setError] = useState<string | null>(null);
   const [editMode, setEditMode] = useState(false);
 
-  const isAdmin = session?.user?.role === 'admin';
+  const isAdmin = session?.user?.role ==='assistant';
 
   useEffect(() => {
     const fetchPublication = async () => {
@@ -74,9 +74,13 @@ export default function PublicationDetails() {
   }, [id]);
 
   const handleUpdateSuccess = (updatedPublication: Publication) => {
-    setPublication(updatedPublication);
+    setPublication(prev => ({
+      ...prev,
+      ...updatedPublication
+    }));
     setEditMode(false);
     toast.success('Publication updated successfully');
+    router.refresh(); // Add this to ensure the page gets fresh data
   };
 
   if (editMode && publication) {

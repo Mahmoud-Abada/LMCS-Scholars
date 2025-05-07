@@ -152,7 +152,7 @@ export default async function Page() {
                         
                     </div>
                     <ResearchersTable researchers={researchers} 
-  isAdmin={user?.role === 'admin'} />
+  isAdmin={user?.role==='director'} />
                   </div>
                 </div>
               </div>

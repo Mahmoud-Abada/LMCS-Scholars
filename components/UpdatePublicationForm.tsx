@@ -68,7 +68,7 @@ export function UpdatePublicationForm({
     
     setLoading(true);
     const toastId = toast.loading('Updating publication...');
-
+  
     try {
       const response = await fetch(`/api/publications/${publication.id}`, {
         method: 'PUT',
@@ -77,15 +77,15 @@ export function UpdatePublicationForm({
         },
         body: JSON.stringify(formData),
       });
-
+  
       const result = await response.json();
-
+  
       if (!response.ok) {
         throw new Error(result.error || 'Failed to update publication');
       }
-
+  
       toast.success('Publication updated successfully!', { id: toastId });
-      onSuccess(result);
+      onSuccess(result.data); // Make sure your API returns { data: Publication }
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : 'Failed to update publication', 
@@ -95,7 +95,6 @@ export function UpdatePublicationForm({
       setLoading(false);
     }
   };
-
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>

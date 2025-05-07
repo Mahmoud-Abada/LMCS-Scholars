@@ -35,7 +35,7 @@ export default function AnalyticsHub() {
         { 
           name: "Publications", 
           icon: <FileTextIcon className="w-5 h-5" />, 
-          href: "/analytics/publications" 
+          href: "/publications" 
         },
       ]
     },
@@ -65,7 +65,7 @@ export default function AnalyticsHub() {
         { 
           name: "Researcher Profiles", 
           icon: <UsersIcon className="w-5 h-5" />, 
-          href: "/analytics/researcher-profiles" 
+          href: "/researcher-profiles" 
         },
       ]
     }
