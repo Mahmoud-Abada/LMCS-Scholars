@@ -153,7 +153,7 @@ export function AppSidebar() {
                   ? "Chercheur"
                   : user.role === "admin"
                   ? "Administrateur"
-                  : "Invité"}
+                  : "vous êtes connecté"}
               </p>
             </div>
           )}

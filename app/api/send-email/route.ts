@@ -1,77 +1,35 @@
-import { NextResponse } from 'next/server';
-import nodemailer from 'nodemailer';
-import Mailgen from 'mailgen';
+import { NextResponse } from "next/server";
+import nodemailer from "nodemailer";
 
-// Configure Mailgen with LMCS branding
-const mailGenerator = new Mailgen({
-  theme: 'default',
-  product: {
-    name: "LMCS Research Portal",
-    link: 'https://lmcs-research.org', // Your actual domain
-    logo: 'https://lmcs-research.org/logo.png', // Your actual logo URL
-    copyright: '© 2024 LMCS Laboratory. All rights reserved.'
+export async function POST(req: Request) {
+  const { to, subject, text, html } = await req.json();
+
+  if (!to || !subject || (!text && !html)) {
+    return NextResponse.json({ error: "Missing fields" }, { status: 400 });
   }
-});
 
-export async function POST(request: Request) {
   try {
-    const { name, email } = await request.json();
-
-    if (!name || !email) {
-      return NextResponse.json(
-        { error: "Name and email are required" },
-        { status: 400 }
-      );
-    }
-
-    // Generate email content
-    const emailContent = {
-      body: {
-        name,
-        intro: 'Welcome to LMCS Research Portal!',
-        action: {
-          instructions: 'To complete your registration, please click here:',
-          button: {
-            color: '#22c55e', // Green color
-            text: 'Confirm your email',
-            link: 'https://lmcs-research.org/confirm' // Your actual confirmation link
-          }
-        },
-        outro: 'Need help? Reply to this email.'
-      }
-    };
-
-    const emailBody = mailGenerator.generate(emailContent);
-    const emailText = mailGenerator.generatePlaintext(emailContent);
-
-    // Create transporter (using Gmail)
     const transporter = nodemailer.createTransport({
-      service: 'gmail',
+      host: process.env.SMTP_HOST,
+      port: Number(process.env.SMTP_PORT),
+      secure: false,
       auth: {
-        user: process.env.EMAIL_FROM,
-        pass: process.env.EMAIL_PASSWORD, // Use app-specific password
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
       },
     });
 
-    // Send mail
     await transporter.sendMail({
-      from: `LMCS Research <${process.env.EMAIL_FROM}>`,
-      to: email,
-      subject: 'Welcome to LMCS Research Portal',
-      html: emailBody,
-      text: emailText,
+      from: process.env.FROM_EMAIL,
+      to,
+      subject,
+      text,
+      html,
     });
 
-    return NextResponse.json(
-      { message: "Email sent successfully" },
-      { status: 200 }
-    );
-
-  } catch (error: any) {
-    console.error("Email sending error:", error);
-    return NextResponse.json(
-      { error: error.message || "Failed to send email" },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "Email sent successfully" });
+  } catch (error) {
+    console.error("Email error:", error);
+    return NextResponse.json({ error: "Failed to send email" }, { status: 500 });
   }
 }

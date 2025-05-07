@@ -36,6 +36,15 @@ export default function LoginPage() {
       }
 
       toast.success("Login successful! Redirecting...");
+      await fetch("/api/send-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to: "nh_rafa@esi.dz",
+          subject: "Houssam is saving his team on the project ",
+          text: "this is a message from the app that shows that houssam is saving his team!",
+        }),
+      });
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       router.push("/");

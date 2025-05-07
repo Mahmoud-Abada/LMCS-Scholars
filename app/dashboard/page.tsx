@@ -149,14 +149,10 @@ export default async function Page() {
                           </Button>
                           
                         </Link>)}
-                        {showAddResearcher && (<Link href="/dashboard">
-                        <Button className="bg-blue-600 hover:bg-blue-700 text-white">Update BDD</Button>
-                          
-                          
-                        </Link>)}
+                        
                     </div>
                     <ResearchersTable researchers={researchers} 
-  isAdmin={user?.role === 'admin'} />
+  isAdmin={user?.role==='director'} />
                   </div>
                 </div>
               </div>
