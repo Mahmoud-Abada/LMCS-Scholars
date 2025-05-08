@@ -175,8 +175,8 @@ function generateEmail(researcher: { firstName: string; lastName: string }): str
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
-    .replace(/\s+/g, ".");
-  return `${firstInitial}.${cleanLastName}@esi.dz`;
+    .replace(/\s+/g, "_");
+  return `${firstInitial}_${cleanLastName}@esi.dz`;
 }
 
 function generatePassword(lastName: string): string {
