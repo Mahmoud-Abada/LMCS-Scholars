@@ -35,33 +35,33 @@ export default function AnalyticsHub() {
         { 
           name: "Publications", 
           icon: <FileTextIcon className="w-5 h-5" />, 
-          href: "/publications" 
+          href: "/publicationsANAL" 
         },
       ]
     },
-    {
-      name: "Productivity",
-      items: [
-        { 
-          name: "Output Trends", 
-          icon: <TrendingUpIcon className="w-5 h-5" />, 
-          href: "/analytics/productivity" 
-        },
-        { 
-          name: "Collaborations", 
-          icon: <UsersIcon className="w-5 h-5" />, 
-          href: "/analytics/collaborations" 
-        },
-      ]
-    },
+    // {
+    //   // name: "Productivity",
+    //   // items: [
+    //   //   { 
+    //   //     name: "Output Trends", 
+    //   //     icon: <TrendingUpIcon className="w-5 h-5" />, 
+    //   //     href: "/analytics/productivity" 
+    //   //   },
+      //   { 
+      //     name: "Collaborations", 
+      //     icon: <UsersIcon className="w-5 h-5" />, 
+      //     href: "/analytics/collaborations" 
+      //   },
+    //   ]
+    // },
     {
       name: "Statistics",
       items: [
-        { 
-          name: "Annual Reports", 
-          icon: <FileTextIcon className="w-5 h-5" />, 
-          href: "/analytics/annual-reports" 
-        },
+        // { 
+        //   name: "Annual Reports", 
+        //   icon: <FileTextIcon className="w-5 h-5" />, 
+        //   href: "/analytics/annual-reports" 
+        // },
         { 
           name: "Researcher Profiles", 
           icon: <UsersIcon className="w-5 h-5" />, 
