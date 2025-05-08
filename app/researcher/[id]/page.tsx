@@ -30,6 +30,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
 import { UpdateProfileForm } from "@/components/UpdateProfileForm"
 import { useSession } from "next-auth/react"
+import { toast } from "sonner"
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
@@ -116,42 +117,48 @@ export default function ResearcherProfilePage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setLoading(true)
+        setLoading(true);
+        setError(null);
         
         // Fetch researcher data
-        const researcherResponse = await fetch(`/api/researchers/${id}`)
+        const researcherResponse = await fetch(`/api/researchers/${id}`);
         if (!researcherResponse.ok) {
-          throw new Error('Failed to fetch researcher data')
+          throw new Error('Failed to fetch researcher data');
         }
-        const researcherData = await researcherResponse.json()
-        setResearcher(researcherData)
+        const researcherData = await researcherResponse.json();
+        setResearcher(researcherData);
 
-        // Fetch publications separately
+        // Fetch publications
         const publicationsResponse = await fetch(`/api/publications?researcherId=${id}`);
-        console.log(`/api/publications?researcherId=${id}`);
         if (!publicationsResponse.ok) {
-          throw new Error('Failed to fetch publications data')
+          throw new Error('Failed to fetch publications');
         }
-        const publicationsData = await publicationsResponse.json()
-        setPublications(publicationsData)
+        const publicationsData = await publicationsResponse.json();
+        
+        // Handle both array and object with data property
+        const publicationsArray = Array.isArray(publicationsData) 
+          ? publicationsData 
+          : publicationsData.data || [];
+        
+        setPublications(publicationsArray);
         
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Unknown error occurred')
+        console.error("Fetch error:", err);
+        const message = err instanceof Error ? err.message : 'Failed to load data';
+        setError(message);
+        toast.error(message);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
 
-    fetchData()
-  }, [id])
+    fetchData();
+  }, [id]);
 
   const handleUpdateSuccess = (updatedResearcher: Researcher) => {
-    setResearcher(prev => ({
-      ...prev,
-      ...updatedResearcher
-    }));
+    setResearcher(updatedResearcher);
     setEditMode(false);
-    router.refresh(); // Add this line to ensure the page is refreshed with new data
+    router.refresh();
   };
 
   if (loading) {
@@ -184,6 +191,17 @@ export default function ResearcherProfilePage() {
       <div className="min-h-screen bg-white p-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-red-500">{error}</div>
+          <Button 
+            variant="outline" 
+            className="mt-4"
+            onClick={() => {
+              setLoading(true);
+              setError(null);
+              fetchData();
+            }}
+          >
+            Retry
+          </Button>
         </div>
       </div>
     )
@@ -191,6 +209,7 @@ export default function ResearcherProfilePage() {
 
   if (!researcher) {
     router.push(`/`);
+    return null;
   }
 
   // Prepare chart data
@@ -217,7 +236,7 @@ export default function ResearcherProfilePage() {
     { institution: "esi", count: 5 },
   ];
 
-  const isCurrentUser = session?.user?.email === researcher.email|| session?.user?.role === "assistant" ;
+  const isCurrentUser = session?.user?.email === researcher.email || session?.user?.role === "assistant";
 
   if (editMode) {
     return (
@@ -386,7 +405,7 @@ export default function ResearcherProfilePage() {
                         label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                       >
                         {researchAreaData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          <Cell key={index} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>
                       <Tooltip />
@@ -434,107 +453,107 @@ export default function ResearcherProfilePage() {
           </TabsContent>
 
           <TabsContent value="publications">
-    <Card>
-      <div className="p-6">
-        <h3 className="text-xl font-semibold mb-6">
-          Publications ({publications.length})
-        </h3>
-        <div className="space-y-6">
-          {publications.length > 0 ? (
-            publications
-              .sort((a, b) => {
-                const dateA = a.publicationDate ? new Date(a.publicationDate).getTime() : 0
-                const dateB = b.publicationDate ? new Date(b.publicationDate).getTime() : 0
-                return dateB - dateA
-              })
-              .map((pub) => (
-                <div key={pub.id} className="border-b pb-4 last:border-0 last:pb-0">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h4 className="text-lg font-medium text-blue-600 hover:text-blue-800">
-                        <Link href={`/publications/${pub.id}`}>
-                          {pub.title}
-                        </Link>
-                      </h4>
-                      <p className="text-sm text-gray-600 mt-1">
-                        {pub.authors?.join(', ')}
+            <Card>
+              <div className="p-6">
+                <h3 className="text-xl font-semibold mb-6">
+                  Publications ({publications.length})
+                </h3>
+                <div className="space-y-6">
+                  {publications.length > 0 ? (
+                    publications
+                      .sort((a, b) => {
+                        const dateA = a.publicationDate ? new Date(a.publicationDate).getTime() : 0
+                        const dateB = b.publicationDate ? new Date(b.publicationDate).getTime() : 0
+                        return dateB - dateA
+                      })
+                      .map((pub) => (
+                        <div key={pub.id} className="border-b pb-4 last:border-0 last:pb-0">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <h4 className="text-lg font-medium text-blue-600 hover:text-blue-800">
+                                <Link href={`/publications/${pub.id}`}>
+                                  {pub.title}
+                                </Link>
+                              </h4>
+                              <p className="text-sm text-gray-600 mt-1">
+                                {pub.authors?.join(', ')}
+                              </p>
+                              <div className="flex flex-wrap items-center gap-2 mt-1 text-sm text-gray-500">
+                                {pub.publicationDate && (
+                                  <span>
+                                    {new Date(pub.publicationDate).getFullYear()}
+                                  </span>
+                                )}
+                                {pub.journal && (
+                                  <span>• {pub.journal}</span>
+                                )}
+                                {pub.volume && (
+                                  <span>• Vol. {pub.volume}</span>
+                                )}
+                                {pub.issue && (
+                                  <span>({pub.issue})</span>
+                                )}
+                                {pub.pages && (
+                                  <span>• pp. {pub.pages}</span>
+                                )}
+                              </div>
+                              <div className="flex gap-4 mt-2">
+                                {pub.doi && (
+                                  <a 
+                                    href={`https://doi.org/${pub.doi}`} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="flex items-center text-sm text-blue-600 hover:text-blue-800"
+                                  >
+                                    <Link2 className="h-4 w-4 mr-1" /> DOI
+                                  </a>
+                                )}
+                                {pub.dblpLink && (
+                                  <a 
+                                    href={pub.dblpLink} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="flex items-center text-sm text-blue-600 hover:text-blue-800"
+                                  >
+                                    <FileText className="h-4 w-4 mr-1" /> DBLP
+                                  </a>
+                                )}
+                                {pub.pdfUrl && (
+                                  <a 
+                                    href={pub.pdfUrl} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="flex items-center text-sm text-blue-600 hover:text-blue-800"
+                                  >
+                                    <FileText className="h-4 w-4 mr-1" /> PDF
+                                  </a>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <span className="text-sm text-gray-500">
+                                {pub.citationCount} citations
+                              </span>
+                              <ExternalLink className="h-4 w-4 text-gray-400" />
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                  ) : (
+                    <div className="text-center py-8">
+                      <BookOpen className="mx-auto h-8 w-8 text-gray-400" />
+                      <h3 className="mt-2 text-sm font-medium text-gray-900">
+                        No publications found
+                      </h3>
+                      <p className="mt-1 text-sm text-gray-500">
+                        This researcher hasn't published any papers yet.
                       </p>
-                      <div className="flex flex-wrap items-center gap-2 mt-1 text-sm text-gray-500">
-                        {pub.publicationDate && (
-                          <span>
-                            {new Date(pub.publicationDate).getFullYear()}
-                          </span>
-                        )}
-                        {pub.journal && (
-                          <span>• {pub.journal}</span>
-                        )}
-                        {pub.volume && (
-                          <span>• Vol. {pub.volume}</span>
-                        )}
-                        {pub.issue && (
-                          <span>({pub.issue})</span>
-                        )}
-                        {pub.pages && (
-                          <span>• pp. {pub.pages}</span>
-                        )}
-                      </div>
-                      <div className="flex gap-4 mt-2">
-                        {pub.doi && (
-                          <a 
-                            href={`https://doi.org/${pub.doi}`} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="flex items-center text-sm text-blue-600 hover:text-blue-800"
-                          >
-                            <Link2 className="h-4 w-4 mr-1" /> DOI
-                          </a>
-                        )}
-                        {pub.dblpLink && (
-                          <a 
-                            href={pub.dblpLink} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="flex items-center text-sm text-blue-600 hover:text-blue-800"
-                          >
-                            <FileText className="h-4 w-4 mr-1" /> DBLP
-                          </a>
-                        )}
-                        {pub.pdfUrl && (
-                          <a 
-                            href={pub.pdfUrl} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="flex items-center text-sm text-blue-600 hover:text-blue-800"
-                          >
-                            <FileText className="h-4 w-4 mr-1" /> PDF
-                          </a>
-                        )}
-                      </div>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm text-gray-500">
-                        {pub.citationCount} citations
-                      </span>
-                      <ExternalLink className="h-4 w-4 text-gray-400" />
-                    </div>
-                  </div>
+                  )}
                 </div>
-              ))
-          ) : (
-            <div className="text-center py-8">
-              <BookOpen className="mx-auto h-8 w-8 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">
-                No publications found
-              </h3>
-              <p className="mt-1 text-sm text-gray-500">
-                This researcher hasn't published any papers yet.
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
-    </Card>
-  </TabsContent>
+              </div>
+            </Card>
+          </TabsContent>
 
           <TabsContent value="metrics">
             <div className="grid gap-6">
