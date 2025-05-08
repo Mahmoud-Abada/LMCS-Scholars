@@ -149,6 +149,12 @@ export default async function Page() {
                           </Button>
                           
                         </Link>)}
+                        {showAddResearcher && (<Link href="/addUser">             
+                          <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+                            Add User
+                          </Button>
+                          
+                        </Link>)}
                         
                     </div>
                     <ResearchersTable researchers={researchers} 
