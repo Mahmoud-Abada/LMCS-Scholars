@@ -33,6 +33,6 @@
     ".next/types/**/*.ts",
     "app/researcher/[id]/page.tsx",
     "scripts/reset-db.js"
-  ],
+, "tailwind.config.js"  ],
   "exclude": ["node_modules"]
 }
