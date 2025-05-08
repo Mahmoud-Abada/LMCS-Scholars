@@ -101,7 +101,7 @@ export default function AddResearcherPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          to: "nh_rafa@esi.dz",
+          to: email,
           subject: 'Welcome to Our Research Platform',
           text: `Dear ${name},\n\nYou have been added to our research platform.\n\nYour login credentials:\nEmail: ${email}\nPassword: ${password}\n\nPlease change your password after logging in.\n\nBest regards,\nThe Research Team`,
           html: `

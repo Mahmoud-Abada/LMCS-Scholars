@@ -1,5 +1,5 @@
 {
-  "id": "d96e9560-9c37-46ca-88ec-5a59653a2727",
+  "id": "93050ede-d888-4400-b146-b2ca2628bed9",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -956,7 +956,7 @@
         },
         "orcid_id": {
           "name": "orcid_id",
-          "type": "varchar(19)",
+          "type": "varchar(30)",
           "primaryKey": false,
           "notNull": false
         },

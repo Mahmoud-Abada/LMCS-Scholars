@@ -133,7 +133,7 @@ CREATE TABLE "research_team" (
 --> statement-breakpoint
 CREATE TABLE "researcher" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"orcid_id" varchar(19),
+	"orcid_id" varchar(30),
 	"first_name" varchar(100) NOT NULL,
 	"last_name" varchar(100) NOT NULL,
 	"email" varchar(512) NOT NULL,

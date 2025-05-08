@@ -83,7 +83,7 @@ export class ResearchDataScraper {
       this.browser = await chromium.launch({
         headless: this.config.headless,
         timeout: this.config.timeout,
-        executablePath: "/usr/bin/chromium",
+       executablePath: "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
         // Add these new options
         args: [
           "--disable-blink-features=AutomationControlled",

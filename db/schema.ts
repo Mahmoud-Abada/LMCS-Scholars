@@ -107,7 +107,7 @@ export const researchers = pgTable(
   "researcher",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    orcidId: varchar("orcid_id", { length: 19 }).unique(),
+    orcidId: varchar("orcid_id", { length: 30 }).unique(),
     firstName: varchar("first_name", { length: 100 }).notNull(),
     lastName: varchar("last_name", { length: 100 }).notNull(),
     email: varchar("email", { length: 512 }).notNull().unique(),
