@@ -77,30 +77,45 @@ export default function ResearcherPublicationsPage() {
 
   const fetchPublications = async (page: number = 1) => {
     try {
-      setLoading(true)
-      const response = await fetch(
-        `/api/publications?researcherId=${id}&page=${page}&pageSize=${pagination.pageSize}`
-      )
+      setLoading(true);
+      setError(null);
+      
+      const url = `/api/publications?researcherId=${id}&page=${page}&pageSize=${pagination.pageSize}`;
+      console.log("Fetching publications from:", url);
+      
+      const response = await fetch(url);
+      console.log("Response status:", response.status);
       
       if (!response.ok) {
-        throw new Error('Failed to fetch publications')
+        const errorData = await response.json().catch(() => ({}));
+        console.error("API error response:", errorData);
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
       }
-
-      const data = await response.json()
-      setPublications(data.data)
+  
+      const data = await response.json();
+      console.log("API response data:", data);
+      
+      // Validate response structure
+      if (!data || !Array.isArray(data.data)) {
+        throw new Error('Invalid response format: data.data is not an array');
+      }
+      
+      setPublications(data.data);
       setPagination({
         page,
-        pageSize: data.pagination.pageSize,
-        totalItems: data.pagination.totalItems,
-        totalPages: data.pagination.totalPages,
-      })
+        pageSize: data.pagination?.pageSize || pagination.pageSize,
+        totalItems: data.pagination?.totalItems || 0,
+        totalPages: data.pagination?.totalPages || 1,
+      });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error occurred')
-      toast.error('Failed to load publications')
+      console.error("Error fetching publications:", err);
+      const message = err instanceof Error ? err.message : 'Unknown error occurred';
+      setError(message);
+      toast.error(message);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
     fetchPublications()
@@ -247,7 +262,7 @@ export default function ResearcherPublicationsPage() {
             <PaginationItem>
               <PaginationPrevious
                 onClick={() => handlePageChange(pagination.page - 1)}
-                disabled={pagination.page === 1}
+                isDisabled={pagination.page === 1}
               />
             </PaginationItem>
             <PaginationItem>
@@ -258,7 +273,7 @@ export default function ResearcherPublicationsPage() {
             <PaginationItem>
               <PaginationNext
                 onClick={() => handlePageChange(pagination.page + 1)}
-                disabled={pagination.page === pagination.totalPages}
+                isDisabled={pagination.page === pagination.totalPages}
               />
             </PaginationItem>
           </PaginationContent>
