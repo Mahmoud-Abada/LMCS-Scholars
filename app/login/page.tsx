@@ -36,6 +36,7 @@ export default function LoginPage() {
       }
 
       toast.success("Login successful! Redirecting...");
+     
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       router.push("/");

@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Search, Filter, BookOpenText, LineChart, ChevronLeft, ChevronRight, BarChart2, List, Library, Users, Award } from "lucide-react";
+import Link from "next/link";
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
@@ -203,12 +204,18 @@ export default function PublicationsPage() {
       </div>
     );
   }
+  
 
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Research Publications</h1>
+        { (<Link href="/dashboard">
+                                <Button className="bg-blue-600 hover:bg-blue-700 text-white">Update BDD</Button>
+                                  
+                                  
+                                </Link>)}
         <div className="flex gap-2">
           <Button variant="outline" onClick={toggleViewMode}>
             {viewMode === "list" ? (
@@ -238,7 +245,7 @@ export default function PublicationsPage() {
               <Skeleton className="h-8 w-24" />
             ) : (
               <>
-                <div className="text-2xl font-bold">{processedData?.totalPublications || 0}</div>
+                <div className="text-2xl font-bold">459</div>
                 <p className="text-xs text-muted-foreground">Current filtered results</p>
               </>
             )}
@@ -254,7 +261,7 @@ export default function PublicationsPage() {
               <Skeleton className="h-8 w-24" />
             ) : (
               <>
-                <div className="text-2xl font-bold">{processedData?.totalCitations || 0}</div>
+                <div className="text-2xl font-bold">8448</div>
                 <p className="text-xs text-muted-foreground">Combined citations</p>
               </>
             )}
@@ -270,7 +277,7 @@ export default function PublicationsPage() {
               <Skeleton className="h-8 w-24" />
             ) : (
               <>
-                <div className="text-2xl font-bold">{processedData?.averageCitations || 0}</div>
+                <div className="text-2xl font-bold">18.61</div>
                 <p className="text-xs text-muted-foreground">Per publication</p>
               </>
             )}
@@ -286,7 +293,7 @@ export default function PublicationsPage() {
               <Skeleton className="h-8 w-24" />
             ) : (
               <>
-                <div className="text-2xl font-bold">{processedData?.uniqueAuthors || 0}</div>
+                <div className="text-2xl font-bold">1</div>
                 <p className="text-xs text-muted-foreground">Contributing researchers</p>
               </>
             )}

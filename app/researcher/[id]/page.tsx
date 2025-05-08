@@ -33,6 +33,29 @@ import { useSession } from "next-auth/react"
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
+type Publication = {
+  id: string;
+  title: string;
+  abstract?: string;
+  authors?: string[];
+  publicationType?: string;
+  publicationDate?: string;
+  doi?: string;
+  url?: string;
+  pdfUrl?: string;
+  scholarLink?: string;
+  dblpLink?: string;
+  citationCount: number;
+  pages?: string;
+  volume?: string;
+  issue?: string;
+  publisher?: string;
+  journal?: string;
+  language?: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
 type Researcher = {
   id: string;
   firstName: string;
@@ -72,26 +95,6 @@ type Researcher = {
     lastLogin?: string;
     isActive: boolean;
   };
-  publications: Array<{
-    id: string;
-    title: string;
-    abstract?: string;
-    authors?: string[];
-    publicationType?: string;
-    publicationDate?: string;
-    doi?: string;
-    url?: string;
-    pdfUrl?: string;
-    scholarLink?: string;
-    dblpLink?: string;
-    citationCount: number;
-    pages?: string;
-    volume?: string;
-    issue?: string;
-    publisher?: string;
-    journal?: string;
-    language?: string;
-  }>;
   metrics: {
     totalPublications: number;
     totalCitations: number;
@@ -105,19 +108,33 @@ export default function ResearcherProfilePage() {
   const router = useRouter()
   const { data: session } = useSession()
   const [researcher, setResearcher] = useState<Researcher | null>(null)
+  const [publications, setPublications] = useState<Publication[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [editMode, setEditMode] = useState(false)
 
   useEffect(() => {
-    const fetchResearcher = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch(`/api/researchers/${id}`)
-        if (!response.ok) {
+        setLoading(true)
+        
+        // Fetch researcher data
+        const researcherResponse = await fetch(`/api/researchers/${id}`)
+        if (!researcherResponse.ok) {
           throw new Error('Failed to fetch researcher data')
         }
-        const data = await response.json()
-        setResearcher(data)
+        const researcherData = await researcherResponse.json()
+        setResearcher(researcherData)
+
+        // Fetch publications separately
+        const publicationsResponse = await fetch(`/api/publications?researcherId=${id}`);
+        console.log(`/api/publications?researcherId=${id}`);
+        if (!publicationsResponse.ok) {
+          throw new Error('Failed to fetch publications data')
+        }
+        const publicationsData = await publicationsResponse.json()
+        setPublications(publicationsData)
+        
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unknown error occurred')
       } finally {
@@ -125,13 +142,17 @@ export default function ResearcherProfilePage() {
       }
     }
 
-    fetchResearcher()
+    fetchData()
   }, [id])
 
   const handleUpdateSuccess = (updatedResearcher: Researcher) => {
-    setResearcher(updatedResearcher)
-    setEditMode(false)
-  }
+    setResearcher(prev => ({
+      ...prev,
+      ...updatedResearcher
+    }));
+    setEditMode(false);
+    router.refresh(); // Add this line to ensure the page is refreshed with new data
+  };
 
   if (loading) {
     return (
@@ -169,7 +190,7 @@ export default function ResearcherProfilePage() {
   }
 
   if (!researcher) {
-    router.push(`/researcher/${id}`)
+    router.push(`/`);
   }
 
   // Prepare chart data
@@ -196,7 +217,7 @@ export default function ResearcherProfilePage() {
     { institution: "esi", count: 5 },
   ];
 
-  const isCurrentUser = session?.user?.email === researcher.email;
+  const isCurrentUser = session?.user?.email === researcher.email|| session?.user?.role === "assistant" ;
 
   if (editMode) {
     return (
@@ -413,49 +434,107 @@ export default function ResearcherProfilePage() {
           </TabsContent>
 
           <TabsContent value="publications">
-            <Card>
-              <div className="p-6">
-                <h3 className="text-xl font-semibold mb-6">Recent Publications</h3>
-                <div className="space-y-6">
-                  {researcher.publications.length > 0 ? (
-                    researcher.publications.map((pub) => (
-                      <div key={pub.id} className="border-b pb-4 last:border-0 last:pb-0">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <h4 className="text-lg font-medium text-blue-600 hover:text-blue-800 cursor-pointer">
-                              {pub.title}
-                            </h4>
-                            <p className="text-sm text-gray-600 mt-1">{pub.authors?.join(', ')}</p>
-                            <p className="text-sm text-gray-500 mt-1">
-                              {pub.journal} • {pub.publicationDate ? new Date(pub.publicationDate).getFullYear() : ''}
-                            </p>
-                            <div className="flex gap-4 mt-2">
-                              {pub.dblpLink && (
-                                <a href={pub.dblpLink} target="_blank" rel="noopener noreferrer" className="flex items-center text-sm text-blue-600 hover:text-blue-800">
-                                  <FileText className="h-4 w-4 mr-1" /> DBLP
-                                </a>
-                              )}
-                              {pub.doi && (
-                                <a href={pub.doi} target="_blank" rel="noopener noreferrer" className="flex items-center text-sm text-blue-600 hover:text-blue-800">
-                                  <Link2 className="h-4 w-4 mr-1" /> DOI
-                                </a>
-                              )}
-                            </div>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <span className="text-sm text-gray-500">{pub.citationCount} citations</span>
-                            <ExternalLink className="h-4 w-4 text-gray-400" />
-                          </div>
-                        </div>
+    <Card>
+      <div className="p-6">
+        <h3 className="text-xl font-semibold mb-6">
+          Publications ({publications.length})
+        </h3>
+        <div className="space-y-6">
+          {publications.length > 0 ? (
+            publications
+              .sort((a, b) => {
+                const dateA = a.publicationDate ? new Date(a.publicationDate).getTime() : 0
+                const dateB = b.publicationDate ? new Date(b.publicationDate).getTime() : 0
+                return dateB - dateA
+              })
+              .map((pub) => (
+                <div key={pub.id} className="border-b pb-4 last:border-0 last:pb-0">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h4 className="text-lg font-medium text-blue-600 hover:text-blue-800">
+                        <Link href={`/publications/${pub.id}`}>
+                          {pub.title}
+                        </Link>
+                      </h4>
+                      <p className="text-sm text-gray-600 mt-1">
+                        {pub.authors?.join(', ')}
+                      </p>
+                      <div className="flex flex-wrap items-center gap-2 mt-1 text-sm text-gray-500">
+                        {pub.publicationDate && (
+                          <span>
+                            {new Date(pub.publicationDate).getFullYear()}
+                          </span>
+                        )}
+                        {pub.journal && (
+                          <span>• {pub.journal}</span>
+                        )}
+                        {pub.volume && (
+                          <span>• Vol. {pub.volume}</span>
+                        )}
+                        {pub.issue && (
+                          <span>({pub.issue})</span>
+                        )}
+                        {pub.pages && (
+                          <span>• pp. {pub.pages}</span>
+                        )}
                       </div>
-                    ))
-                  ) : (
-                    <p className="text-gray-500">No publications found</p>
-                  )}
+                      <div className="flex gap-4 mt-2">
+                        {pub.doi && (
+                          <a 
+                            href={`https://doi.org/${pub.doi}`} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="flex items-center text-sm text-blue-600 hover:text-blue-800"
+                          >
+                            <Link2 className="h-4 w-4 mr-1" /> DOI
+                          </a>
+                        )}
+                        {pub.dblpLink && (
+                          <a 
+                            href={pub.dblpLink} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="flex items-center text-sm text-blue-600 hover:text-blue-800"
+                          >
+                            <FileText className="h-4 w-4 mr-1" /> DBLP
+                          </a>
+                        )}
+                        {pub.pdfUrl && (
+                          <a 
+                            href={pub.pdfUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="flex items-center text-sm text-blue-600 hover:text-blue-800"
+                          >
+                            <FileText className="h-4 w-4 mr-1" /> PDF
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm text-gray-500">
+                        {pub.citationCount} citations
+                      </span>
+                      <ExternalLink className="h-4 w-4 text-gray-400" />
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </Card>
-          </TabsContent>
+              ))
+          ) : (
+            <div className="text-center py-8">
+              <BookOpen className="mx-auto h-8 w-8 text-gray-400" />
+              <h3 className="mt-2 text-sm font-medium text-gray-900">
+                No publications found
+              </h3>
+              <p className="mt-1 text-sm text-gray-500">
+                This researcher hasn't published any papers yet.
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    </Card>
+  </TabsContent>
 
           <TabsContent value="metrics">
             <div className="grid gap-6">

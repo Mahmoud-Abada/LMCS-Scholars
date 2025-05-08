@@ -1,4 +1,3 @@
-// components/UpdateProfileForm.tsx
 'use client';
 
 import { useState } from 'react';
@@ -63,10 +62,7 @@ export function UpdateProfileForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Show loading state immediately
     setLoading(true);
-    
-    // Show loading toast
     const toastId = toast.loading('Updating profile...');
 
     try {
@@ -84,14 +80,12 @@ export function UpdateProfileForm({
         throw new Error(result.error || 'Failed to update profile');
       }
 
-      // Update toast to success
       toast.success('Profile updated successfully!', { id: toastId });
       
-      // Call success handler
+      // Call success handler with the updated data
       onSuccess(result.data);
 
     } catch (error) {
-      // Update toast to error
       toast.error(
         error instanceof Error ? error.message : 'Failed to update profile', 
         { id: toastId }
@@ -166,7 +160,7 @@ export function UpdateProfileForm({
               <SelectValue placeholder="Select position" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="professor">Professor</SelectItem>
+              <SelectItem value="researcher">researcher</SelectItem>
               <SelectItem value="associate_professor">Associate Professor</SelectItem>
               <SelectItem value="assistant_professor">Assistant Professor</SelectItem>
               <SelectItem value="postdoc">Postdoc</SelectItem>
@@ -188,7 +182,7 @@ export function UpdateProfileForm({
             <SelectContent>
               <SelectItem value="phd">PhD</SelectItem>
               <SelectItem value="msc">MSc</SelectItem>
-              <SelectItem value="bsc">BSc</SelectItem>
+              <SelectItem value="professor">professor</SelectItem>
               <SelectItem value="other">Other</SelectItem>
             </SelectContent>
           </Select>
