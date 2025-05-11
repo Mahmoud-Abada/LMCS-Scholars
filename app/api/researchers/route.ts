@@ -8,10 +8,9 @@ import {
 } from "@/lib/api-utils";
 import { and, asc, desc, eq, like, or, sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
-import { queryParamsSchema, researcherSchema } from "../../../types/schemas";
 import { auth } from "../../../auth";
 import { UserRole } from "../../../types/auth";
-import { ResearchDataScraper } from '@/scripts/scrape';
+import { queryParamsSchema, researcherSchema } from "../../../types/schemas";
 
 export async function GET(request: Request) {
   try {
@@ -138,18 +137,6 @@ export async function POST(request: Request) {
           : undefined,
       })
       .returning();
-
-    // Automatically scrape publications for the new researcher
-    const scraper = new ResearchDataScraper();
-    scraper.scrapeResearcherPublications(validatedData.firstName + ' ' + validatedData.lastName)
-      .then(async (scrapedPublications) => {
-        for (const publication of scrapedPublications) {
-          await db.insert(publications).values(publication);
-        }
-      })
-      .catch((error) => {
-        console.error('Error scraping publications for new researcher:', error);
-      });
 
     return NextResponse.json(newResearcher, { status: 201 });
   } catch (error) {

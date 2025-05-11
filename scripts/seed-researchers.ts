@@ -1,176 +1,198 @@
-// src/scripts/seed-researchers.ts
 import { researchers, researchTeams, users } from "@/db/schema";
 import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
-import { db } from "../db/client";
+import { db } from "@/db/client";
+import fs from "fs";
+import path from "path";
 
-export const LMCS_RESEARCHERS = [
-  /* { lastName: "ABDELMEZIEM", firstName: "" },
-  { lastName: "ABDELAOUI", firstName: "Sabrina" },
-  { lastName: "AMROUCHE", firstName: "Hakim" },
-  { lastName: "ARTABAZ", firstName: "Saliha" },
-  { lastName: "BENATCHBA", firstName: "Karima" },
-  { lastName: "BESSEDIK", firstName: "Malika" },
-  { lastName: "BELAHRACHE", firstName: "Abderahmane" },
-  { lastName: "BOUKHEDIMI", firstName: "Sohila" },
-  { lastName: "BOUKHADRA", firstName: "Adel" },
-  { lastName: "BOUSBIA", firstName: "Nabila" },
-  { lastName: "BOUSAHA", firstName: "Rima" },
-  { lastName: "CHALAL", firstName: "Rachid" },
-  { lastName: "CHERID", firstName: "Nacera" },
-  { lastName: "DAHAMNI", firstName: "Foudil" },
-  { lastName: "DEKICHE", firstName: "Narimane" },
-  { lastName: "DELLYS", firstName: "Elhachmi" },
-  { lastName: "FAYCEL", firstName: "Touka" },
-  { lastName: "GHOMARI", firstName: "Abdesamed Réda" },
-  { lastName: "GUERROUTE", firstName: "Elhachmi" },
-  { lastName: "HAMANI", firstName: "Nacer" },
-  { lastName: "HAROUNE", firstName: "Hayet" },
-  { lastName: "HASSINI", firstName: "Sabrina" },
-  { lastName: "KECHIDE", firstName: "Amine" },
-  { lastName: "KHELOUAT", firstName: "Boualem" },
-  { lastName: "KHELIFATI", firstName: "Si Larabi" },
-  { lastName: "KERMI", firstName: "Adel" },
-  { lastName: "KOUDIL", firstName: "Mouloud" },
-  { lastName: "MAHIOU", firstName: "Ramdane" },
-  { lastName: "NADER", firstName: "Fahima" },*/
-  { lastName: "SI TAYEB", firstName: "Fatima" },
-];
+// Type for our researcher data
+interface Researcher {
+  orcidId?: string;
+  firstName: string;
+  lastName: string;
+  email?: string;
+  phone?: string | number;
+  qualification?: string;
+  position?: string;
+  hIndex?: number;
+  i10Index?: number;
+  citations?: number;
+  joinDate?: string;
+  leaveDate?: string;
+  biography?: string;
+  researchInterests?: string;
+  dblpUrl?: string;
+  googleScholarUrl?: string;
+  researchGateUrl?: string;
+  linkedinUrl?: string;
+  personalWebsite?: string;
+  profilePic?: string;
+}
 
 export async function hashPassword(password: string): Promise<string> {
   const salt = await bcrypt.genSalt(10);
   return await bcrypt.hash(password, salt);
 }
 
-export default async function seedResearchers() {
-  console.log("Starting researcher seeding...");
+export async function seedResearchers() {
+  console.log("🚀 Starting researcher seeding...");
 
   try {
+    // Load researchers data from JSON file
+    const jsonPath = path.join(process.cwd(), "data", "researchers.json");
+    const researchersData: Researcher[] = JSON.parse(fs.readFileSync(jsonPath, "utf-8"));
+    
+    if (!researchersData || !Array.isArray(researchersData)) {
+      throw new Error("Invalid researchers data format");
+    }
+    
+    console.log(`📊 Loaded ${researchersData.length} researchers from JSON file`);
+
     // Create default research team
     const [defaultTeam] = await db
       .insert(researchTeams)
       .values({
         name: "Laboratoire des Méthodes de Conception de Systèmes",
         description: "Principal research team of LMCS laboratory",
-        establishedDate: new Date(2005, 0, 1),
-        websiteUrl: "https://www.esi.dz/lmcs",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        establishedDate: new Date(2005, 0, 1).toISOString(),
+        websiteUrl: "https://www.esi.dz/lmcs"
       })
       .onConflictDoNothing()
       .returning({ id: researchTeams.id });
 
-    if (!defaultTeam) {
-      const existingTeam = await db.query.researchTeams.findFirst({
-        where: eq(
-          researchTeams.name,
-          "Laboratoire des Méthodes de Conception de Systèmes"
-        ),
-      });
-      if (!existingTeam)
-        throw new Error("Failed to create or find default team");
-      defaultTeam.id = existingTeam.id;
-    }
+    const teamId = defaultTeam?.id || (
+      await db.query.researchTeams.findFirst({
+        where: eq(researchTeams.name, "Laboratoire des Méthodes de Conception de Systèmes"),
+      })
+    )?.id;
 
-    console.log(`Using team ID: ${defaultTeam.id}`);
+    if (!teamId) throw new Error("Failed to create or find default team");
+    console.log(`🏢 Using team ID: ${teamId}`);
 
     // Process each researcher
-    for (const researcher of LMCS_RESEARCHERS) {
+    const results = [];
+    for (const researcher of researchersData) {
       const fullName = `${researcher.firstName} ${researcher.lastName}`.trim();
-      const email = generateEmail(researcher);
+      const email = researcher.email || generateEmail(researcher);
       const password = generatePassword(researcher.lastName);
+      const orcidId = researcher.orcidId || generateOrcidId();
 
       console.log(`Processing: ${fullName}`);
+
+      // Map qualification from JSON to our enum values
+      const qualificationMap: Record<string, string> = {
+        "Professeur": "professor",
+        "Maître de conférences": "associate_professor",
+        "Maître assistant": "assistant_professor",
+        "Doctorant": "phd_candidate",
+        "Postdoc": "postdoc",
+        "Chercheur": "research_scientist"
+      };
+
+      const qualification = researcher.qualification 
+        ? qualificationMap[researcher.qualification] || getRandomQualification()
+        : getRandomQualification();
+
+      // Map position from JSON to our enum values
+      const positionMap: Record<string, string> = {
+        "Professeur": "senior_researcher",
+        "Directeur": "director",
+        "Chef de département": "department_head",
+        "Responsable d'équipe": "principal_investigator",
+        "Chercheur": "researcher",
+        "Assistant": "assistant"
+      };
+
+      const position = researcher.position 
+        ? positionMap[researcher.position] || getRandomPosition()
+        : getRandomPosition();
 
       // Insert researcher with all fields
       const [dbResearcher] = await db
         .insert(researchers)
         .values({
-          firstName: researcher.firstName || null,
+          firstName: researcher.firstName,
           lastName: researcher.lastName,
           email,
-          phone: generatePhoneNumber(),
+          phone: researcher.phone ? String(researcher.phone) : generatePhoneNumber(),
           status: "active",
-          qualification: getRandomQualification(),
-          position: getRandomPosition(),
-          hIndex: Math.floor(Math.random() * 30),
-          i10Index: Math.floor(Math.random() * 50),
-          citations: Math.floor(Math.random() * 1000),
-          teamId: defaultTeam.id,
-          joinDate: new Date(2015 + Math.floor(Math.random() * 8)), // Random join date 2015-2023
-          biography: generateBiography(researcher),
-          researchInterests: getResearchInterests(),
-          dblpUrl: `https://dblp.org/pid/${researcher.lastName.toLowerCase()}`,
-          googleScholarUrl: `https://scholar.google.com/citations?user=${researcher.lastName.toLowerCase()}`,
-          researchGateUrl: `https://www.researchgate.net/profile/${fullName.replace(
-            /\s+/g,
-            "-"
-          )}`,
-          personalWebsite: `https://www.esi.dz/~${researcher.lastName.toLowerCase()}`,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
+          qualification: qualification as "professor" | "associate_professor" | "assistant_professor" | "postdoc" | "phd_candidate" | "research_scientist",
+          position: position as "director" | "department_head" | "principal_investigator" | "senior_researcher" | "researcher" | "assistant",
+          hIndex: researcher.hIndex || Math.floor(Math.random() * 30),
+          i10Index: researcher.i10Index || Math.floor(Math.random() * 50),
+          citations: researcher.citations || Math.floor(Math.random() * 1000),
+          teamId,
+          joinDate: researcher.joinDate || randomDate(new Date(2010, 0, 1)).toISOString(),
+          biography: researcher.biography || generateBiography(researcher),
+          researchInterests: researcher.researchInterests || getResearchInterests(),
+          dblpUrl: researcher.dblpUrl || `https://dblp.org/pid/${researcher.lastName.toLowerCase()}`,
+          googleScholarUrl: researcher.googleScholarUrl || "",
+          researchGateUrl: researcher.researchGateUrl || `https://www.researchgate.net/profile/${fullName.replace(/\s+/g, "-")}`,
+          linkedinUrl: researcher.linkedinUrl || `https://www.linkedin.com/in/${fullName.replace(/\s+/g, "-")}`,
+          personalWebsite: researcher.personalWebsite || `https://www.esi.dz/~${researcher.lastName.toLowerCase()}`,
+          orcidId,
         })
         .returning({ id: researchers.id });
 
       if (!dbResearcher) {
-        console.error(`Failed to create researcher: ${fullName}`);
+        console.error(`❌ Failed to create researcher: ${fullName}`);
         continue;
       }
 
       // Create corresponding user account
       const hashedPassword = await hashPassword(password);
-
       await db.insert(users).values({
         name: fullName,
         email,
         password: hashedPassword,
-        role: getRandomRole(),
+        role: "researcher",
         researcherId: dbResearcher.id,
-        emailVerified: new Date().toISOString(),
         isActive: true,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        lastLogin: Math.random() > 0.7 ? new Date().toISOString() : null, // 30% chance of having logged in
+        image: researcher.profilePic || undefined,
       });
 
-      console.log(
-        `Created: ${fullName} | Email: ${email} | Password: ${password}`
-      );
+      results.push({
+        name: fullName,
+        email,
+        password, // Only for development!
+        orcidId,
+        researcherId: dbResearcher.id
+      });
     }
 
     console.log("✅ Researcher seeding completed successfully!");
+    return results;
   } catch (error) {
     console.error("❌ Error seeding researchers:", error);
-    //process.exit(1);
-  } finally {
-    //process.exit(0);
+    throw error;
   }
 }
 
-// Helper functions
-function generateEmail(researcher: {
-  firstName: string;
-  lastName: string;
-}): string {
-  const firstInitial = researcher.firstName
-    ? researcher.firstName.charAt(0).toLowerCase()
-    : "x"; // Default if no first name
-
+// Helper functions (unchanged from original)
+function generateEmail(researcher: { firstName: string; lastName: string }): string {
+  const firstInitial = researcher.firstName ? researcher.firstName.charAt(0).toLowerCase() : "x";
   const cleanLastName = researcher.lastName
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/\s+/g, "_");
-
   return `${firstInitial}_${cleanLastName}@esi.dz`;
 }
 
 function generatePassword(lastName: string): string {
-  return `${lastName.toLowerCase()}@esi`;
+  return `${lastName.toLowerCase()}@${new Date().getFullYear()}`;
 }
 
 function generatePhoneNumber(): string {
   return `+213${Math.floor(500000000 + Math.random() * 500000000)}`;
+}
+
+function generateOrcidId(): string {
+  return `0000-000${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(1000 + Math.random() * 9000)}`;
+}
+
+function randomDate(start: Date, end: Date = new Date()): Date {
+  return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
 }
 
 function getRandomQualification() {
@@ -185,7 +207,7 @@ function getRandomQualification() {
   return qualifications[Math.floor(Math.random() * qualifications.length)];
 }
 
-function getRandomPosition() {
+function getRandomPosition(): "director" | "department_head" | "principal_investigator" | "senior_researcher" | "researcher" | "assistant" {
   const positions = [
     "director",
     "department_head",
@@ -193,19 +215,8 @@ function getRandomPosition() {
     "senior_researcher",
     "researcher",
     "assistant",
-  ];
+  ] as const;
   return positions[Math.floor(Math.random() * positions.length)];
-}
-
-function getRandomRole() {
-  const roles = [
-    "researcher",
-    "researcher",
-    "researcher",
-    "assistant",
-    "director",
-  ]; // Weighted
-  return roles[Math.floor(Math.random() * roles.length)];
 }
 
 function generateBiography(researcher: {

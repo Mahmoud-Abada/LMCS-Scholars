@@ -45,6 +45,7 @@
 }
 
 :root {
+    --sidebar-width: 250px;
   --radius: 0.625rem;
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
@@ -79,6 +80,38 @@
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
 }
+/* globals.css or any global style */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #a0aec0; /* soft gray */
+  border-radius: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background-color: #edf2f7; /* lighter background */
+}
+/* Toast Styles */
+.success-toast {
+  background-color: #f0fdf4 !important;
+  color: #166534 !important;
+  border: 1px solid #bbf7d0 !important;
+}
+
+.error-toast {
+  background-color: #fef2f2 !important;
+  color: #b91c1c !important;
+  border: 1px solid #fecaca !important;
+}
+mark[data-highlight] {
+  background-color: yellow;
+  color: black;
+  padding: 0 2px;
+  border-radius: 2px;
+}
+
 
 /* .dark {
   --background: oklch(0.145 0 0);

@@ -1,17 +1,26 @@
 // src/app/api/researchers/[id]/stats/route.ts
-import { NextResponse } from 'next/server';
-import { db } from '@/db/client';
-import { and, count, eq, avg, sum, max, isNotNull, sql, countDistinct } from 'drizzle-orm';
+import { db } from "@/db/client";
 import {
-  researchers,
+  classificationSystems,
   publicationAuthors,
+  publicationClassifications,
   publications,
   publicationVenues,
+  researchers,
   venues,
-  publicationClassifications,
-  classificationSystems,
-} from '@/db/schema';
-import { handleApiError } from '@/lib/api-utils';
+} from "@/db/schema";
+import { handleApiError } from "@/lib/api-utils";
+import {
+  and,
+  avg,
+  count,
+  countDistinct,
+  eq,
+  isNotNull,
+  sql,
+  sum,
+} from "drizzle-orm";
+import { NextResponse } from "next/server";
 
 export async function GET(
   request: Request,
@@ -26,7 +35,7 @@ export async function GET(
 
     if (researcherExists[0].count === 0) {
       return NextResponse.json(
-        { error: 'Researcher not found' },
+        { error: "Researcher not found" },
         { status: 404 }
       );
     }
@@ -49,7 +58,12 @@ export async function GET(
         eq(publications.id, publicationAuthors.publicationId)
       )
       .where(eq(researchers.id, params.id))
-      .groupBy(researchers.id, researchers.hIndex, researchers.i10Index, researchers.citations);
+      .groupBy(
+        researchers.id,
+        researchers.hIndex,
+        researchers.i10Index,
+        researchers.citations
+      );
 
     // Publication types distribution
     const publicationTypes = await db
@@ -68,8 +82,6 @@ export async function GET(
     // Venue quality stats
     const venueStats = await db
       .select({
-        avgImpactFactor: avg(venues.impactFactor),
-        maxImpactFactor: max(venues.impactFactor),
         avgSjrIndicator: avg(venues.sjrIndicator),
         openAccessCount: count(
           and(
@@ -121,9 +133,7 @@ export async function GET(
           db
             .select({ count: count() })
             .from(publicationAuthors)
-            .where(
-              eq(publicationAuthors.publicationId, publications.id)
-            )
+            .where(eq(publicationAuthors.publicationId, publications.id))
         ),
       })
       .from(publicationAuthors)

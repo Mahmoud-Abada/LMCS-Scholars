@@ -26,7 +26,6 @@ export async function GET(request: Request) {
         venueType: venues.type,
         paperCount: count(publications.id),
         avgCitations: sql<number>`ROUND(AVG(${publications.citationCount})::numeric, 2)`,
-        impactFactor: venues.impactFactor,
         sjrIndicator: venues.sjrIndicator,
         ourCitations: sum(publications.citationCount),
         hIndex: sql<number>`

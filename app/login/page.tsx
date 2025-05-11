@@ -1,29 +1,109 @@
 "use client";
 
-import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { SubmitButton } from "@/components/submit-button";
 import Image from "next/image";
+import { Eye, EyeOff } from "lucide-react";
+import { toast } from "sonner";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isGuestLoading, setIsGuestLoading] = useState(false);
 
+  // Your existing login function remains unchanged
   async function handleLogin(formData: FormData) {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
 
-    const res = await signIn("credentials", {
-      redirect: false,
-      email,
-      password,
-    });
+    setIsLoading(true);
+    toast.dismiss();
 
-    if (res?.error) {
-      setError("Invalid email or password.");
-    } else {
-      router.push("/dashboard");
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ email, password })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Login failed");
+      }
+
+      toast.success("Login successful! Redirecting...");
+     
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      router.push("/");
+      router.refresh();
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Login failed";
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function handleGuestLogin() {
+    setIsGuestLoading(true);
+    toast.dismiss();
+
+    try {
+      // Generate unique guest credentials
+      const timestamp = Date.now();
+      const guestEmail = `guest_${timestamp}@esi.com`;
+      const guestPassword = `guest_${timestamp}`;
+      const guestName = `Guest User ${timestamp.toString().slice(-4)}`;
+
+      // Register the guest user
+      const registerResponse = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          email: guestEmail,
+          password: guestPassword,
+          name: guestName,
+          role: "guest" // This matches your schema
+        })
+      });
+
+      if (!registerResponse.ok) {
+        throw new Error("Failed to create guest account");
+      }
+
+      // Login with the new guest credentials
+      const loginResponse = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          email: guestEmail,
+          password: guestPassword
+        })
+      });
+
+      if (!loginResponse.ok) {
+        throw new Error("Failed to authenticate guest account");
+      }
+
+      toast.success("Guest session started! Redirecting...");
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      router.push("/");
+      router.refresh();
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Guest login failed";
+      toast.error(errorMessage);
+    } finally {
+      setIsGuestLoading(false);
     }
   }
 
@@ -47,12 +127,6 @@ export default function LoginPage() {
           <p className="text-gray-600 mt-1">Sign in to your account</p>
         </div>
 
-        {error && (
-          <div className="bg-red-50 p-3 rounded-md">
-            <p className="text-red-600 text-sm text-center">{error}</p>
-          </div>
-        )}
-
         <div className="space-y-4">
           <div>
             <label className="block mb-2 text-sm font-medium text-gray-700">
@@ -67,31 +141,56 @@ export default function LoginPage() {
             />
           </div>
 
-          <div>
+          <div className="relative">
             <label className="block mb-2 text-sm font-medium text-gray-700">
               Password
             </label>
             <input
               name="password"
-              type="password"
+              type={showPassword ? "text" : "password"}
               required
-              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-10"
               placeholder="Enter your password"
             />
+            <button
+              type="button"
+              className="absolute right-3 top-9 text-gray-500 hover:text-gray-700"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+            </button>
           </div>
         </div>
 
-        <SubmitButton className="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition-colors font-medium">
-          Sign In
+        <SubmitButton 
+          className="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+          disabled={isLoading}
+        >
+          {isLoading ? "Signing In..." : "Sign In"}
         </SubmitButton>
 
+        <div className="relative flex items-center">
+          <div className="flex-grow border-t border-gray-300"></div>
+          <span className="flex-shrink mx-4 text-gray-500">or</span>
+          <div className="flex-grow border-t border-gray-300"></div>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleGuestLogin}
+          disabled={isGuestLoading}
+          className="w-full bg-gray-600 text-white p-3 rounded-lg hover:bg-gray-700 transition-colors font-medium disabled:opacity-50"
+        >
+          {isGuestLoading ? "Creating Guest Session..." : "Continue as Guest"}
+        </button>
+
         <p className="text-sm text-center text-gray-600">
-          Don&apos;t have an account?{" "}
-          <a 
-            href="/register" 
+          Forgot password?{" "}
+          <a
+            href="/forgot-password"
             className="text-blue-600 hover:underline font-medium"
           >
-            Register here
+            Reset it here
           </a>
         </p>
       </form>

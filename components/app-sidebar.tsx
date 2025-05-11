@@ -1,8 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { useState, useRef, useEffect } from "react";
-import { SearchForm } from "@/components/search-form";
 import {
   Sidebar,
   SidebarContent,
@@ -14,236 +12,211 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarRail,
 } from "@/components/ui/sidebar";
 import {
+  RiUserFollowLine,
+  RiArticleLine,
   RiScanLine,
   RiBardLine,
-  RiUserFollowLine,
-  RiCodeSSlashLine,
-  RiLoginCircleLine,
-  RiSettings3Line,
-  RiLeafLine,
-  RiLogoutBoxLine,
-  RiArticleLine,
   RiBarChartHorizontalFill,
-  RiArrowLeftLine,
-  RiArrowRightLine,
-  RiArrowUpLine,
-  RiArrowDownLine,
+  RiSettings3Line,
+  RiLogoutBoxLine,
+  RiUserLine,
+  RiTeamLine,
 } from "@remixicon/react";
+import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { signOut } from "next-auth/react";
+import Image from "next/image";
 
-// ... (keep your existing data constant)
-const data = {
-  teams: [
-    {
-      name: "LMCS Scholars",
-      logo: "/images/lmcs.jpg",
-    },
-  ],
-  navMain: [
-    {
-      title: "Sections",
-      url: "#",
-      items: [
-        {
-          title: "Researchers",
-          url: "#",
-          icon: RiUserFollowLine,
-          isActive: true,
-        },
-        {
-          title: "Publications",
-          url: "#",
-          icon: RiArticleLine,
-        },
-        {
-          title: "Stats",
-          url: "#",
-          icon: RiScanLine,
-        },
-        {
-          title: "Insights",
-          url: "#",
-          icon: RiBardLine,
-        },
-        {
-          title: "Reports",
-          url: "#",
-          icon: RiBarChartHorizontalFill,
-        },
-        {
-          title: "Tools",
-          url: "#",
-          icon: RiCodeSSlashLine,
-        },
-        {
-          title: "Integration",
-          url: "#",
-          icon: RiLoginCircleLine,
-        },
-      ],
-    },
-    {
-      title: "Other",
-      url: "#",
-      items: [
-        {
-          title: "Settings",
-          url: "#",
-          icon: RiSettings3Line,
-        },
-        {
-          title: "Help Center",
-          url: "#",
-          icon: RiLeafLine,
-        },
-      ],
-    },
-  ],
-};
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const [showScrollUp, setShowScrollUp] = useState(false);
-  const [showScrollDown, setShowScrollDown] = useState(false);
-  const contentRef = useRef<HTMLDivElement>(null);
+interface User {
+  id: string;
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+  role?: "admin" | "researcher" | "guest";
+  researcherId?: string | null;
+}
 
-  // Check scroll position
-  useEffect(() => {
-    const checkScroll = () => {
-      if (contentRef.current) {
-        const { scrollTop, scrollHeight, clientHeight } = contentRef.current;
-        setShowScrollUp(scrollTop > 0);
-        setShowScrollDown(scrollTop < scrollHeight - clientHeight);
-      }
-    };
+export function AppSidebar() {
+  const pathname = usePathname();
+  const { data: session, status } = useSession();
+  const user = session?.user as User | undefined;
+  const isResearcher = user?.role === "researcher";
 
-    checkScroll();
-    contentRef.current?.addEventListener('scroll', checkScroll);
-    return () => contentRef.current?.removeEventListener('scroll', checkScroll);
-  }, []);
-
-  const scrollUp = () => {
-    contentRef.current?.scrollBy({ top: -100, behavior: 'smooth' });
+  // Determine active item based on exact or startsWith match
+  const isActive = (url: string) => {
+    // Special case for researcher profile to avoid conflict with researchers list
+    if (url.startsWith("/researchers/") && pathname.startsWith("/researchers/")) {
+      return pathname === url; // Exact match for profile
+    }
+    return pathname === url || pathname.startsWith(url + "/");
   };
 
-  const scrollDown = () => {
-    contentRef.current?.scrollBy({ top: 100, behavior: 'smooth' });
-  };
-
-  if (isCollapsed) {
+  if (status === "loading") {
     return (
-      <button 
-        onClick={() => setIsCollapsed(false)}
-        className="fixed left-0 top-30 z-50 p-2 bg-[#d2e8ff] text-gray-800 rounded-r-md shadow-lg hover:bg-blue-500/30 transition-all duration-300 transform hover:translate-x-1"
-      >
-        <RiArrowRightLine size={24} />
-      </button>
+      <Sidebar className="!bg-[#d2e8ff] text-gray-800 !fixed h-screen">
+        <SidebarContent className="flex items-center justify-center">
+          <div className="animate-pulse">Chargement...</div>
+        </SidebarContent>
+      </Sidebar>
     );
   }
 
-  return (
-    <Sidebar 
-      {...props} 
-      className="!bg-[#d2e8ff] text-gray-800 !fixed h-screen overflow-y-hidden transition-all duration-300"
-    >
-      {/* Toggle button */}
-      <button 
-        onClick={() => setIsCollapsed(true)}
-        className="absolute -right-4 top-4 z-50 p-1 bg-[#d2e8ff] text-gray-800 rounded-full shadow-lg hover:bg-blue-500/30 transition-all duration-300 border-2 border-gray-300 hover:scale-110"
-      >
-        <RiArrowLeftLine size={20} />
-      </button>
+  const menuItems = [
+    ...(isResearcher
+      ? [
+          {
+            group: "MON PROFIL",
+            items: [
+              {
+                title: "Mon Profil",
+                url: `/researcher/${user?.researcherId}`,
+                icon: RiUserLine,
+                exact: true, // Requires exact match
+              },
+            ],
+          },
+        ]
+      : []),
+    
+    {
+      group: "SECTIONS",
+      items: [
+        {
+          title: "Accueil",
+          url: "/",
+          icon: RiTeamLine,
+        },
+        
+        {
+          title: "Publications",
+          url: "/publications",
+          icon: RiArticleLine,
+        },
+        {
+          title: "Statistiques",
+          url: "/stats",
+          icon: RiScanLine,
+        },
+        {
+          title: "chercheurs",
+          url: "/dashboard",
+          icon: RiBarChartHorizontalFill,
+        },
+        {
+          title: "À propos",
+          url: "/about",
+          icon: RiBardLine,
+        },
+      ],
+    },
+    // {
+    //   group: "COMPTE",
+    //   items: [
+    //     {
+    //       title: "Paramètres",
+    //       url: "/settings",
+    //       icon: RiSettings3Line,
+    //     },
+    //     {
+    //       title: "Déconnexion",
+    //       url: "#",
+    //       icon: RiLogoutBoxLine,
+    //       onClick: () => signOut({ callbackUrl: "/login" }),
+    //     },
+    //   ],
+    // },
+  ];
 
-      <SidebarHeader className="px-2 pt-2 pb-0 !bg-[#d2e8ff]">
-        <div className="flex flex-col items-center transition-all duration-300">
-          <img 
-            src="/images/lmcs.jpg" 
-            alt="LMCS Laboratory" 
-            className="h-24 w-auto max-w-[180px] object-contain mb-3 rounded-lg transition-all duration-300 hover:scale-105" 
-          />
-          <span className="text-lg font-semibold text-gray-800">LMCS Scholars</span>
+  return (
+    <Sidebar className="!bg-[#d2e8ff] text-gray-800 !fixed h-screen border-r border-blue-300">
+      <SidebarHeader className="px-4 pt-4 !bg-[#d2e8ff] border-b border-blue-300 pb-4">
+        <div className="flex flex-col items-center">
+          <div className="relative h-13 w-20 mb-1   rounded-lg ">
+            <Image
+              src={user?.image || "/images/lmcs.jpg"}
+              alt="Profile"
+              className="object-cover"
+              fill
+              sizes="70px"
+            />
+          </div>
+          <h1 className="text-2xl font-bold text-gray-800">LMCS Scholars</h1>
+          {user && (
+            <div className="text-center mt-2">
+              <p className="text-base font-semibold text-gray-800">
+                {user.name || "Utilisateur"}
+              </p>
+              <p className="text-sm text-blue-600 font-medium">
+                {user.role === "researcher"
+                  ? "Chercheur"
+                  : user.role === "admin"
+                  ? "Administrateur"
+                  : "vous êtes connecté"}
+              </p>
+            </div>
+          )}
         </div>
-        <hr className="border-t border-blue-500 mx-2 -mt-px my-4" />
-        <SearchForm className="mt-0" />
       </SidebarHeader>
 
-      {/* Scroll up button - only shows when needed */}
-      {showScrollUp && (
-        <button 
-          onClick={scrollUp}
-          className="absolute right-4 top-40 z-10 p-2 bg-blue-500/50 text-gray-800 rounded-full w-8 h-8 flex items-center justify-center hover:bg-blue-500/70 transition-all duration-200 shadow-md hover:shadow-lg"
-        >
-          <RiArrowUpLine size={16} />
-        </button>
-      )}
-
-      <SidebarContent 
-        ref={contentRef}
-        className="!bg-[#d2e8ff] overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden py-4 px-2 transition-all duration-300"
-      >
-        {data.navMain.map((item) => (
-          <SidebarGroup key={item.title}>
-            <SidebarGroupLabel className="uppercase text-gray-600">
-              {item.title}
-            </SidebarGroupLabel>
-            <SidebarGroupContent className="px-2">
-              <SidebarMenu>
-                {item.items.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton
-                      asChild
-                      className="group/menu-button font-medium gap-3 h-9 rounded-md hover:bg-blue-500/30 data-[active=true]:bg-blue-600 [&>svg]:size-auto transition-all duration-200"
-                      isActive={item.isActive}
-                    >
-                      <a href={item.url}>
-                        {item.icon && (
+      <SidebarContent className="!bg-[#d2e8ff] px-4 py-6 space-y-6">
+        {menuItems.map((group, groupIndex) => (
+          <React.Fragment key={group.group}>
+            <SidebarGroup>
+              <SidebarGroupLabel className="uppercase text-gray-600 text-sm font-bold mb-2 tracking-wider">
+                {group.group}
+              </SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu className="space-y-1">
+                  {group.items.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton
+                        asChild
+                        className={`font-semibold gap-2 h-9 rounded-lg hover:bg-blue-500/30 text-base transition-colors duration-200 ${
+                          isActive(item.url)
+                            ? "bg-blue-600 text-white hover:bg-blue-600 shadow-md"
+                            : "hover:text-blue-800"
+                        }`}
+                      >
+                        <a
+                          href={item.url}
+                          onClick={(e) => {
+                            if (item.onClick) {
+                              e.preventDefault();
+                              item.onClick();
+                            }
+                          }}
+                          className="px-2"
+                        >
                           <item.icon
-                            className="text-gray-700 group-data-[active=true]/menu-button:text-white transition-all duration-200"
                             size={22}
-                            aria-hidden="true"
+                            className={
+                              isActive(item.url)
+                                ? "text-white"
+                                : "text-gray-700"
+                            }
                           />
-                        )}
-                        <span className="text-gray-800 group-data-[active=true]/menu-button:text-white transition-all duration-200">
-                          {item.title}
-                        </span>
-                      </a>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
+                          <span>{item.title}</span>
+                        </a>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+            
+            {/* Add separator between groups except after last one */}
+            {groupIndex < menuItems.length - 1 && (
+              <div className="border-t border-blue-300/50 my-0.5"></div>
+            )}
+          </React.Fragment>
         ))}
       </SidebarContent>
 
-      {/* Scroll down button - only shows when needed */}
-      {showScrollDown && (
-        <button 
-          onClick={scrollDown}
-          className="absolute right-4 bottom-24 z-10 p-2 bg-blue-500/50 text-gray-800 rounded-full w-8 h-8 flex items-center justify-center hover:bg-blue-500/70 transition-all duration-200 shadow-md hover:shadow-lg"
-        >
-          <RiArrowDownLine size={16} />
-        </button>
-      )}
-
-      <SidebarFooter className="!bg-[#d2e8ff] transition-all duration-300">
-        <hr className="border-t border-blue-500 mx-2 -mt-px" />
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton className="font-medium gap-3 h-9 rounded-md hover:bg-blue-500/30 [&>svg]:size-auto transition-all duration-200">
-              <RiLogoutBoxLine
-                className="text-gray-700 transition-all duration-200"
-                size={22}
-                aria-hidden="true"
-              />
-              <span className="text-gray-800 transition-all duration-200">Sign Out</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+      <SidebarFooter className="p-2 text-center text-sm text-gray-600 bg-blue-100 border-t border-blue-300 mb-4">
+        <p className="font-medium">LMCS Laboratory © {new Date().getFullYear()}</p>
       </SidebarFooter>
-      
-      <SidebarRail />
     </Sidebar>
   );
 }
