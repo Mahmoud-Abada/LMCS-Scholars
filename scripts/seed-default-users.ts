@@ -7,23 +7,13 @@ type UserRole = "admin" | "assistant" | "director" | "researcher" | "guest";
 
 export const DEFAULT_USERS = [
   {
+
+    //prompt for these data
     name: "Admin User",
     email: "admin@esi.dz",
     role: "admin" as UserRole,
     password: "Admin@2025",
-  },
-  {
-    name: "Assistant User",
-    email: "assistant@esi.dz",
-    role: "assistant" as UserRole,
-    password: "Assistant@2025",
-  },
-  {
-    name: "Director User",
-    email: "director@esi.dz",
-    role: "director" as UserRole,
-    password: "Director@2025",
-  },
+  }
 ];
 
 export async function hashPassword(password: string): Promise<string> {

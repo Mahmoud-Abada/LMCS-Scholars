@@ -5,9 +5,8 @@ import { NextResponse } from "next/server";
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const researcherName = searchParams.get("name");
-  const scholarId= searchParams.get("scholar_id");
-  const scholarUrl =`https://scholar.google.com/citations?user=${scholarId}=en` ;
-  
+  const scholarId = searchParams.get("scholar_id");
+  const scholarUrl = `https://scholar.google.com/citations?user=${scholarId}`;
 
   console.log("Researcher name:", researcherName);
   console.log("Scholar URL:", scholarUrl);
@@ -19,10 +18,13 @@ export async function GET(request: Request) {
     );
   }
 
-  const scraper = new ResearchDataScraper();
+  const scraper = new ResearchDataScraper({
+    headless: !["test", "development"].includes(process.env.NODE_ENV),
+    executablePath: process.env.BROWSER_PATH,
+  });
   try {
     const publications = await scraper.scrapeResearcherPublications(
-      researcherName, 
+      researcherName,
       scholarUrl ?? undefined
     );
 

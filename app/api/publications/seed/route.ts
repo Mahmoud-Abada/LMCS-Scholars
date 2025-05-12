@@ -26,7 +26,10 @@ export async function POST() {
       },
     });
 
-    scraper = new ResearchDataScraper();
+    scraper = new ResearchDataScraper({
+      headless: !["test", "development"].includes(process.env.NODE_ENV),
+      executablePath: process.env.BROWSER_PATH,
+    });
     const results = {
       totalResearchers: allResearchers.length,
       processedResearchers: 0,

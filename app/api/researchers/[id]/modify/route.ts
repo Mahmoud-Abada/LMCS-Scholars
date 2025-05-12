@@ -23,8 +23,22 @@ const researcherUpdateSchema = z.object({
   researchGateUrl: z.string().url("Invalid URL").or(z.literal("")),
   linkedinUrl: z.string().url("Invalid URL").or(z.literal("")),
   personalWebsite: z.string().url("Invalid URL").or(z.literal("")),
-  position: z.string().optional(),
-  qualification: z.string().optional(),
+  position: z.enum([
+    "director",
+    "department_head",
+    "principal_investigator",
+    "senior_researcher",
+    "researcher",
+    "assistant"
+  ]).optional(),
+  qualification: z.enum([
+    "professor",
+    "associate_professor",
+    "assistant_professor",
+    "postdoc",
+    "phd_candidate",
+    "research_scientist"
+  ]).optional(),
 });
 
 export async function PUT(
