@@ -143,11 +143,19 @@ export default async function Page() {
                   <div className="min-w-[800px]">
                     <div className="flex justify-between items-center">
                       <h1 className="text-2xl font-bold">Researchers Management</h1>
+                      {showAddResearcher && (
+  <Link href="/update-publications">
+    <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+      Update BDD
+    </Button>
+  </Link>
+)}
                       {showAddResearcher && (<Link href="/addGeneral">
   <Button className="bg-blue-600 hover:bg-blue-700 text-white">
     Add New Member
   </Button>
 </Link>)}
+
                     
                         
                     </div>

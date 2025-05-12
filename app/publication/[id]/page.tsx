@@ -41,14 +41,45 @@ import { useSession } from "next-auth/react";
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
+type Author = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  hIndex?: number;
+  affiliationDuringWork?: string;
+};
+
+type ExternalAuthor = {
+  id: string;
+  fullName: string;
+  affiliation?: string;
+};
+
+type Venue = {
+  id: string;
+  name: string;
+  type: string;
+  publisher?: string;
+  issn?: string;
+  eventDate?: string;
+  isOpenAccess?: boolean;
+};
+
+type Classification = {
+  systemId: string;
+  systemName: string;
+  category: string;
+  year?: string;
+};
+
 type Publication = {
   id: string;
   title: string;
   abstract?: string;
-  authors?: any[];
-  externalAuthors?: any[];
-  venues?: any[];
-  classifications?: any[];
+  authors?: Author[];
+  externalAuthors?: ExternalAuthor[];
+  venues?: Venue[];
+  classifications?: Classification[];
   publicationType?: string;
   publicationDate?: string;
   doi?: string;
@@ -84,7 +115,13 @@ export default function PublicationDetails() {
           throw new Error('Failed to fetch publication data');
         }
         const data = await response.json();
-        setPublication(data);
+        setPublication({
+          ...data,
+          authors: data.authors || [],
+          externalAuthors: data.externalAuthors || [],
+          venues: data.venues || [],
+          classifications: data.classifications || []
+        });
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unknown error occurred');
       } finally {
@@ -96,7 +133,13 @@ export default function PublicationDetails() {
   }, [id]);
 
   const handleUpdateSuccess = (updatedPublication: Publication) => {
-    setPublication(updatedPublication);
+    setPublication({
+      ...updatedPublication,
+      authors: updatedPublication.authors || [],
+      externalAuthors: updatedPublication.externalAuthors || [],
+      venues: updatedPublication.venues || [],
+      classifications: updatedPublication.classifications || []
+    });
     setEditMode(false);
     toast.success('Publication updated successfully');
     router.refresh();
@@ -123,7 +166,6 @@ export default function PublicationDetails() {
       </SidebarProvider>
     );
   }
-
 
   if (loading) {
     return (
@@ -237,7 +279,6 @@ export default function PublicationDetails() {
     );
   }
 
-  // Prepare chart data from fetched data
   const citationData = [
     { year: 2022, citations: Math.floor(publication.citationCount * 0.3) },
     { year: 2023, citations: Math.floor(publication.citationCount * 0.6) },
@@ -245,15 +286,15 @@ export default function PublicationDetails() {
   ];
 
   const authorData = [
-    ...publication.authors.map(author => ({
+    ...(publication.authors || []).map(author => ({
       name: `${author.firstName} ${author.lastName}`,
       hIndex: author.hIndex || 0,
       contribution: 50
     })),
-    ...publication.externalAuthors.map(author => ({
+    ...(publication.externalAuthors || []).map(author => ({
       name: author.fullName,
       hIndex: 0,
-      contribution: 50 / publication.externalAuthors.length
+      contribution: 50 / Math.max((publication.externalAuthors?.length || 1), 1)
     }))
   ];
 
@@ -269,7 +310,7 @@ export default function PublicationDetails() {
     ? new Date(publication.publicationDate).getFullYear() 
     : 'N/A';
 
-  const topClassification = publication.classifications.length > 0
+  const topClassification = (publication.classifications && publication.classifications.length > 0)
     ? publication.classifications[0]
     : null;
 
@@ -374,7 +415,7 @@ export default function PublicationDetails() {
                     <div className="bg-purple-50 p-4 rounded-lg">
                       <p className="text-sm text-purple-600">Authors</p>
                       <p className="text-2xl font-bold">
-                        {publication.authors.length + publication.externalAuthors.length}
+                        {(publication.authors?.length || 0) + (publication.externalAuthors?.length || 0)}
                       </p>
                     </div>
                     {publication.pdfUrl && (
@@ -396,17 +437,17 @@ export default function PublicationDetails() {
                   <CardHeader>
                     <CardTitle>Authors</CardTitle>
                     <CardDescription>
-                      {publication.authors.length} internal authors
-                      {publication.externalAuthors.length > 0 && 
-                        `, ${publication.externalAuthors.length} external authors`}
+                      {(publication.authors?.length || 0)} internal authors
+                      {(publication.externalAuthors?.length || 0) > 0 && 
+                        `, ${publication.externalAuthors?.length} external authors`}
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      {publication.authors.map(author => (
+                      {(publication.authors || []).map(author => (
                         <div key={author.id} className="flex items-center p-4 border rounded-lg">
                           <div className="bg-blue-100 text-blue-800 font-bold rounded-full w-12 h-12 flex items-center justify-center mr-4">
-                            {author.firstName.charAt(0)}{author.lastName.charAt(0)}
+                            {author.firstName?.charAt(0)}{author.lastName?.charAt(0)}
                           </div>
                           <div>
                             <p className="font-semibold">{author.firstName} {author.lastName}</p>
@@ -420,10 +461,10 @@ export default function PublicationDetails() {
                         </div>
                       ))}
 
-                      {publication.externalAuthors.map(author => (
+                      {(publication.externalAuthors || []).map(author => (
                         <div key={author.id} className="flex items-center p-4 border rounded-lg">
                           <div className="bg-gray-100 text-gray-800 font-bold rounded-full w-12 h-12 flex items-center justify-center mr-4">
-                            {author.fullName.split(' ').map(n => n[0]).join('')}
+                            {author.fullName?.split(' ').map(n => n[0]).join('')}
                           </div>
                           <div>
                             <p className="font-semibold">{author.fullName}</p>
@@ -523,7 +564,7 @@ export default function PublicationDetails() {
 
             <TabsContent value="venue">
               <div className="grid gap-6 md:grid-cols-2">
-                {publication.venues.length > 0 ? (
+                {(publication.venues && publication.venues.length > 0) ? (
                   <>
                     <Card>
                       <CardHeader>

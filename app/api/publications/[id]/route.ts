@@ -1,3 +1,4 @@
+// src/app/api/publications/[id]/route.ts
 import { db } from "@/db/client";
 import {
   publications,
@@ -16,10 +17,10 @@ import type { NextRequest } from 'next/server';
 import { z } from "zod";
 import { auth } from "../../../../auth";
 
+// Updated schema with proper validation
 const publicationSchema = z.object({
-  title: z.string().min(1),
-  abstract: z.string().optional(),
-  authors: z.array(z.string()).optional(),
+  title: z.string().min(1, "Title is required"),
+  abstract: z.string().optional().nullable(),
   publicationType: z.enum([
     "journal_article",
     "conference_paper",
@@ -28,20 +29,41 @@ const publicationSchema = z.object({
     "technical_report",
     "thesis",
     "preprint"
-  ]).optional(),
-  publicationDate: z.string().optional(),
-  doi: z.string().optional(),
-  url: z.string().url().optional(),
-  pdfUrl: z.string().url().optional(),
-  scholarLink: z.string().url().optional(),
-  dblpLink: z.string().url().optional(),
-  pages: z.string().optional(),
-  volume: z.string().optional(),
-  issue: z.string().optional(),
-  publisher: z.string().optional(),
-  journal: z.string().optional(),
-  language: z.string().optional(),
-});
+  ]).optional().nullable(),
+  publicationDate: z.string().optional().nullable(),
+  doi: z.string()
+    .optional()
+    .nullable()
+    .refine(val => !val || val.startsWith('10.'), {
+      message: "DOI must start with '10.'"
+    }),
+  url: z.string()
+    .url("Must be a valid URL")
+    .or(z.literal(''))
+    .optional()
+    .nullable(),
+  pdfUrl: z.string()
+    .url("Must be a valid URL")
+    .or(z.literal(''))
+    .optional()
+    .nullable(),
+  scholarLink: z.string()
+    .url("Must be a valid URL")
+    .or(z.literal(''))
+    .optional()
+    .nullable(),
+  dblpLink: z.string()
+    .url("Must be a valid URL")
+    .or(z.literal(''))
+    .optional()
+    .nullable(),
+  pages: z.string().optional().nullable(),
+  volume: z.string().optional().nullable(),
+  issue: z.string().optional().nullable(),
+  publisher: z.string().optional().nullable(),
+  journal: z.string().optional().nullable(),
+  language: z.string().optional().nullable(),
+}).partial();
 
 export async function GET(
   request: NextRequest,
@@ -177,7 +199,16 @@ export async function PUT(
 
   try {
     const body = await request.json();
-    const validatedData = publicationSchema.parse(body);
+    
+    // Convert empty strings to null for all fields
+    const cleanedBody = Object.fromEntries(
+      Object.entries(body).map(([key, value]) => [
+        key, 
+        value === "" ? null : value
+      ])
+    );
+
+    const validatedData = publicationSchema.parse(cleanedBody);
 
     const [updatedPublication] = await db
       .update(publications)
@@ -190,8 +221,8 @@ export async function PUT(
 
     if (!updatedPublication) {
       return NextResponse.json(
-        { error: "Failed to update publication" },
-        { status: 500 }
+        { error: "Publication not found or failed to update" },
+        { status: 404 }
       );
     }
 
@@ -202,11 +233,12 @@ export async function PUT(
 
   } catch (error) {
     if (error instanceof z.ZodError) {
+      console.error("Validation errors:", error.errors);
       return NextResponse.json(
         { 
           error: "Validation failed",
           details: error.errors.map(e => ({
-            path: e.path.join('.'),
+            field: e.path.join('.'),
             message: e.message
           }))
         },
