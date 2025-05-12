@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, Filter, BookOpenText, LineChart, ChevronLeft, ChevronRight, BarChart2, List, Library, Users, Award } from "lucide-react";
+import { Search, LineChart, ChevronLeft, ChevronRight, BarChart2, List, Library, Users, Award } from "lucide-react";
 import Link from "next/link";
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
