@@ -77,16 +77,6 @@ export class ResearchDataScraper {
   private config: ScraperConfig;
   private logger: Logger;
 
-  private readonly CATEGORY_B_SUBCATEGORIES = [
-    "ABDC",
-    "De_Gruyter",
-    "Erih_plus",
-    "Journal_quality",
-    "AERES",
-    "CNRS",
-    "SCOPUS",
-    "Finacial_Times",
-  ];
 
   constructor(config: Partial<ScraperConfig> = {}) {
     this.config = {
@@ -444,28 +434,6 @@ export class ResearchDataScraper {
     ]);
 
     this.page.setDefaultTimeout(this.config.timeout);
-  }
-  private async configureNewPage(page: Page): Promise<void> {
-    // Block unnecessary resources
-    await page.route("**/*", (route) => {
-      const type = route.request().resourceType();
-      return ["image", "stylesheet", "font", "media"].includes(type)
-        ? route.abort()
-        : route.continue();
-    });
-
-    // Set user agent and headers
-    const userAgents = [
-      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-      // ... other user agents ...
-    ];
-
-    await page.setExtraHTTPHeaders({
-      "Accept-Language": "en-US,en;q=0.9",
-      "User-Agent": userAgents[Math.floor(Math.random() * userAgents.length)],
-    });
-
-    page.setDefaultTimeout(this.config.timeout);
   }
 
   private async ensureReady(): Promise<void> {
@@ -887,34 +855,6 @@ export class ResearchDataScraper {
     }
   }
 
-  private async rotateFingerprint(): Promise<void> {
-    this.logger.info("Rotating fingerprint due to detection...");
-
-    // Close current page and context
-    if (this.page) {
-      await this.page.close();
-      this.page = null;
-    }
-
-    // Create new browser instance and context with fresh fingerprint
-    const browser = await chromium.launch({
-      headless: this.config.headless,
-      timeout: this.config.timeout,
-    });
-    const context = await browser.newContext({
-      userAgent: this.getRandomUserAgent(),
-      viewport: {
-        width: 1280 + Math.floor(Math.random() * 200),
-        height: 720 + Math.floor(Math.random() * 200),
-      },
-    });
-
-    this.page = await context.newPage();
-    await this.configurePage();
-
-    // Add delay before continuing
-    await this.humanLikeDelay(5000, 10000);
-  }
 
   private normalizeField(field: string): string {
     return field
