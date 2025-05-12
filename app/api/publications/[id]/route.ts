@@ -1,4 +1,4 @@
-// app/api/publications/[id]/route.ts
+// src/app/api/publications/[id]/route.ts
 import { db } from "@/db/client";
 import {
   publications,
@@ -17,10 +17,10 @@ import type { NextRequest } from 'next/server';
 import { z } from "zod";
 import { auth } from "../../../../auth";
 
+// Updated schema with proper validation
 const publicationSchema = z.object({
-  title: z.string().min(1),
-  abstract: z.string().optional(),
-  authors: z.array(z.string()).optional(),
+  title: z.string().min(1, "Title is required"),
+  abstract: z.string().optional().nullable(),
   publicationType: z.enum([
     "journal_article",
     "conference_paper",
@@ -29,20 +29,41 @@ const publicationSchema = z.object({
     "technical_report",
     "thesis",
     "preprint"
-  ]).optional(),
-  publicationDate: z.string().optional(),
-  doi: z.string().optional(),
-  url: z.string().url().optional(),
-  pdfUrl: z.string().url().optional(),
-  scholarLink: z.string().url().optional(),
-  dblpLink: z.string().url().optional(),
-  pages: z.string().optional(),
-  volume: z.string().optional(),
-  issue: z.string().optional(),
-  publisher: z.string().optional(),
-  journal: z.string().optional(),
-  language: z.string().optional(),
-});
+  ]).optional().nullable(),
+  publicationDate: z.string().optional().nullable(),
+  doi: z.string()
+    .optional()
+    .nullable()
+    .refine(val => !val || val.startsWith('10.'), {
+      message: "DOI must start with '10.'"
+    }),
+  url: z.string()
+    .url("Must be a valid URL")
+    .or(z.literal(''))
+    .optional()
+    .nullable(),
+  pdfUrl: z.string()
+    .url("Must be a valid URL")
+    .or(z.literal(''))
+    .optional()
+    .nullable(),
+  scholarLink: z.string()
+    .url("Must be a valid URL")
+    .or(z.literal(''))
+    .optional()
+    .nullable(),
+  dblpLink: z.string()
+    .url("Must be a valid URL")
+    .or(z.literal(''))
+    .optional()
+    .nullable(),
+  pages: z.string().optional().nullable(),
+  volume: z.string().optional().nullable(),
+  issue: z.string().optional().nullable(),
+  publisher: z.string().optional().nullable(),
+  journal: z.string().optional().nullable(),
+  language: z.string().optional().nullable(),
+}).partial();
 
 export async function GET(
   request: NextRequest,
@@ -51,7 +72,6 @@ export async function GET(
   const publicationId = params.id;
 
   try {
-    // 1. Get basic publication info
     const publication = await db.query.publications.findFirst({
       where: eq(publications.id, publicationId),
       columns: {
@@ -87,7 +107,6 @@ export async function GET(
       );
     }
 
-    // 2. Get authors (researchers)
     const authors = await db
       .select({
         id: researchers.id,
@@ -100,7 +119,6 @@ export async function GET(
       .innerJoin(researchers, eq(publicationAuthors.researcherId, researchers.id))
       .where(eq(publicationAuthors.publicationId, publicationId));
 
-    // 3. Get external authors
     const externalAuthorsList = await db
       .select({
         id: externalAuthors.id,
@@ -111,7 +129,6 @@ export async function GET(
       .innerJoin(externalAuthors, eq(publicationExternalAuthors.authorId, externalAuthors.id))
       .where(eq(publicationExternalAuthors.publicationId, publicationId));
 
-    // 4. Get venues
     const publicationVenuesList = await db
       .select({
         id: venues.id,
@@ -131,7 +148,6 @@ export async function GET(
       .innerJoin(venues, eq(publicationVenues.venueId, venues.id))
       .where(eq(publicationVenues.publicationId, publicationId));
 
-    // 5. Get classifications
     const classifications = await db
       .select({
         systemId: classificationSystems.id,
@@ -167,7 +183,6 @@ export async function PUT(
 ) {
   const session = await auth();
   
-  // Check authentication
   if (!session?.user) {
     return NextResponse.json(
       { error: "Unauthorized" },
@@ -175,8 +190,7 @@ export async function PUT(
     );
   }
 
-  // Only admins can update publications
-  if (session.user.role !== "admin") {
+  if (session.user.role !== "assistant") {
     return NextResponse.json(
       { error: "Forbidden" },
       { status: 403 }
@@ -185,9 +199,17 @@ export async function PUT(
 
   try {
     const body = await request.json();
-    const validatedData = publicationSchema.parse(body);
+    
+    // Convert empty strings to null for all fields
+    const cleanedBody = Object.fromEntries(
+      Object.entries(body).map(([key, value]) => [
+        key, 
+        value === "" ? null : value
+      ])
+    );
 
-    // Update publication
+    const validatedData = publicationSchema.parse(cleanedBody);
+
     const [updatedPublication] = await db
       .update(publications)
       .set({
@@ -197,51 +219,38 @@ export async function PUT(
       .where(eq(publications.id, params.id))
       .returning();
 
-    return NextResponse.json(updatedPublication);
+    if (!updatedPublication) {
+      return NextResponse.json(
+        { error: "Publication not found or failed to update" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({ 
+      data: updatedPublication,
+      success: true 
+    });
+
   } catch (error) {
     if (error instanceof z.ZodError) {
+      console.error("Validation errors:", error.errors);
       return NextResponse.json(
-        { error: "Failed to update publication", details: error.errors },
+        { 
+          error: "Validation failed",
+          details: error.errors.map(e => ({
+            field: e.path.join('.'),
+            message: e.message
+          }))
+        },
         { status: 400 }
       );
     }
+    
     console.error("Error updating publication:", error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     return NextResponse.json(
       { error: "Failed to update publication", details: errorMessage },
-      { status: 400 }
-    );
-  }
-}
-
-/*
-export async function DELETE(
-  request: Request, 
-  { params }: { params: { id: string } }
-) {
-  const session = await auth();
-  
-  // Only admins can delete publications
-  if (!session?.user || session.user.role !== "admin") {
-    return NextResponse.json(
-      { error: "Unauthorized" },
-      { status: 401 }
-    );
-  }
-
-  try {
-    await db
-      .delete(publications)
-      .where(eq(publications.id, params.id));
-
-    return NextResponse.json(
-      { success: true },
-      { status: 200 }
-    );
-  } catch (error) {
-    return NextResponse.json(
-      { error: "Failed to delete publication", details: error.message },
       { status: 500 }
     );
   }
-}*/
+}

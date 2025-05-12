@@ -211,11 +211,7 @@ export default function PublicationsPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Research Publications</h1>
-        { (<Link href="/dashboard">
-                                <Button className="bg-blue-600 hover:bg-blue-700 text-white">Update BDD</Button>
-                                  
-                                  
-                                </Link>)}
+        
         <div className="flex gap-2">
           <Button variant="outline" onClick={toggleViewMode}>
             {viewMode === "list" ? (

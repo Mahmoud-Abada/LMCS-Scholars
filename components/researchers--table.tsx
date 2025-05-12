@@ -26,7 +26,6 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { researcherStatusEnum, researcherQualificationEnum, researcherPositionEnum } from "@/db/schema";
@@ -38,31 +37,19 @@ import {
   ChevronsRight,
   Search,
   SlidersHorizontal,
-  Trash2,
   MoreVertical,
   Mail,
   Phone,
-  Globe,
-  Link as LinkIcon,
   Calendar,
   User,
+  Link as LinkIcon,
 } from "lucide-react";
 import { useState } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { updateResearcherStatus, deleteResearcher } from "@/actions/researchers";
+import { toggleResearcherStatus } from "@/actions/researchers";
 import Link from "next/link"
 
 interface Researcher {
@@ -79,6 +66,7 @@ interface Researcher {
   citations?: number;
   joinDate?: string;
   leaveDate?: string;
+  orcidId?: string;
   createdAt: string;
 }
 
@@ -88,41 +76,20 @@ export function ResearchersTable({ researchers, isAdmin }: { researchers: Resear
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
   const [rowSelection, setRowSelection] = useState({});
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [selectedResearcher, setSelectedResearcher] = useState<Researcher | null>(null);
   const [pendingAction, setPendingAction] = useState(false);
 
-  const handleStatusChange = async (researcher: Researcher, newStatus: keyof typeof researcherStatusEnum) => {
+  const handleStatusToggle = async (researcherId: string) => {
     setPendingAction(true);
     try {
-      const result = await updateResearcherStatus(researcher.id, newStatus);
+      const result = await toggleResearcherStatus(researcherId);
       if (result?.success) {
-        toast.success(`Researcher status updated to ${researcherStatusEnum[newStatus]}`);
+        toast.success(`Researcher ${result.newStatus === "active" ? "activated" : "deactivated"} successfully`);
         router.refresh();
       }
     } catch (error) {
       toast.error(`Failed to update status: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setPendingAction(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!selectedResearcher) return;
-    
-    setPendingAction(true);
-    try {
-      const result = await deleteResearcher(selectedResearcher.id);
-      if (result?.success) {
-        toast.success('Researcher deleted successfully');
-        router.refresh();
-      }
-    } catch (error) {
-      toast.error(`Failed to delete researcher: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    } finally {
-      setPendingAction(false);
-      setDeleteDialogOpen(false);
-      setSelectedResearcher(null);
     }
   };
 
@@ -174,7 +141,7 @@ export function ResearchersTable({ researchers, isAdmin }: { researchers: Resear
       cell: ({ row }) => {
         const status = row.getValue("status") as keyof typeof researcherStatusEnum;
         return (
-          <Badge variant={status === researcherStatusEnum["active"] ? "default" : "destructive"}>
+          <Badge variant={status === "active" ? "default" : "destructive"}>
             {researcherStatusEnum[status]}
           </Badge>
         );
@@ -267,26 +234,10 @@ export function ResearchersTable({ researchers, isAdmin }: { researchers: Resear
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem
-                onClick={() => handleStatusChange(
-                  researcher, 
-                  researcher.status === researcherStatusEnum["active"] ? "inactive" : "active"
-                  
-                )}
+                onClick={() => handleStatusToggle(researcher.id)}
                 disabled={pendingAction}
               >
                 {researcher.status === "active" ? 'Deactivate' : 'Activate'}
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => {
-                  setSelectedResearcher(researcher);
-                  setDeleteDialogOpen(true);
-                }}
-                className="text-red-600"
-                disabled={pendingAction}
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -523,29 +474,6 @@ export function ResearchersTable({ researchers, isAdmin }: { researchers: Resear
           </div>
         </div>
       </div>
-
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the researcher
-              and all associated data.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={pendingAction}>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleDelete}
-              disabled={pendingAction}
-              className="bg-destructive hover:bg-destructive/90"
-            >
-              {pendingAction ? "Deleting..." : "Delete"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }

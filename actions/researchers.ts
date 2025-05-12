@@ -1,26 +1,32 @@
 "use server";
 
 import { db } from "@/db/client";
-import { researchers, users } from "@/db/schema";
+import { researchers } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { researcherStatusEnum } from "@/db/schema";
 
-export async function updateResearcherStatus(name: string, status: keyof typeof researcherStatusEnum) {
+export async function updateResearcherStatus(id: string, status: keyof typeof researcherStatusEnum) {
     try {
-      // First find the researcher by name
+      // First find the researcher by ID
       const researcher = await db.query.researchers.findFirst({
-        where: eq(researchers.name, name)
+        where: eq(researchers.id, id)
       });
   
       if (!researcher) {
-        throw new Error(`Researcher with name "${name}" not found`);
+        throw new Error(`Researcher not found`);
+      }
+
+      // Validate status
+      const validStatuses: (keyof typeof researcherStatusEnum)[] = ["active", "on_leave", "inactive", "retired"];
+      if (!validStatuses.includes(status)) {
+        throw new Error(`Invalid status: ${status}`);
       }
   
-      // Then update by the found ID
+      // Update the status
       const updated = await db.update(researchers)
         .set({ status })
-        .where(eq(researchers.id, researcher.id))
+        .where(eq(researchers.id, id))
         .returning();
         
       if (!updated.length) {
@@ -33,32 +39,37 @@ export async function updateResearcherStatus(name: string, status: keyof typeof 
       console.error("Update status error:", error);
       throw new Error(error instanceof Error ? error.message : "Failed to update status");
     }
-  }
+}
 
-export async function deleteResearcher(id: string) {
+// Function to toggle researcher status between active/inactive
+export async function toggleResearcherStatus(id: string) {
   try {
-    // First find the researcher by ID
     const researcher = await db.query.researchers.findFirst({
       where: eq(researchers.id, id)
     });
 
     if (!researcher) {
-      throw new Error("Researcher not found");
+      throw new Error(`Researcher not found`);
     }
 
-    // Then delete by the found ID
-    const deleted = await db.delete(researchers)
-      .where(eq(researchers.id, researcher.id))
+    const newStatus = researcher.status === "active" ? "inactive" : "active";
+    
+    const updated = await db.update(researchers)
+      .set({ status: newStatus })
+      .where(eq(researchers.id, id))
       .returning();
       
-    if (!deleted.length) {
-      throw new Error("Failed to delete researcher");
+    if (!updated.length) {
+      throw new Error("Failed to toggle researcher status");
     }
     
     revalidatePath("/researchers");
-    return { success: true };
+    return { 
+      success: true,
+      newStatus 
+    };
   } catch (error) {
-    console.error("Delete researcher error:", error);
-    throw new Error(error instanceof Error ? error.message : "Failed to delete");
+    console.error("Toggle researcher status error:", error);
+    throw new Error(error instanceof Error ? error.message : "Failed to toggle status");
   }
 }

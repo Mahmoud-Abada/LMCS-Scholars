@@ -120,21 +120,21 @@ export default function HomePage() {
         <h2 className="text-2xl font-bold mb-6 text-[#2d3748]">Recent News</h2>
         <div className="space-y-4">
           <div className="bg-white p-5 rounded-lg border-l-4 border-[#3182ce]">
-            <h3 className="text-lg font-semibold mb-2 text-[#2d3748]">New AI Research Published</h3>
+            <h3 className="text-lg font-semibold mb-2 text-[#2d3748]">An Efficient Genetic Algorithm for Service Placement in Fog Computing</h3>
             <p className="text-[#4a5568] mb-3">
-              Our team's latest paper on neural networks was accepted at NeurIPS 2023.
+              
             </p>
             <Button variant="link" className="p-0 h-auto text-[#3182ce] hover:text-[#2c5282]" asChild>
-              <Link href="/news/ai-research">Read more →</Link>
+              <Link href="/publication/3d1d85db-790b-4694-85fe-3176b6942cc2">Read more →</Link>
             </Button>
           </div>
           <div className="bg-white p-5 rounded-lg border-l-4 border-[#3182ce]">
-            <h3 className="text-lg font-semibold mb-2 text-[#2d3748]">International Partnership</h3>
+            <h3 className="text-lg font-semibold mb-2 text-[#2d3748]">Efficient Disaster-Resilient Network Slicing for URLLC in UAV-Enabled MEC Using Federated Learning</h3>
             <p className="text-[#4a5568] mb-3">
-              Announcing new collaboration with ETH Zurich on cybersecurity research.
+              .
             </p>
             <Button variant="link" className="p-0 h-auto text-[#3182ce] hover:text-[#2c5282]" asChild>
-              <Link href="/news/collaboration">Learn more →</Link>
+              <Link href="/publication/791e4ee7-a79f-42e7-9c46-bdaed452a51a">Learn more →</Link>
             </Button>
           </div>
         </div>

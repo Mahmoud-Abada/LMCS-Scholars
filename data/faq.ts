@@ -46,7 +46,7 @@ export const faqData = [
   },
   {
     question: "Comment supprimer une publication ?",
-    answer: "Les chercheurs peuvent demander la suppression via 'Mes Publications' > 'Demande de suppression'.",
+    answer: "l'assistant peut modifier les publications' '.",
     keywords: ["supprimer publication", "retirer article"],
   },
   {
@@ -76,11 +76,7 @@ export const faqData = [
     answer: "Allez dans 'Mon Profil Chercheur' et cliquez sur 'Modifier'.",
     keywords: ["modifier profil chercheur", "changer biographie"],
   },
-  {
-    question: "Comment ajouter une biographie ou une photo ?",
-    answer: "Accédez à votre profil chercheur et ajoutez les informations depuis l’éditeur de profil.",
-    keywords: ["ajouter bio", "photo chercheur"],
-  },
+  
 
   // Section Admin
   {
