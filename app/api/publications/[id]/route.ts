@@ -1,4 +1,3 @@
-// app/api/publications/[id]/route.ts
 import { db } from "@/db/client";
 import {
   publications,
@@ -51,7 +50,6 @@ export async function GET(
   const publicationId = params.id;
 
   try {
-    // 1. Get basic publication info
     const publication = await db.query.publications.findFirst({
       where: eq(publications.id, publicationId),
       columns: {
@@ -87,7 +85,6 @@ export async function GET(
       );
     }
 
-    // 2. Get authors (researchers)
     const authors = await db
       .select({
         id: researchers.id,
@@ -100,7 +97,6 @@ export async function GET(
       .innerJoin(researchers, eq(publicationAuthors.researcherId, researchers.id))
       .where(eq(publicationAuthors.publicationId, publicationId));
 
-    // 3. Get external authors
     const externalAuthorsList = await db
       .select({
         id: externalAuthors.id,
@@ -111,7 +107,6 @@ export async function GET(
       .innerJoin(externalAuthors, eq(publicationExternalAuthors.authorId, externalAuthors.id))
       .where(eq(publicationExternalAuthors.publicationId, publicationId));
 
-    // 4. Get venues
     const publicationVenuesList = await db
       .select({
         id: venues.id,
@@ -131,7 +126,6 @@ export async function GET(
       .innerJoin(venues, eq(publicationVenues.venueId, venues.id))
       .where(eq(publicationVenues.publicationId, publicationId));
 
-    // 5. Get classifications
     const classifications = await db
       .select({
         systemId: classificationSystems.id,
@@ -167,7 +161,6 @@ export async function PUT(
 ) {
   const session = await auth();
   
-  // Check authentication
   if (!session?.user) {
     return NextResponse.json(
       { error: "Unauthorized" },
@@ -175,8 +168,7 @@ export async function PUT(
     );
   }
 
-  // Only admins can update publications
-  if (session.user.role !== "admin") {
+  if (session.user.role !== "assistant") {
     return NextResponse.json(
       { error: "Forbidden" },
       { status: 403 }
@@ -187,7 +179,6 @@ export async function PUT(
     const body = await request.json();
     const validatedData = publicationSchema.parse(body);
 
-    // Update publication
     const [updatedPublication] = await db
       .update(publications)
       .set({
@@ -197,51 +188,37 @@ export async function PUT(
       .where(eq(publications.id, params.id))
       .returning();
 
-    return NextResponse.json(updatedPublication);
+    if (!updatedPublication) {
+      return NextResponse.json(
+        { error: "Failed to update publication" },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({ 
+      data: updatedPublication,
+      success: true 
+    });
+
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: "Failed to update publication", details: error.errors },
+        { 
+          error: "Validation failed",
+          details: error.errors.map(e => ({
+            path: e.path.join('.'),
+            message: e.message
+          }))
+        },
         { status: 400 }
       );
     }
+    
     console.error("Error updating publication:", error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     return NextResponse.json(
       { error: "Failed to update publication", details: errorMessage },
-      { status: 400 }
-    );
-  }
-}
-
-/*
-export async function DELETE(
-  request: Request, 
-  { params }: { params: { id: string } }
-) {
-  const session = await auth();
-  
-  // Only admins can delete publications
-  if (!session?.user || session.user.role !== "admin") {
-    return NextResponse.json(
-      { error: "Unauthorized" },
-      { status: 401 }
-    );
-  }
-
-  try {
-    await db
-      .delete(publications)
-      .where(eq(publications.id, params.id));
-
-    return NextResponse.json(
-      { success: true },
-      { status: 200 }
-    );
-  } catch (error) {
-    return NextResponse.json(
-      { error: "Failed to delete publication", details: error.message },
       { status: 500 }
     );
   }
-}*/
+}

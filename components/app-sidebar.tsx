@@ -84,7 +84,7 @@ export function AppSidebar() {
       group: "SECTIONS",
       items: [
         {
-          title: "Accueil",
+          title: "home",
           url: "/",
           icon: RiTeamLine,
         },
@@ -95,17 +95,17 @@ export function AppSidebar() {
           icon: RiArticleLine,
         },
         {
-          title: "Statistiques",
+          title: "Statistics",
           url: "/stats",
           icon: RiScanLine,
         },
         {
-          title: "chercheurs",
+          title: "researchers",
           url: "/dashboard",
           icon: RiBarChartHorizontalFill,
         },
         {
-          title: "À propos",
+          title: "about",
           url: "/about",
           icon: RiBardLine,
         },
@@ -153,7 +153,7 @@ export function AppSidebar() {
                   ? "Chercheur"
                   : user.role === "admin"
                   ? "Administrateur"
-                  : "vous êtes connecté"}
+                  : "you're logged in"}
               </p>
             </div>
           )}

@@ -41,7 +41,29 @@ import { useSession } from "next-auth/react";
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
-// import { Publication } from '@/types/publication';
+type Publication = {
+  id: string;
+  title: string;
+  abstract?: string;
+  authors?: any[];
+  externalAuthors?: any[];
+  venues?: any[];
+  classifications?: any[];
+  publicationType?: string;
+  publicationDate?: string;
+  doi?: string;
+  url?: string;
+  pdfUrl?: string;
+  scholarLink?: string;
+  dblpLink?: string;
+  citationCount: number;
+  pages?: string;
+  volume?: string;
+  issue?: string;
+  publisher?: string;
+  journal?: string;
+  language?: string;
+};
 
 export default function PublicationDetails() {
   const router = useRouter();
@@ -52,7 +74,7 @@ export default function PublicationDetails() {
   const [error, setError] = useState<string | null>(null);
   const [editMode, setEditMode] = useState(false);
 
-  const isAdmin = session?.user?.role ==='assistant';
+  const isAdmin = session?.user?.role === 'assistant';
 
   useEffect(() => {
     const fetchPublication = async () => {
@@ -74,13 +96,10 @@ export default function PublicationDetails() {
   }, [id]);
 
   const handleUpdateSuccess = (updatedPublication: Publication) => {
-    setPublication(prev => ({
-      ...prev,
-      ...updatedPublication
-    }));
+    setPublication(updatedPublication);
     setEditMode(false);
     toast.success('Publication updated successfully');
-    router.refresh(); // Add this to ensure the page gets fresh data
+    router.refresh();
   };
 
   if (editMode && publication) {
@@ -104,6 +123,7 @@ export default function PublicationDetails() {
       </SidebarProvider>
     );
   }
+
 
   if (loading) {
     return (

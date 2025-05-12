@@ -1,4 +1,3 @@
-// components/UpdatePublicationForm.tsx
 'use client';
 
 import { useState } from 'react';
@@ -46,7 +45,7 @@ export function UpdatePublicationForm({
     title: publication.title || '',
     abstract: publication.abstract || '',
     publicationType: publication.publicationType || '',
-    publicationDate: publication.publicationDate || '',
+    publicationDate: publication.publicationDate?.split('T')[0] || '',
     doi: publication.doi || '',
     url: publication.url || '',
     pdfUrl: publication.pdfUrl || '',
@@ -70,31 +69,46 @@ export function UpdatePublicationForm({
     const toastId = toast.loading('Updating publication...');
   
     try {
+      const submitData = {
+        ...formData,
+        publicationDate: formData.publicationDate 
+          ? new Date(formData.publicationDate).toISOString()
+          : undefined
+      };
+
       const response = await fetch(`/api/publications/${publication.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(submitData),
       });
-  
+
       const result = await response.json();
-  
+
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to update publication');
+        throw new Error(
+          result.error?.message || 
+          result.error || 
+          'Failed to update publication'
+        );
       }
-  
+
       toast.success('Publication updated successfully!', { id: toastId });
-      onSuccess(result.data); // Make sure your API returns { data: Publication }
+      onSuccess(result.data);
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : 'Failed to update publication', 
-        { id: toastId }
-      );
+      let errorMessage = 'Failed to update publication';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+      toast.error(errorMessage, { id: toastId });
     } finally {
       setLoading(false);
     }
   };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
