@@ -5,6 +5,7 @@ import { readdirSync, readFileSync } from "fs";
 import { join } from "path";
 import {
   chromium,
+  firefox,
   type BrowserContext,
   type BrowserContextOptions,
   type LaunchOptions,
@@ -127,15 +128,36 @@ export class ResearchDataScraper {
         launchOptions.proxy = this.config.proxy;
       }
 
+      // Get browser type and path from environment variables
+      const browserType = process.env.BROWSER_TYPE || 'chromium'; // Default to chromium
+      const browserPath = process.env.BROWSER_PATH;
+
+      if (!browserPath) {
+        throw new Error('BROWSER_PATH environment variable must be set to browser executable path');
+      }
+
+      // Set the executable path in launch options
+      launchOptions.executablePath = browserPath;
+
+      // Select browser type based on environment variable
+      const browser = {
+        chromium: chromium,
+        firefox: firefox,
+      }[browserType];
+
+      if (!browser) {
+        throw new Error('BROWSER_TYPE must be one of: chromium, firefox');
+      }
+
       // Use launchPersistentContext if userDataDir is provided
       if (this.config.userDataDir) {
-        this.browser = await chromium.launchPersistentContext(
+        this.browser = await browser.launchPersistentContext(
           this.config.userDataDir,
           launchOptions
         );
       } else {
-        const browser = await chromium.launch(launchOptions);
-        this.browser = await browser.newContext();
+        const browserInstance = await browser.launch(launchOptions);
+        this.browser = await browserInstance.newContext();
       }
 
       this.isInitialized = true;
