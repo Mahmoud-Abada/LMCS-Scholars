@@ -18,12 +18,11 @@ const nextConfig = {
   },
   // Add this to handle Node.js modules
   experimental: {
-    serverComponentsExternalPackages: ['bcryptjs', 'postgres'],
+   
     optimizePackageImports: ['@workspace/ui'],
-    missingSuspenseWithCSRBailout: false,
+   
   },
-  // For the database error during build
-  skipDatabaseValidation: true
+ 
 }
 
 export default nextConfig;

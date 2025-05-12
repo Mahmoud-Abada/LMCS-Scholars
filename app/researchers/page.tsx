@@ -1,7 +1,7 @@
 // app/analytics/researchers/page.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,7 +35,7 @@ import Link from 'next/link';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
 
-export default function ResearchersAnalyticsPage() {
+function ResearchersAnalyticsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [data, setData] = useState<any>(null);
@@ -422,6 +422,14 @@ export default function ResearchersAnalyticsPage() {
     </div>
   );
 }
+
+export default function ResearchersAnalyticsPage() {
+  return (
+    <Suspense >
+      <ResearchersAnalyticsPageContent />
+    </Suspense>
+  );
+} 
 
 function MetricCard({ title, value, precision = 0 }: { title: string; value: number; precision?: number }) {
   return (

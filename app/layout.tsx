@@ -12,10 +12,9 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  // ${fontSans.variable} font-sans antialiased
   return (
-    <html lang="en" className="dark scheme-only-dark">
-      <body className={``}>
+    <html lang="en" className="dark scheme-only-dark" suppressHydrationWarning={true}>
+      <body suppressHydrationWarning={true}>
         <LanguageProvider>
           <SessionProvider>
             <div className="flex min-h-screen">
@@ -24,8 +23,7 @@ export default function RootLayout({
                 <FloatingChatbot />
               </LayoutWrapper>
             </div>
-           
-            <Toaster position="bottom-right" richColors /> {/* Updated Toaster */}
+            <Toaster position="bottom-right" richColors />
           </SessionProvider>
         </LanguageProvider>
       </body>

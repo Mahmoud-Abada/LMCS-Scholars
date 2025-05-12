@@ -81,7 +81,6 @@ export async function seedDefaultUsers() {
     return results;
   } catch (error) {
     console.error("❌ Error seeding default users:", error);
-    throw error;
   }
 }
 

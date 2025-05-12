@@ -164,7 +164,6 @@ export async function seedResearchers() {
     return results;
   } catch (error) {
     console.error("❌ Error seeding researchers:", error);
-    throw error;
   }
 }
 

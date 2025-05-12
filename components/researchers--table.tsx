@@ -41,7 +41,6 @@ import {
   Mail,
   Phone,
   Calendar,
-  User,
   Link as LinkIcon,
 } from "lucide-react";
 import { useState } from "react";
