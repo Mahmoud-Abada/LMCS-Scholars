@@ -132,7 +132,7 @@ export default function AddGeneralPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          to: "nh_rafa@esi.dz",
+          to: email,
           subject: form.role === 'researcher' 
             ? 'Welcome to Our Research Platform' 
             : 'Your Account Has Been Created',

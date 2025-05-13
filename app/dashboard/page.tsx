@@ -105,7 +105,7 @@ export default async function Page() {
   });
   
 
-  const showAddResearcher = user && ["admin", "assistant", "director"].includes(user.role);
+  const showAddResearcher = user && [ "assistant", "director"].includes(user.role);
 
   return (
     <div className="flex w-full bg-gray-50">
@@ -150,7 +150,7 @@ export default async function Page() {
     </Button>
   </Link>
 )}
-                      {showAddResearcher && (<Link href="/addGeneral">
+                      {showAddResearcher && user.role=="director" && (<Link href="/addGeneral">
   <Button className="bg-blue-600 hover:bg-blue-700 text-white">
     Add New Member
   </Button>

@@ -37,7 +37,11 @@ export default function HomePage() {
             <div className="flex gap-4">
               <Button asChild className="px-6 py-3 text-lg bg-[#1a365d] text-white hover:bg-[#2c4d8a]">
                 <Link href="/dashboard">Go to Dashboard</Link>
+               
               </Button>
+              
+              <div className="c text-red-500 ml-44">If there is an issue, please refresh the page.</div>
+
             </div>
           ) : (
             <div className="flex gap-4">
@@ -78,7 +82,7 @@ export default function HomePage() {
             </div>
           </Link>
 
-          <Link href="/research" className="group">
+          <Link href="/dashboard" className="group">
             <div className="bg-white p-6 rounded-xl border border-[#e2e8f0] hover:border-[#90cdf4] transition-all">
               <div className="flex items-center gap-4 mb-3">
                 <LineChart className="h-5 w-5 text-[#3182ce]" />

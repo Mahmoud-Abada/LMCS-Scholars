@@ -74,7 +74,8 @@ export async function PUT(
     // Compare both ID and email for extra security
     const isAuthorized = (
       session.user.id === id || 
-      session.user.email === existingResearcher.email
+      session.user.email === existingResearcher.email ||
+      session.user.role === "assistant"
     );
 
     if (!isAuthorized) {
