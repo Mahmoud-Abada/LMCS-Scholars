@@ -13,7 +13,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { useState } from "react"; // Add this import
+import { useState } from "react";
 
 interface Researcher {
   id: string;
@@ -24,12 +24,12 @@ interface Researcher {
 
 export default function ClientPage({ researchers }: { researchers: Researcher[] }) {
   const router = useRouter();
-  const [selectedIds, setSelectedIds] = useState<string[]>([]); // Add this state
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const handleCheckboxChange = (id: string) => {
     setSelectedIds(prev =>
-      prev.includes(id) 
-        ? prev.filter(item => item !== id) 
+      prev.includes(id)
+        ? prev.filter(item => item !== id)
         : [...prev, id]
     );
   };
@@ -70,7 +70,7 @@ export default function ClientPage({ researchers }: { researchers: Researcher[] 
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-6">Update the database</h1>
-      
+
       <div className="bg-white rounded-lg shadow p-4">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold">
@@ -82,33 +82,26 @@ export default function ClientPage({ researchers }: { researchers: Researcher[] 
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[40px]"></TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Researcher personal page</TableHead>
+                <TableHead className="text-center w-[80px]">Select</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {researchers.map((researcher) => (
                 <TableRow key={researcher.id}>
                   <TableCell>
-                    <Checkbox 
-                      name="researcherIds" 
-                      value={researcher.id}
-                      id={`researcher-${researcher.id}`}
-                      checked={selectedIds.includes(researcher.id)}
-                      onCheckedChange={() => handleCheckboxChange(researcher.id)}
-                    />
-                  </TableCell>
-                  <TableCell>
                     {researcher.firstName} {researcher.lastName}
                   </TableCell>
                   <TableCell>
-                    <span className={`px-2 py-1 rounded text-xs ${
-                      researcher.status === "active" 
-                        ? "bg-green-100 text-green-800" 
-                        : "bg-red-100 text-red-800"
-                    }`}>
+                    <span
+                      className={`px-2 py-1 rounded text-xs ${
+                        researcher.status === "active"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-red-100 text-red-800"
+                      }`}
+                    >
                       {researcher.status}
                     </span>
                   </TableCell>
@@ -116,6 +109,16 @@ export default function ClientPage({ researchers }: { researchers: Researcher[] 
                     <Link href={`/researcher/${researcher.id}`}>
                       View Profile
                     </Link>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Checkbox
+                      name="researcherIds"
+                      value={researcher.id}
+                      id={`researcher-${researcher.id}`}
+                      checked={selectedIds.includes(researcher.id)}
+                      onCheckedChange={() => handleCheckboxChange(researcher.id)}
+                      className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    />
                   </TableCell>
                 </TableRow>
               ))}
@@ -129,7 +132,7 @@ export default function ClientPage({ researchers }: { researchers: Researcher[] 
               Cancel
             </Button>
           </Link>
-          <Button 
+          <Button
             onClick={handleSubmit}
             className="bg-blue-600 hover:bg-blue-700"
           >
