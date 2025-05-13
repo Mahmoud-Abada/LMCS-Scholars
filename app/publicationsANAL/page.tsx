@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import {
@@ -42,7 +43,8 @@ import {
   YAxis,
   ZAxis,
 } from "recharts";
-import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
+import { X } from "lucide-react";
 
 const COLORS = [
   "#0088FE",
@@ -152,83 +154,106 @@ type PublicationData = {
   }>;
 };
 
- function PublicationAnalyticsDashboardContent() {
-  const searchParams = useSearchParams();
+function PublicationAnalyticsDashboardContent() {
   const [activeTab, setActiveTab] = useState("overview");
   const [data, setData] = useState<PublicationData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState({
     yearFrom: "",
     yearTo: "",
-    teamId: "",
-    researcherId: "",
-    venueId: "",
-    classificationId: "",
     publicationType: "",
     minCitations: "",
-    limit: "10",
   });
+  const [activeFilters, setActiveFilters] = useState<string[]>([]);
 
-  // Fetch data from API
+  // Fetch all data initially
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        setError(null);
-
-        // Build query params from URL and local state
-        const params = new URLSearchParams();
-        if (filters.yearFrom) params.set("yearFrom", filters.yearFrom);
-        if (filters.yearTo) params.set("yearTo", filters.yearTo);
-        if (filters.teamId) params.set("teamId", filters.teamId);
-        if (filters.researcherId)
-          params.set("researcherId", filters.researcherId);
-        if (filters.venueId) params.set("venueId", filters.venueId);
-        if (filters.classificationId)
-          params.set("classificationId", filters.classificationId);
-        if (filters.publicationType)
-          params.set("publicationType", filters.publicationType);
-        if (filters.minCitations)
-          params.set("minCitations", filters.minCitations);
-        if (filters.limit) params.set("limit", filters.limit);
-
-        const response = await fetch(
-          `/api/analytics/publications?${params.toString()}`
-        );
-
+        const response = await fetch('/api/analytics/publications');
+        
         if (!response.ok) {
-          throw new Error("Failed to fetch publication analytics data");
+          throw new Error("Failed to fetch data");
         }
 
         const result = await response.json();
         setData(result);
-      } catch (err) {
-        console.error("Error fetching publication analytics data:", err);
-        setError(err instanceof Error ? err.message : "Unknown error occurred");
-        toast.error("Failed to load publication analytics data");
+      } catch (error) {
+        console.error("Error fetching data:", error);
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [searchParams, filters]);
+  }, []);
 
   const handleFilterChange = (key: string, value: string) => {
-    setFilters((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
+    setFilters(prev => ({ ...prev, [key]: value }));
   };
+
+  const applyFilters = () => {
+    const newActiveFilters = [];
+    if (filters.yearFrom) newActiveFilters.push(`From: ${filters.yearFrom}`);
+    if (filters.yearTo) newActiveFilters.push(`To: ${filters.yearTo}`);
+    if (filters.publicationType) newActiveFilters.push(`Type: ${filters.publicationType}`);
+    if (filters.minCitations) newActiveFilters.push(`Min Citations: ${filters.minCitations}`);
+    setActiveFilters(newActiveFilters);
+  };
+
+  const resetFilters = () => {
+    setFilters({
+      yearFrom: "",
+      yearTo: "",
+      publicationType: "",
+      minCitations: "",
+    });
+    setActiveFilters([]);
+  };
+
+  const removeFilter = (filterKey: string) => {
+    const key = filterKey.split(':')[0].trim().toLowerCase();
+    const newFilters = { ...filters };
+
+    if (key === 'from') {
+      newFilters.yearFrom = '';
+    } else if (key === 'to') {
+      newFilters.yearTo = '';
+    } else if (key === 'type') {
+      newFilters.publicationType = '';
+    } else if (key === 'min citations') {
+      newFilters.minCitations = '';
+    }
+
+    setFilters(newFilters);
+    setActiveFilters(prev => prev.filter(f => f !== filterKey));
+  };
+
+  // Filter data client-side
+  const filteredData = data ? {
+    ...data,
+    yearly_trends: data.yearly_trends.filter(item => {
+      const year = parseInt(item.year);
+      return (
+        (!filters.yearFrom || year >= parseInt(filters.yearFrom)) &&
+        (!filters.yearTo || year <= parseInt(filters.yearTo))
+      );
+    }),
+    publication_types: data.publication_types.filter(item => 
+      !filters.publicationType || item.publication_type === filters.publicationType
+    ),
+    top_cited_publications: data.top_cited_publications.filter(item => 
+      !filters.minCitations || item.citation_count >= parseInt(filters.minCitations)
+    ),
+    // Add other filtered arrays as needed
+  } : null;
 
   if (loading) {
     return (
       <div className="p-6 bg-gray-50 min-h-screen">
         <div className="max-w-7xl mx-auto space-y-6">
           <Skeleton className="h-10 w-64 mb-6" />
-
-          {/* Loading skeleton for metrics cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             {[...Array(4)].map((_, i) => (
               <Card key={i}>
@@ -242,8 +267,6 @@ type PublicationData = {
               </Card>
             ))}
           </div>
-
-          {/* Loading skeleton for tabs */}
           <div className="space-y-6">
             <Skeleton className="h-10 w-full" />
             <Skeleton className="h-96 w-full" />
@@ -253,38 +276,24 @@ type PublicationData = {
     );
   }
 
-  if (error) {
-    return (
-      <div className="p-6 bg-gray-50 min-h-screen">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-red-500">{error}</div>
-        </div>
-      </div>
-    );
-  }
-
   if (!data) {
     return (
       <div className="p-6 bg-gray-50 min-h-screen">
         <div className="max-w-7xl mx-auto">
-          <div className="text-gray-500">No publication data available</div>
+          <Card>
+            <CardHeader>
+              <CardTitle>No Data Available</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-gray-500">
+                Could not load publication data. Please try again later.
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     );
   }
-
-  // Format data for charts
-  const citationImpactData = data.citation_impact.map((item) => ({
-    ...item,
-    count: Number(item.count),
-    total_citations: Number(item.total_citations),
-  }));
-
-  const publicationVelocityData = data.publication_velocity.map((item) => ({
-    ...item,
-    publication_count: Number(item.publication_count),
-    growth: Number(item.growth),
-  }));
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -308,9 +317,7 @@ type PublicationData = {
                   type="number"
                   placeholder="1990"
                   value={filters.yearFrom}
-                  onChange={(e) =>
-                    handleFilterChange("yearFrom", e.target.value)
-                  }
+                  onChange={(e) => handleFilterChange("yearFrom", e.target.value)}
                   min="1990"
                   max={new Date().getFullYear()}
                 />
@@ -336,9 +343,7 @@ type PublicationData = {
                   type="number"
                   placeholder="0"
                   value={filters.minCitations}
-                  onChange={(e) =>
-                    handleFilterChange("minCitations", e.target.value)
-                  }
+                  onChange={(e) => handleFilterChange("minCitations", e.target.value)}
                   min="0"
                 />
               </div>
@@ -348,36 +353,51 @@ type PublicationData = {
                 </label>
                 <Select
                   value={filters.publicationType}
-                  onValueChange={(value) =>
-                    handleFilterChange("publicationType", value)
-                  }
+                  onValueChange={(value) => handleFilterChange("publicationType", value)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="All types" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="default">All Types</SelectItem>
-                    <SelectItem value="journal_article">
-                      Journal Article
-                    </SelectItem>
-                    <SelectItem value="conference_paper">
-                      Conference Paper
-                    </SelectItem>
+                    <SelectItem value="journal_article">Journal Article</SelectItem>
+                    <SelectItem value="conference_paper">Conference Paper</SelectItem>
                     <SelectItem value="book_chapter">Book Chapter</SelectItem>
                     <SelectItem value="patent">Patent</SelectItem>
-                    <SelectItem value="technical_report">
-                      Technical Report
-                    </SelectItem>
+                    <SelectItem value="technical_report">Technical Report</SelectItem>
                     <SelectItem value="thesis">Thesis</SelectItem>
                     <SelectItem value="preprint">Preprint</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
+            <div className="flex justify-end gap-2 mt-4">
+              <Button variant="outline" onClick={resetFilters}>
+                Reset
+              </Button>
+              <Button onClick={applyFilters}>Apply Filters</Button>
+            </div>
           </CardContent>
         </Card>
 
-        {/* High Level Metrics */}
+        {/* Active filters */}
+        {activeFilters.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-6">
+            {activeFilters.map((filter) => (
+              <Badge key={filter} variant="outline" className="px-3 py-1">
+                {filter}
+                <button 
+                  onClick={() => removeFilter(filter)}
+                  className="ml-2 hover:text-red-500"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </Badge>
+            ))}
+          </div>
+        )}
+
+        {/* High Level Metrics - Always show full data metrics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card className="bg-gradient-to-br from-blue-50 to-blue-100">
             <CardHeader>
@@ -388,8 +408,7 @@ type PublicationData = {
                 {data.high_level_metrics.total_publications}
               </div>
               <p className="text-sm text-gray-600 mt-1">
-                {data.high_level_metrics.total_citations.toLocaleString()} total
-                citations
+                {data.high_level_metrics.total_citations.toLocaleString()} total citations
               </p>
             </CardContent>
           </Card>
@@ -429,8 +448,7 @@ type PublicationData = {
             <CardContent>
               <div className="text-3xl font-bold">
                 {data.yearly_trends.length
-                  ? data.yearly_trends[data.yearly_trends.length - 1]
-                      .publication_count
+                  ? data.yearly_trends[data.yearly_trends.length - 1].publication_count
                   : 0}
               </div>
               <p className="text-sm text-gray-600 mt-1">
@@ -451,6 +469,7 @@ type PublicationData = {
           </TabsList>
         </Tabs>
 
+        {/* Render charts using filteredData or fallback to original data */}
         {activeTab === "overview" && (
           <div className="space-y-6">
             {/* Yearly Trends */}
@@ -465,7 +484,7 @@ type PublicationData = {
                 <div className="h-96">
                   <ResponsiveContainer width="100%" height="100%">
                     <ComposedChart
-                      data={data.yearly_trends}
+                      data={filteredData?.yearly_trends || data.yearly_trends}
                       margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
                     >
                       <CartesianGrid strokeDasharray="3 3" />
@@ -510,7 +529,7 @@ type PublicationData = {
                 <div className="h-96">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
-                      data={data.publication_types}
+                      data={filteredData?.publication_types || data.publication_types}
                       layout="vertical"
                       margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                     >
@@ -547,7 +566,11 @@ type PublicationData = {
                 <div className="h-96">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart
-                      data={publicationVelocityData}
+                      data={data.publication_velocity.map(item => ({
+                        ...item,
+                        publication_count: Number(item.publication_count),
+                        growth: Number(item.growth),
+                      }))}
                       margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
                     >
                       <CartesianGrid strokeDasharray="3 3" />
@@ -862,18 +885,16 @@ type PublicationData = {
                 </div>
               </CardContent>
             </Card>
-          </div>
-        )}
+          </div>        )}
       </div>
     </div>
   );
 }
 
-
-export default function PublicationAnalyticsDashboard(){
-  return(
+export default function PublicationAnalyticsDashboard() {
+  return (
     <Suspense>
       <PublicationAnalyticsDashboardContent />
     </Suspense>
-  )
+  );
 }
